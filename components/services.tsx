@@ -19,10 +19,14 @@ export function Services() {
   return (
     <section
       id="services"
+      aria-labelledby="services-heading"
       className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
     >
       <Reveal>
-        <h2 className="max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl">
+        <h2
+          id="services-heading"
+          className="max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
+        >
           Four ways to sit in the chair.
         </h2>
         <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted lg:text-lg">

@@ -35,10 +35,14 @@ export function StyleGalleries() {
   return (
     <section
       id="styles"
+      aria-labelledby="styles-heading"
       className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
     >
       <Reveal>
-        <h2 className="max-w-[18ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl">
+        <h2
+          id="styles-heading"
+          className="max-w-[18ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
+        >
           {STYLES_SECTION.heading}
         </h2>
         <p className="mt-4 max-w-[54ch] text-base leading-relaxed text-muted lg:text-lg">
@@ -159,7 +163,7 @@ function StyleRail({ group }: { group: (typeof STYLE_GROUPS)[number] }) {
             key={shot.src}
             className="w-[78%] shrink-0 snap-start sm:w-[46%] lg:w-[31%]"
           >
-            <figure>
+            <figure className="group">
               <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-surface-2 shadow-soft">
                 <Image
                   src={shot.src}
@@ -168,7 +172,7 @@ function StyleRail({ group }: { group: (typeof STYLE_GROUPS)[number] }) {
                   height={shot.height}
                   loading="lazy"
                   sizes="(min-width: 1024px) 31vw, (min-width: 640px) 46vw, 78vw"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:group-hover:scale-[1.04]"
                 />
               </div>
               <figcaption className="mt-3 text-sm leading-relaxed text-muted">

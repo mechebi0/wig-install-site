@@ -319,12 +319,16 @@ function BookingShell({ children }: { children: React.ReactNode }) {
   return (
     <section
       id="book"
+      aria-labelledby="booking-heading"
       className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
     >
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-5">
           <Reveal>
-            <h2 className="font-display text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:text-4xl lg:text-5xl">
+            <h2
+              id="booking-heading"
+              className="font-display text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:text-4xl lg:text-5xl"
+            >
               {BOOKING.heading}
             </h2>
             <p className="mt-5 max-w-[42ch] text-lg leading-relaxed text-muted">

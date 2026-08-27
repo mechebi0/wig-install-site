@@ -12,10 +12,16 @@ import { PROCESS } from "@/lib/content";
  */
 export function Process() {
   return (
-    <section className="bg-surface-2/60 py-20 lg:py-28">
+    <section
+      aria-labelledby="process-heading"
+      className="bg-surface-2/60 py-20 lg:py-28"
+    >
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
         <Reveal>
-          <h2 className="max-w-[20ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl">
+          <h2
+            id="process-heading"
+            className="max-w-[20ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
+          >
             What two hours in the chair looks like.
           </h2>
         </Reveal>

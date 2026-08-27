@@ -20,7 +20,16 @@ const ICONS = {
  */
 export function Assurances() {
   return (
-    <section className="border-y border-line bg-surface/70">
+    /*
+      Named with aria-label rather than aria-labelledby: this strip has three
+      peer headings and no heading of its own, so there is nothing to point at.
+      Without a name a <section> is not exposed as a landmark at all, which is
+      why every section on this page carries one.
+    */
+    <section
+      aria-label="What every client gets"
+      className="border-y border-line bg-surface/70"
+    >
       <div className="mx-auto grid max-w-[1400px] gap-px bg-line sm:grid-cols-3">
         {ASSURANCES.map((item, i) => {
           const Icon = ICONS[item.icon];

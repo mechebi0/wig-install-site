@@ -16,10 +16,16 @@ const OFFSETS = ["lg:mt-0", "lg:mt-14", "lg:mt-6"] as const;
 
 export function Testimonials() {
   return (
-    <section className="border-t border-line py-20 lg:py-28">
+    <section
+      aria-labelledby="testimonials-heading"
+      className="border-t border-line py-20 lg:py-28"
+    >
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
         <Reveal>
-          <h2 className="max-w-[18ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl">
+          <h2
+            id="testimonials-heading"
+            className="max-w-[18ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
+          >
             What people say on week three.
           </h2>
 

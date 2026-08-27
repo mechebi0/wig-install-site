@@ -244,7 +244,20 @@ export function InstallCarousel() {
             aria-label={`${i + 1} of ${count}`}
             className="w-[82%] shrink-0 snap-center sm:w-[58%] lg:w-[40%] xl:w-[34%]"
           >
-            <figure>
+            {/*
+              The only hover motion on the page that touches a photograph, and
+              it is limited to the two browse surfaces: this rail and the style
+              galleries. A slow 4% push says the image is alive without
+              suggesting it is a link, which it is not. The owner portrait and
+              the services card image deliberately do not get it: neither is
+              something you browse, and putting it everywhere is how restrained
+              motion turns into a tic.
+
+              motion-safe rather than motion-reduce, so under a reduced-motion
+              preference the rule is never emitted at all instead of being
+              emitted and then cancelled.
+            */}
+            <figure className="group">
               <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-surface-2 shadow-soft">
                 <Image
                   src={slide.image.src}
@@ -253,7 +266,7 @@ export function InstallCarousel() {
                   height={slide.image.height}
                   loading="lazy"
                   sizes="(min-width: 1280px) 34vw, (min-width: 1024px) 40vw, (min-width: 640px) 58vw, 82vw"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-[900ms] motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:group-hover:scale-[1.04]"
                 />
               </div>
               <figcaption className="mt-4 px-1">
