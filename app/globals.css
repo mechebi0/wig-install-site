@@ -1,26 +1,149 @@
 @import "tailwindcss";
 
+/*
+  MAISON LUXE - design tokens
+  ==========================================================================
+  Sources this palette reconciles:
+
+  - UI/UX Pro Max `--design-system` match for "beauty salon hair styling
+    service premium feminine" returned the "Soft pink + lavender luxury"
+    profile (primary #EC4899, bg #FDF2F8, fg #831843) with an explicit
+    anti-pattern list of "bright neon colors, harsh animations, dark mode".
+  - Taste Skill's colour rules: one accent, saturation held down, no pure
+    #fff / #000, and a documented shape scale.
+
+  Where they differ, the reconciliation is written down:
+
+  * Hot pink #EC4899 was deepened to #B01050 for anything load bearing. The
+    brief asked for luxurious, and #EC4899 on white is 3.4:1, which fails AA
+    for body text. The deeper rose reads more expensive AND passes.
+  * Dark mode is deliberately NOT implemented. Pro Max lists it as an
+    anti-pattern for this palette, and a blush-paper luxury brand inverted to
+    charcoal stops being the same brand. The page is light locked, and
+    `color-scheme: light` is declared so native controls follow.
+
+  ACCENT LOCK: rose is the only accent. There is no secondary brand colour.
+  SHAPE RULE, applied everywhere, no exceptions:
+      buttons and pills          -> rounded-full
+      cards, media, inputs       -> rounded-3xl (24px)
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Surfaces, warm blush neutrals rather than grey. */
+  --bg: #fdf8fa;
+  --surface: #fffdfe;
+  --surface-2: #f8ecf1;
+  --surface-3: #f2dfe7;
+
+  /* Ink, a deep wine rather than black, so the neutrals stay in the family. */
+  --ink: #3d0f22;
+  --muted: #8a5a6e;
+  --line: #f0dce4;
+  --line-strong: #e3c3d0;
+
+  /* The single accent. */
+  --accent: #b01050;
+  --accent-hover: #930d43;
+  --on-accent: #fff7fa;
+  --accent-soft: rgb(176 16 80 / 0.07);
+  --accent-ring: rgb(176 16 80 / 0.35);
+
+  /* Semantic only, form validation. Never used decoratively. */
+  --danger: #a71123;
+
+  --shadow-rose: 62 12 34;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+
+  --font-display: var(--font-playfair);
+  --font-sans: var(--font-geist);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+  Z-index scale. These are the only layers on the page.
+  10 = sticky nav, 15 = mobile booking bar, 20 = mobile menu sheet.
+*/
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Anchor targets clear the sticky nav instead of hiding under it. */
+    scroll-padding-top: 5.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* One focus treatment, never removed (Pro Max priority 1). */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* Playfair's numerals are old style by default; line them up in prices. */
+  .tabular {
+    font-variant-numeric: lining-nums tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Shadows are tinted to the wine ink, never neutral black. */
+  .shadow-soft {
+    box-shadow: 0 2px 8px -2px rgb(var(--shadow-rose) / 0.06),
+      0 12px 32px -12px rgb(var(--shadow-rose) / 0.12);
+  }
+  .shadow-lifted {
+    box-shadow: 0 4px 12px -4px rgb(var(--shadow-rose) / 0.08),
+      0 24px 60px -20px rgb(var(--shadow-rose) / 0.18);
+  }
+
+  /*
+    Every interactive control clears the WCAG target size. Applied to icon
+    buttons, which are the ones that tend to fall under it.
+  */
+  .tap {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

@@ -1,69 +1,109 @@
-import Image from "next/image";
+import { SiteNav } from "@/components/site-nav";
+import { Hero } from "@/components/hero";
+import { Assurances } from "@/components/assurances";
+import { InstallCarousel } from "@/components/install-carousel";
+import { Services } from "@/components/services";
+import { StyleGalleries } from "@/components/style-galleries";
+import { Process } from "@/components/process";
+import { Owner } from "@/components/owner";
+import { Testimonials } from "@/components/testimonials";
+import { Questions } from "@/components/questions";
+import { Booking } from "@/components/booking";
+import { SiteFooter } from "@/components/site-footer";
+import { MobileBookBar } from "@/components/mobile-book-bar";
+import { QUESTIONS, SERVICES, STUDIO, usesOnPageBooking } from "@/lib/content";
+
+/**
+ * Section order and layout family, so the repetition rules stay checkable:
+ *
+ *   Hero          asymmetric split, image right
+ *   Assurances    hairline strip
+ *   Carousel      auto-rotating peek carousel
+ *   Services      asymmetric bento
+ *   Styles        tabbed swipe galleries
+ *   Process       four column rule, typographic
+ *   Owner         asymmetric split, image left
+ *   Testimonials  offset baseline row
+ *   Questions     sticky aside plus accordion
+ *   Booking       detail column plus form panel
+ *
+ * Ten sections, ten layout families, and the two image splits are separated by
+ * five sections. Zero eyebrows on the page.
+ */
+
+const localBusiness = {
+  "@context": "https://schema.org",
+  "@type": "HairSalon",
+  name: STUDIO.name,
+  telephone: STUDIO.phone,
+  email: STUDIO.email,
+  founder: { "@type": "Person", name: STUDIO.owner },
+  sameAs: [STUDIO.instagram],
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: STUDIO.street,
+    addressLocality: STUDIO.city,
+    addressRegion: "MD",
+    postalCode: "21231",
+    addressCountry: "US",
+  },
+  openingHours: ["Tu-Fr 09:00-19:00", "Sa 08:00-16:00"],
+  // Picked up by search engines as a booking action once the client's real
+  // booking tool is set in STUDIO.bookingUrl.
+  ...(STUDIO.bookingUrl
+    ? {
+        potentialAction: {
+          "@type": "ReserveAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: STUDIO.bookingUrl,
+          },
+        },
+      }
+    : {}),
+  makesOffer: SERVICES.map((service) => ({
+    "@type": "Offer",
+    itemOffered: { "@type": "Service", name: service.name },
+    price: service.price.replace("$", ""),
+    priceCurrency: "USD",
+  })),
+  mainEntityOfPage: {
+    "@type": "FAQPage",
+    mainEntity: QUESTIONS.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  },
+};
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
+      />
+      <SiteNav />
+      <main id="main">
+        <Hero />
+        <Assurances />
+        <InstallCarousel />
+        <Services />
+        <StyleGalleries />
+        <Process />
+        <Owner />
+        <Testimonials />
+        <Questions />
+        {/*
+          The on-page form only exists while booking runs through this site.
+          Set STUDIO.bookingUrl to the client's real booking tool and every CTA
+          points there instead, so this section would be a dead end.
+        */}
+        {usesOnPageBooking ? <Booking /> : null}
       </main>
-    </div>
+      <SiteFooter />
+      <MobileBookBar />
+    </>
   );
 }
