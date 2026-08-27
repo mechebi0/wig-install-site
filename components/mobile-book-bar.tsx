@@ -18,9 +18,9 @@ import { bookingTarget, CTA, STUDIO } from "@/lib/content";
  * and the inner pages need the bar just as much. 320px is roughly the point
  * where the page header has left the screen.
  *
- * It hides itself entirely on the booking page. Floating a "book" button over
- * the booking form is the classic version of this component covering the thing
- * it is pointing at.
+ * It hides itself entirely on the booking page, the admin dashboard and the
+ * account screens. Floating a "book" button over the booking form is the
+ * classic version of this component covering the thing it is pointing at.
  */
 const REVEAL_AT = 320;
 
@@ -48,11 +48,25 @@ export function MobileBookBar() {
     setPast(false);
   }
 
-  // "/book/" with trailingSlash on, "/book" without. Match either.
-  const onBookingPage = pathname.replace(/\/$/, "") === "/book";
-  const shown = past && !onBookingPage;
+  /*
+    Routes this bar has no business floating over. Trailing slashes are
+    stripped first because `trailingSlash: true` means the browser URL is
+    "/book/" while these are written without.
 
-  if (onBookingPage) return null;
+    /book        it would cover the booking form it points at
+    /admin       Nat is running her business, not being sold an appointment,
+                 and on a phone this bar sits on top of the status controls
+    /login etc.  a "Book Your Chair" pill over a password field is noise
+
+    /account deliberately keeps it. A customer looking at their appointments
+    is the single most likely person on the site to want another one.
+  */
+  const HIDDEN_ON = ["/book", "/admin", "/login", "/signup", "/forgot-password", "/reset-password"];
+  const current = pathname.replace(/\/$/, "") || "/";
+  const hidden = HIDDEN_ON.includes(current);
+  const shown = past && !hidden;
+
+  if (hidden) return null;
 
   return (
     <div

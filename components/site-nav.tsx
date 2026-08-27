@@ -2,8 +2,9 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { List, X } from "@phosphor-icons/react/dist/ssr";
+import { List, UserCircle, X } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
+import { useAuthState } from "@/lib/auth/session";
 import { Wordmark } from "@/components/wordmark";
 import { bookingTarget, CTA, NAV_LINKS, STUDIO } from "@/lib/content";
 
@@ -28,6 +29,20 @@ import { bookingTarget, CTA, NAV_LINKS, STUDIO } from "@/lib/content";
  * Mobile navigation is deliberately shallow. Below lg the links move into a
  * full-height sheet with 56px rows, and the booking CTA is duplicated at the
  * bottom of that sheet inside thumb reach rather than only at the top.
+ *
+ * THE ACCOUNT CONTROL
+ * One entry, and it is the only thing the booking system adds to this bar.
+ * "Log in" when signed out, "Account" when signed in, and nothing at all when
+ * no Supabase project is configured. It is a quiet text link rather than a
+ * second button, because the site has exactly one primary action and it is
+ * Book Your Chair; two filled pills side by side would make neither of them
+ * the point.
+ *
+ * There is NO admin link here, and there is not going to be one. Nat reaches
+ * her dashboard by typing /admin or bookmarking it. Putting it in the public
+ * navigation would advertise to every visitor that an admin account exists,
+ * and it would be the only item in this bar that is useless to all but one
+ * person.
  */
 /**
  * `trailingSlash: true` in next.config.ts means the browser URL is "/work/"
@@ -42,6 +57,7 @@ function samePath(a: string, b: string) {
 
 export function SiteNav() {
   const pathname = usePathname();
+  const auth = useAuthState();
   const [scrolled, setScrolled] = useState(false);
 
   /*
@@ -137,6 +153,33 @@ export function SiteNav() {
 
           <div className="flex items-center gap-2">
             {/*
+              A fixed-width slot, so the Book button does not slide sideways
+              when the session resolves a moment after hydration. Rendered only
+              when there is a booking system to log in to; with no Supabase
+              project the slot does not exist and the bar is exactly as it was.
+            */}
+            {auth !== "unconfigured" ? (
+              <div className="hidden min-w-[5.5rem] justify-end lg:flex">
+                {auth === "signed-in" ? (
+                  <a
+                    href="/account/"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-sm text-muted transition-colors hover:text-accent"
+                  >
+                    <UserCircle size={18} weight="regular" aria-hidden="true" />
+                    Account
+                  </a>
+                ) : auth === "signed-out" ? (
+                  <a
+                    href="/login/"
+                    className="inline-flex min-h-11 items-center rounded-full px-2 text-sm text-muted transition-colors hover:text-accent"
+                  >
+                    Log in
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/*
               Visibility lives on a wrapper, never on the button itself.
               buttonStyles already sets `inline-flex`, so adding `hidden` beside
               it puts two display utilities in play and the winner comes down to
@@ -199,6 +242,23 @@ export function SiteNav() {
                 </a>
               </li>
             ))}
+
+            {auth === "signed-in" || auth === "signed-out" ? (
+              <li>
+                <a
+                  href={auth === "signed-in" ? "/account/" : "/login/"}
+                  aria-current={
+                    isCurrent(auth === "signed-in" ? "/account/" : "/login/")
+                      ? "page"
+                      : undefined
+                  }
+                  className="flex min-h-14 items-center gap-2 border-b border-line font-display text-2xl tracking-tight text-ink"
+                >
+                  <UserCircle size={22} weight="regular" aria-hidden="true" />
+                  {auth === "signed-in" ? "My appointments" : "Log in"}
+                </a>
+              </li>
+            ) : null}
           </ul>
 
           {/* Bottom of the sheet, so it lands under the thumb. */}

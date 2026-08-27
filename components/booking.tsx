@@ -10,6 +10,7 @@ import {
 import { buttonStyles } from "@/components/button";
 import { Reveal } from "@/components/reveal";
 import { BOOKING, SERVICES, STUDIO } from "@/lib/content";
+import { formatPrice } from "@/lib/format";
 
 /**
  * Booking request form.
@@ -235,7 +236,7 @@ export function Booking() {
             >
               {SERVICES.map((service) => (
                 <option key={service.id} value={service.id}>
-                  {service.name} ({service.price})
+                  {service.name} ({formatPrice(service.priceCents)})
                 </option>
               ))}
             </select>

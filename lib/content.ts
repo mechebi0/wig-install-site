@@ -122,7 +122,7 @@ export const PAGES = {
   book: {
     kicker: "Book",
     title: "Book your chair.",
-    lede: "Pick a service, send the form, and Nat will text back with two or three slots. Usually the same day.",
+    lede: "Pick your service, take a time that suits you, and Nat will text back to confirm. Usually the same day.",
   },
   beforeYouBook: {
     kicker: "Before you book",
@@ -214,34 +214,53 @@ export const STYLES_SECTION = {
   body: "Pick a style and swipe through it. Bring a screenshot to your consult and Nat will work from that.",
 } as const;
 
-/** PLACEHOLDER PRICES AND DURATIONS. Confirm both with Nat before launch. */
+/**
+ * PLACEHOLDER PRICES AND DURATIONS. Confirm both with Nat before launch.
+ *
+ * These four are also the seed rows in
+ * supabase/migrations/0001_crown_by_nat_foundation.sql, matched by `id` to the
+ * `slug` column there, and they are what the site shows in the moment before
+ * the live rows arrive from the database. Keeping the two in step is the whole
+ * reason the ids are stable words rather than numbers.
+ *
+ * Money is held in CENTS and time in MINUTES rather than as the display
+ * strings this file used to carry. The strings were fine while nothing but a
+ * price list read them; they stopped being fine the moment a booking had to do
+ * arithmetic on a duration to find out whether a slot was free. `formatPrice`
+ * and `formatDuration` in lib/format.ts render them, so "$180" and "2 hours"
+ * still appear on the page and are now derived rather than typed twice.
+ *
+ * They are seeded with pricing_confirmed = false, which is what makes the
+ * admin dashboard badge them as placeholders. Do not present them as Nat's
+ * real prices until she has said so.
+ */
 export const SERVICES = [
   {
     id: "frontal",
     name: "Full frontal install",
-    price: "$180",
-    duration: "2 hours",
+    priceCents: 18000,
+    durationMinutes: 120,
     body: "Lace tinted to your skin, knots bleached, hairline plucked and cut. Includes the style you leave in.",
   },
   {
     id: "closure",
     name: "Closure install",
-    price: "$140",
-    duration: "90 minutes",
+    priceCents: 14000,
+    durationMinutes: 90,
     body: "Less lace to manage, lower upkeep, and gentler on a tender scalp.",
   },
   {
     id: "custom",
     name: "Customization only",
-    price: "$95",
-    duration: "75 minutes",
+    priceCents: 9500,
+    durationMinutes: 75,
     body: "Plucking, tinting, and bleaching on a unit you already own. Drop it off or wait for it.",
   },
   {
     id: "refresh",
     name: "Reinstall and refresh",
-    price: "$70",
-    duration: "60 minutes",
+    priceCents: 7000,
+    durationMinutes: 60,
     body: "Full takedown, scalp cleanse, and a fresh lay on the same unit.",
   },
 ] as const;
@@ -353,4 +372,101 @@ export const QUESTIONS = [
 export const BOOKING = {
   heading: "Send a request.",
   body: "Send the form and Nat will text back with two or three slots, usually the same day. Tuesday through Saturday.",
+} as const;
+
+/**
+ * ---------------------------------------------------------------------------
+ * ACCOUNTS, BOOKING AND ADMIN
+ * ---------------------------------------------------------------------------
+ * Added with the booking system. Same rule as everything above: if a visitor
+ * can read it, it is defined here, so the whole voice of the site can be
+ * reviewed in one file rather than hunted through twelve components.
+ *
+ * Voice notes for anything added later:
+ *   - the customer is spoken to warmly and directly, never as "the user"
+ *   - Nat is named. "The studio will confirm" is a call centre; "Nat will text
+ *     you back" is a person
+ *   - no em-dashes or en-dashes, same as the rest of this file
+ *   - no SaaS vocabulary. Nobody signs up for a platform, gets onboarded, or
+ *     manages their account. They make an account and they book a chair
+ */
+export const ACCOUNT = {
+  login: {
+    kicker: "Your account",
+    title: "Welcome back.",
+    lede: "Sign in to see your appointments, or to book your next one in a few taps.",
+    submit: "Log in",
+    alternate: "First time here?",
+    alternateLink: "Make an account",
+  },
+  signup: {
+    kicker: "Your account",
+    title: "Your chair is waiting.",
+    lede: "An account keeps your appointments in one place and fills the booking form in for you next time. You never need one to book.",
+    submit: "Make my account",
+    alternate: "Already have an account?",
+    alternateLink: "Log in",
+  },
+  forgot: {
+    kicker: "Your account",
+    title: "Let's get you back in.",
+    lede: "Put in the email you booked with and a reset link is on its way.",
+    submit: "Send the reset link",
+    sent: "Check your inbox. If there is an account with that email, a reset link is on its way. The link is good for one hour.",
+  },
+  reset: {
+    kicker: "Your account",
+    title: "Pick a new password.",
+    lede: "Eight characters or more. Long beats complicated: a phrase you will remember is stronger than a symbol you will not.",
+    submit: "Save it and sign me in",
+  },
+  dashboard: {
+    kicker: "My Crown by Nat",
+    upcoming: "Upcoming appointment",
+    upcomingPlural: "Upcoming appointments",
+    past: "Past appointments",
+    details: "Your details",
+    empty: "Nothing in the diary yet.",
+    emptyBody:
+      "Book a chair and it will show up here, along with everything you have had done before.",
+    bookAnother: "Book another appointment",
+    bookFirst: "Book your chair",
+  },
+  /** Guest booking confirmation. Kept apart because it has a job to do. */
+  confirmation: {
+    title: "That is in the diary.",
+    body: "Nat will text you to confirm, usually the same day. Nothing is charged now and nothing is held on a card.",
+    referenceLabel: "Your reference",
+    referenceHelp:
+      "Quote this if you call or text the studio. Keep it somewhere you can find it.",
+  },
+} as const;
+
+/**
+ * The booking flow, step by step.
+ *
+ * Five steps, and each one asks for exactly one kind of thing. That is the
+ * difference between a premium appointment and an enterprise scheduling form:
+ * a form asks for everything at once because it is easier to build, and a
+ * concierge asks one question at a time because it is easier to answer.
+ */
+export const BOOKING_FLOW = {
+  title: "Book your chair.",
+  steps: [
+    { id: "service", label: "Service", heading: "What are we doing?" },
+    { id: "location", label: "Location", heading: "Where are we meeting?" },
+    { id: "when", label: "Date and time", heading: "When suits you?" },
+    { id: "details", label: "Your details", heading: "How do we reach you?" },
+    { id: "confirm", label: "Confirm", heading: "Does this look right?" },
+  ],
+  guestPrompt: "Booking as a guest",
+  guestBody:
+    "No account, no password, nothing to remember. You will get a reference and a text from Nat.",
+  accountPrompt: "Make an account instead",
+  accountBody:
+    "Keeps every appointment in one place and fills this in for you next time.",
+  closed: {
+    title: "Not taking bookings just now.",
+    body: "Nat is between studios. New dates go up here first, and the fastest way to hear about them is to text the studio.",
+  },
 } as const;

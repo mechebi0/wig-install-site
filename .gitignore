@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template, which holds VARIABLE NAMES ONLY and no values. It is
+# the checklist for what has to be set in Cloudflare Pages, so it has to be in
+# the repository. Never remove this negation and never put a real key in it.
+!.env.example
 
 # vercel
 .vercel

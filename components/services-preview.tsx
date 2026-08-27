@@ -1,6 +1,10 @@
+"use client";
+
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
-import { HOME, SERVICES } from "@/lib/content";
+import { useServices } from "@/lib/catalog";
+import { HOME } from "@/lib/content";
+import { formatDuration, formatPrice } from "@/lib/format";
 
 /**
  * Homepage services preview. Three of the four, then out to /book.
@@ -10,11 +14,17 @@ import { HOME, SERVICES } from "@/lib/content";
  * with the photograph and the long descriptions lives on /book, next to the
  * form, which is where someone reading service detail is actually heading.
  *
- * The fourth service (reinstall and refresh) is left off on purpose. It is the
- * one nobody books first, so it earns its place on /book and not here.
+ * Only the first three are shown, whatever the list holds. The last service
+ * (reinstall and refresh, at the seeded ordering) is the one nobody books
+ * first, so it earns its place on /book and not here. Nat controls which three
+ * these are through display_order in her dashboard.
+ *
+ * Live rows, prerendered from the static fallback so the homepage HTML still
+ * ships three services and three prices. See the note in components/services.tsx.
  */
 export function ServicesPreview() {
-  const preview = SERVICES.slice(0, 3);
+  const { services } = useServices();
+  const preview = services.slice(0, 3);
 
   return (
     <section
@@ -60,11 +70,13 @@ export function ServicesPreview() {
                     {service.name}
                   </span>
                   <span className="tabular font-display text-xl tracking-tight text-accent lg:text-2xl">
-                    {service.price}
+                    {formatPrice(service.price_cents)}
                   </span>
                 </dt>
                 <dd>
-                  <p className="mt-1 text-sm text-muted">{service.duration}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    {formatDuration(service.duration_minutes)}
+                  </p>
                 </dd>
               </div>
             </Reveal>

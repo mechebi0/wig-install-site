@@ -1,4 +1,4 @@
-import { HeroCarousel } from "@/components/hero-carousel";
+import { HeroStage } from "@/components/hero-stage";
 import { Intro } from "@/components/intro";
 import { FeaturedWork } from "@/components/featured-work";
 import { ServicesPreview } from "@/components/services-preview";
@@ -10,7 +10,9 @@ import { QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *
  * Five blocks, and every one of them is either the brand or a way forward:
  *
- *   Hero            full bleed crossfading carousel, brand and booking CTA
+ *   Hero            the live location strip, then the full bleed crossfading
+ *                   carousel with the brand and the booking CTA. Both sized as
+ *                   one viewport by HeroStage.
  *   Intro           short typographic brand statement, Nat named as installer
  *   Featured work   three installs, then out to /work
  *   Services        three services and their prices, then out to /book
@@ -64,7 +66,7 @@ const localBusiness = {
   makesOffer: SERVICES.map((service) => ({
     "@type": "Offer",
     itemOffered: { "@type": "Service", name: service.name },
-    price: service.price.replace("$", ""),
+    price: (service.priceCents / 100).toFixed(2),
     priceCurrency: "USD",
   })),
   mainEntityOfPage: {
@@ -84,7 +86,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
       />
-      <HeroCarousel />
+      <HeroStage />
       <Intro />
       <FeaturedWork />
       <ServicesPreview />

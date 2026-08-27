@@ -44,6 +44,14 @@ import { HERO_SLIDES } from "@/lib/images";
  * desktop a pointer rests on it almost all the time, and pausing on hover
  * would mean the carousel effectively never advanced.
  *
+ * SIZING LIVES IN HeroStage, NOT HERE
+ * This section used to carry `min-h-[calc(100svh-4rem)]` itself. It now takes
+ * `flex-1` inside components/hero-stage.tsx, because the location strip sits
+ * directly above it and the two have to share one viewport between them. The
+ * viewport arithmetic is unchanged; it just moved up one level so the strip
+ * can take its natural height without pushing the fold down. HeroCarousel is
+ * only ever rendered by HeroStage.
+ *
  * PERFORMANCE
  * Slide one is the LCP element. The preload pair below is rendered by this
  * component rather than the root layout, so only the page that actually shows
@@ -151,7 +159,7 @@ export function HeroCarousel() {
           setFocusWithin(false);
         }
       }}
-      className="on-photo relative isolate flex min-h-[calc(100svh-4rem)] flex-col justify-end overflow-hidden bg-ink lg:min-h-[calc(100svh-72px)] lg:max-h-[880px]"
+      className="on-photo relative isolate flex flex-1 flex-col justify-end overflow-hidden bg-ink"
     >
       {/*
         Written as elements rather than through ReactDOM.preload(), because

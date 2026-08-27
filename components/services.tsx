@@ -1,19 +1,48 @@
+"use client";
+
 import Image from "next/image";
 import { Reveal } from "@/components/reveal";
-import { SERVICES } from "@/lib/content";
+import { useServices, type CatalogService } from "@/lib/catalog";
+import { formatDuration, formatPrice } from "@/lib/format";
 import { SERVICE_IMAGE } from "@/lib/images";
 
 /**
- * Services bento. Four services, exactly four cells, no filler tile:
- *   tall featured card (7 cols, 2 rows) | two stacked cards (5 cols)
- *   full width card across the base
+ * Services bento.
  *
- * Background diversity: the featured cell carries a real photograph, the
- * closure cell carries the rose tint, and the base cell sits on the deeper
- * blush surface. It is not four identical text boxes.
+ * WHAT CHANGED, AND WHY IT IS A CLIENT COMPONENT NOW
+ * The four services used to be compiled in. They are now rows in the database
+ * that Nat edits from her dashboard, and a price she has just corrected should
+ * appear on the site without a redeploy. Under `output: "export"` there is no
+ * server render to fetch during, so reading them means reading them in the
+ * browser.
+ *
+ * This costs nothing at first paint. useServices() starts from the same static
+ * list this component used to import, so Next prerenders the identical markup
+ * into the HTML at build time and a search engine still finds four services
+ * and four prices in the source. The live rows swap in on hydration. There is
+ * no spinner and no empty state, because there is never a moment with nothing
+ * to show.
+ *
+ * THE LAYOUT NO LONGER ASSUMES FOUR
+ * It used to destructure exactly four services and would have thrown the day
+ * Nat added a fifth from her own dashboard. The bento is now derived:
+ *
+ *   featured   first service, 7 cols and 2 rows, carries the photograph
+ *   pair       next two, 5 cols each, stacked beside it
+ *   remainder  anything after that, full width
+ *
+ * With four services that is pixel-for-pixel what it was before. With three it
+ * drops the full-width row, and with two the single side cell takes both rows
+ * so no hole opens beside the photograph.
  */
 export function Services() {
-  const [featured, closure, custom, refresh] = SERVICES;
+  const { services } = useServices();
+
+  const [featured, ...rest] = services;
+  const pair = rest.slice(0, 2);
+  const remainder = rest.slice(2);
+
+  if (!featured) return null;
 
   return (
     <section
@@ -26,7 +55,7 @@ export function Services() {
           id="services-heading"
           className="max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
         >
-          Four ways to sit in the chair.
+          {headingFor(services.length)}
         </h2>
         <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted lg:text-lg">
           Prices are for the service. You bring the unit, or send a link before
@@ -51,69 +80,79 @@ export function Services() {
             />
           </div>
           <div className="flex flex-1 flex-col p-7 lg:p-9">
-            <ServiceHead
-              name={featured.name}
-              price={featured.price}
-              large
-            />
-            <p className="mt-1 text-sm text-muted">{featured.duration}</p>
+            <ServiceHead service={featured} large />
+            <p className="mt-1 text-sm text-muted">
+              {formatDuration(featured.duration_minutes)}
+            </p>
             <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">
-              {featured.body}
+              {featured.description}
             </p>
           </div>
         </Reveal>
 
-        <Reveal
-          as="article"
-          index={1}
-          className="rounded-3xl border border-accent/20 bg-accent-soft p-7 lg:col-span-5 lg:p-9"
-        >
-          <ServiceHead name={closure.name} price={closure.price} />
-          <p className="mt-1 text-sm text-muted">{closure.duration}</p>
-          <p className="mt-4 max-w-[42ch] text-base leading-relaxed text-muted">
-            {closure.body}
-          </p>
-        </Reveal>
+        {pair.map((service, index) => (
+          <Reveal
+            key={service.id}
+            as="article"
+            index={index + 1}
+            className={`rounded-3xl p-7 lg:col-span-5 lg:p-9 ${
+              index === 0
+                ? "border border-accent/20 bg-accent-soft"
+                : "border border-line bg-surface shadow-soft"
+            } ${pair.length === 1 ? "lg:row-span-2" : ""}`}
+          >
+            <ServiceHead service={service} />
+            <p className="mt-1 text-sm text-muted">
+              {formatDuration(service.duration_minutes)}
+            </p>
+            <p className="mt-4 max-w-[42ch] text-base leading-relaxed text-muted">
+              {service.description}
+            </p>
+          </Reveal>
+        ))}
 
-        <Reveal
-          as="article"
-          index={2}
-          className="rounded-3xl border border-line bg-surface p-7 shadow-soft lg:col-span-5 lg:p-9"
-        >
-          <ServiceHead name={custom.name} price={custom.price} />
-          <p className="mt-1 text-sm text-muted">{custom.duration}</p>
-          <p className="mt-4 max-w-[42ch] text-base leading-relaxed text-muted">
-            {custom.body}
-          </p>
-        </Reveal>
-
-        <Reveal
-          as="article"
-          index={3}
-          className="rounded-3xl border border-line bg-surface-2 p-7 lg:col-span-12 lg:p-9"
-        >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <ServiceHead name={refresh.name} price={refresh.price} />
-              <p className="mt-1 text-sm text-muted">{refresh.duration}</p>
+        {remainder.map((service, index) => (
+          <Reveal
+            key={service.id}
+            as="article"
+            index={index + 3}
+            className="rounded-3xl border border-line bg-surface-2 p-7 lg:col-span-12 lg:p-9"
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <ServiceHead service={service} />
+                <p className="mt-1 text-sm text-muted">
+                  {formatDuration(service.duration_minutes)}
+                </p>
+              </div>
+              <p className="max-w-[46ch] text-base leading-relaxed text-muted">
+                {service.description}
+              </p>
             </div>
-            <p className="max-w-[46ch] text-base leading-relaxed text-muted">
-              {refresh.body}
-            </p>
-          </div>
-        </Reveal>
+          </Reveal>
+        ))}
       </div>
     </section>
   );
 }
 
+/**
+ * The heading counts the services rather than hardcoding "Four ways", so
+ * adding a fifth from the dashboard does not leave the page contradicting
+ * itself. Past six it stops counting, because "Seven ways to sit in the chair"
+ * is a menu, not a line of copy.
+ */
+function headingFor(count: number): string {
+  const words = ["", "One way", "Two ways", "Three ways", "Four ways", "Five ways", "Six ways"];
+  const opener = words[count] ?? "Every way";
+  return `${opener} to sit in the chair.`;
+}
+
 function ServiceHead({
-  name,
-  price,
+  service,
   large = false,
 }: {
-  name: string;
-  price: string;
+  service: CatalogService;
   large?: boolean;
 }) {
   return (
@@ -123,14 +162,14 @@ function ServiceHead({
           large ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl"
         }`}
       >
-        {name}
+        {service.name}
       </h3>
       <span
-        className={`tabular font-display tracking-tight text-accent ${
+        className={`tabular shrink-0 font-display tracking-tight text-accent ${
           large ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl"
         }`}
       >
-        {price}
+        {formatPrice(service.price_cents)}
       </span>
     </div>
   );

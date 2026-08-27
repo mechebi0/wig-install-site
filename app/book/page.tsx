@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { Services } from "@/components/services";
 import { Booking } from "@/components/booking";
+import { BookingFlow } from "@/components/booking/booking-flow";
 import { ButtonLink } from "@/components/button";
 import { Reveal } from "@/components/reveal";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   bookingTarget,
+  BOOKING_FLOW,
   CTA,
   PAGES,
   STUDIO,
@@ -19,24 +22,80 @@ export const metadata: Metadata = {
 
 /**
  * Everything needed to actually book, in the order it is needed: what the
- * services are and what they cost, then the request itself.
+ * services are and what they cost, then the booking itself.
  *
- * This page carries no closing BookingCta band. It IS the booking CTA, and a
- * "book now" panel under a booking form is the kind of thing that makes a
- * site feel like it is nagging rather than helping.
+ * ---------------------------------------------------------------------------
+ * THREE PATHS, AND WHY ALL THREE STILL EXIST
+ * ---------------------------------------------------------------------------
+ * 1. STUDIO.bookingUrl is set     Nat has moved to Square or Fresha. The page
+ *                                 hands off to it and keeps the services and
+ *                                 the studio details that got the visitor
+ *                                 here. Unchanged from before.
  *
- * The two paths through STUDIO.bookingUrl both terminate here. With no URL
- * set, the on-page request form renders. With one set, the form would be a
- * dead end, so the page hands off to the real booking tool instead and still
- * shows the services and the studio details that got the visitor this far.
+ * 2. Supabase is configured       The real five step flow, writing a real
+ *                                 appointment to a real database. This is the
+ *                                 path once the environment variables are in.
+ *
+ * 3. Supabase is NOT configured   The original email request form. Not a
+ *                                 stub and not a dead end: it opens a
+ *                                 prefilled mail to the studio, which is a
+ *                                 working way to get an appointment on a
+ *                                 static host, and it is exactly what this
+ *                                 page did before the booking system existed.
+ *
+ * The third path is the one worth defending. Deleting it would mean that a
+ * deployment missing an environment variable takes the entire booking page
+ * down, and a hairdresser's website that cannot take a booking is not a
+ * website. Keeping it means the worst case is a slightly older experience.
+ *
+ * `isSupabaseConfigured` is a build-time constant, so the branch is resolved
+ * during the static export and only one of the two is in the bundle.
+ *
+ * This page still carries no closing BookingCta band. It IS the booking CTA.
  */
 export default function BookPage() {
   return (
     <>
       <PageHeader {...PAGES.book} />
       <Services />
-      {usesOnPageBooking ? <Booking /> : <ExternalBooking />}
+      {!usesOnPageBooking ? (
+        <ExternalBooking />
+      ) : isSupabaseConfigured ? (
+        <BookingSection />
+      ) : (
+        <Booking />
+      )}
     </>
+  );
+}
+
+/** The live five step flow. */
+function BookingSection() {
+  return (
+    <section
+      id="request"
+      aria-labelledby="booking-heading"
+      className="border-t border-line bg-surface-2/40"
+    >
+      <div className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28">
+        <Reveal>
+          <h2
+            id="booking-heading"
+            className="font-display text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:text-4xl lg:text-5xl"
+          >
+            {BOOKING_FLOW.title}
+          </h2>
+          <p className="mt-5 max-w-[52ch] text-lg leading-relaxed text-muted">
+            Five short steps. No account needed, no card taken, and nothing is
+            charged until you are in the chair.
+          </p>
+        </Reveal>
+
+        <div className="mt-12 lg:mt-16">
+          <BookingFlow />
+        </div>
+      </div>
+    </section>
   );
 }
 
