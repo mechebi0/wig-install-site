@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { bookingTarget, CTA, HERO } from "@/lib/content";
 import { HERO_SLIDES } from "@/lib/images";
@@ -14,7 +13,7 @@ import { HERO_SLIDES } from "@/lib/images";
  * Text that swaps every seven seconds cannot be read at a glance and cannot be
  * relied on by anyone who looks away. So the photograph is the only thing that
  * moves: brand, proposition and CTA are fixed, and the only per-slide text is
- * the small style label beside the controls.
+ * the small style label beside the dots.
  *
  * TIMING
  * DWELL 7s, FADE 1.8s, and a 12s drift on the transform. That is deliberately
@@ -27,19 +26,30 @@ import { HERO_SLIDES } from "@/lib/images";
  * the contrast floor is computed there. Nothing here needs to know how bright
  * the current photograph is.
  *
- * MOTION PREFERENCES
- * Under prefers-reduced-motion nothing auto-advances, the drift transform is
- * dropped, and the crossfade shortens to a plain 200ms opacity change. The
- * carousel stays fully operable: the dots are real buttons, they are 44px
- * targets, and arrow keys work. The play control is removed rather than left
- * as a dead switch, since with rotation off there is nothing for it to do.
+ * STOPPING IT, AND THE TRADE THAT WAS MADE
+ * There is no play/pause button: that is a deliberate design decision to keep
+ * the hero clean. It costs something, and the cost is written down here rather
+ * than hidden. WCAG 2.2.2 asks for a mechanism to pause, stop or hide anything
+ * that moves automatically for more than five seconds, and a labelled control
+ * is the obvious way to provide one. What stands in its place:
+ *
+ *   - touching any dot stops the rotation for good, so a visitor who wants it
+ *     to hold still has a way to make it hold still
+ *   - rotation pauses while keyboard focus is anywhere inside the hero, so it
+ *     never moves under someone reading it with the keyboard
+ *   - under prefers-reduced-motion it never starts at all, and the dots remain
+ *     the full manual control
+ *
+ * Hover deliberately does NOT pause. The hero is the whole viewport, so at
+ * desktop a pointer rests on it almost all the time, and pausing on hover
+ * would mean the carousel effectively never advanced.
  *
  * PERFORMANCE
- * Slide one is the LCP element. It is preloaded from the document head (see
- * app/layout.tsx) and rendered eagerly at high priority; the other five are
- * not put in the DOM until `warm` flips shortly after mount, so they cannot
- * compete with it for bandwidth. Each slide ships a landscape and a portrait
- * crop and <picture> fetches exactly one of them.
+ * Slide one is the LCP element. The preload pair below is rendered by this
+ * component rather than the root layout, so only the page that actually shows
+ * the hero pays for it. The other five slides are not put in the DOM until
+ * `warm` flips shortly after mount, so they cannot compete with it. Each slide
+ * ships a landscape and a portrait crop and <picture> fetches one of them.
  */
 
 const DWELL_MS = 7000;
@@ -52,7 +62,9 @@ export function HeroCarousel() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const [index, setIndex] = useState(0);
-  const [playing, setPlaying] = useState(true);
+  /** Flipped for good the first time the visitor drives the carousel. */
+  const [stopped, setStopped] = useState(false);
+  const [focusWithin, setFocusWithin] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [inView, setInView] = useState(true);
   const [pageVisible, setPageVisible] = useState(true);
@@ -92,7 +104,8 @@ export function HeroCarousel() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
-  const rotating = playing && !reduced && inView && pageVisible;
+  const rotating =
+    !stopped && !focusWithin && !reduced && inView && pageVisible;
 
   useEffect(() => {
     if (!rotating) return;
@@ -103,10 +116,10 @@ export function HeroCarousel() {
     return () => window.clearTimeout(timer);
   }, [rotating, index, count]);
 
-  /** Manual navigation always stops the rotation; it never fights the user. */
+  /** Manual navigation stops the rotation for good; it never fights the user. */
   const goTo = useCallback(
     (target: number) => {
-      setPlaying(false);
+      setStopped(true);
       setIndex(((target % count) + count) % count);
     },
     [count],
@@ -123,6 +136,7 @@ export function HeroCarousel() {
     }
   };
 
+  const lead = HERO_SLIDES[0];
   const active = HERO_SLIDES[index];
 
   return (
@@ -131,8 +145,37 @@ export function HeroCarousel() {
       id="hero"
       aria-roledescription="carousel"
       aria-label={`${HERO.brand} installs`}
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setFocusWithin(false);
+        }
+      }}
       className="on-photo relative isolate flex min-h-[calc(100svh-4rem)] flex-col justify-end overflow-hidden bg-ink lg:min-h-[calc(100svh-72px)] lg:max-h-[880px]"
     >
+      {/*
+        Written as elements rather than through ReactDOM.preload(), because
+        preload() takes no `media` option and an art-directed preload is the
+        whole point: the pair has to be mutually exclusive or a phone pays for
+        both crops. React hoists them into <head>, so they work from here, and
+        keeping them here rather than in the root layout means /work and /book
+        no longer preload a hero image they never render.
+      */}
+      <link
+        rel="preload"
+        as="image"
+        href={lead.wide.src}
+        media="(min-width: 768px) and (min-aspect-ratio: 1/1)"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href={lead.tall.src}
+        media="(max-width: 767.98px), (max-aspect-ratio: 0.9999/1)"
+        fetchPriority="high"
+      />
+
       {/* Photography, layer 0. */}
       <div className="absolute inset-0 z-0">
         {HERO_SLIDES.map((slide, i) => {
@@ -173,8 +216,8 @@ export function HeroCarousel() {
                     handed it the 1.6 landscape file, which then lost the hair
                     off the right edge and left the top third empty. Landscape
                     frames from 768px up get the wide crop, everything else gets
-                    the tall one. This condition and the preload pair in
-                    app/layout.tsx have to stay in step.
+                    the tall one. This condition and the preload pair above have
+                    to stay in step.
                   */}
                   <source
                     media="(min-width: 768px) and (min-aspect-ratio: 1/1)"
@@ -185,12 +228,9 @@ export function HeroCarousel() {
                   {/*
                     A plain <img> rather than next/image, because next/image
                     cannot render <picture> and art direction is the point
-                    here: a 16:10 landscape cropped into a 9:19 phone viewport
-                    shows a narrow band through the middle of the frame and
-                    cuts the hair out of a hair photograph. `unoptimized` is
-                    already set globally for the static export, so next/image
-                    would add nothing but a wrapper. (Note that
-                    @next/next/no-img-element does not fire on this: the rule
+                    here. `unoptimized` is already set globally for the static
+                    export, so next/image would add nothing but a wrapper.
+                    (@next/next/no-img-element does not fire on this: the rule
                     exempts an <img> that is the fallback inside a <picture>.)
                   */}
                   <img
@@ -223,8 +263,7 @@ export function HeroCarousel() {
             min-w-0 on both columns. A grid track sized `auto` takes its
             maximum from the max-content of its items, and it is NOT clamped to
             the container, so one wide row of fixed-size controls can push the
-            whole track past the viewport and the section then clips it. These
-            two guards mean no future content can do that again.
+            whole track past the viewport and the section then clips it.
           */}
           <div className="min-w-0 lg:col-span-7">
             <h1>
@@ -247,7 +286,7 @@ export function HeroCarousel() {
               <ButtonLink {...bookingTarget()} variant="onPhoto">
                 {CTA.book}
               </ButtonLink>
-              <ButtonLink href="#installs" variant="quiet">
+              <ButtonLink href="/work/" variant="quiet">
                 {CTA.work}
               </ButtonLink>
             </div>
@@ -262,45 +301,18 @@ export function HeroCarousel() {
             onKeyDown={onControlKeyDown}
             className="flex min-w-0 flex-col gap-3 lg:col-span-5 lg:items-end lg:gap-5"
           >
-            <div className="flex w-full items-center justify-between gap-4 lg:w-auto lg:justify-end lg:gap-5">
-              {/*
-                The one piece of text that changes with the slide. Announced
-                through the live region below rather than read twice.
-              */}
-              <p aria-hidden="true" className="label text-on-accent/70">
-                {active.label}
-              </p>
-
-              {/*
-                Removed rather than disabled under reduced motion: with nothing
-                rotating there is nothing to pause, and a control that does
-                nothing is worse than no control.
-              */}
-              {reduced ? null : (
-                <button
-                  type="button"
-                  onClick={() => setPlaying((current) => !current)}
-                  aria-label={
-                    playing ? "Pause the hero carousel" : "Play the hero carousel"
-                  }
-                  className="tap inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-on-accent/45 text-on-accent transition-[background-color,border-color] duration-200 hover:border-on-accent hover:bg-on-accent/12"
-                >
-                  {playing ? (
-                    <Pause size={15} weight="fill" />
-                  ) : (
-                    <Play size={15} weight="fill" />
-                  )}
-                </button>
-              )}
-            </div>
+            {/*
+              The one piece of text that changes with the slide. Announced
+              through the live region below rather than read twice.
+            */}
+            <p aria-hidden="true" className="label text-on-accent/70">
+              {active.label}
+            </p>
 
             {/*
-              The dot rail gets a row to itself rather than sharing one with the
-              label. Six 44px targets need 264px, which fits a 320px phone once
-              nothing else is competing for the line; sharing the row cost 72px
-              more than the narrowest viewport has. Spacing between the dots
-              comes from the 44px targets themselves, so there is no flex gap on
-              top of it.
+              Six 44px targets need 264px, which fits a 320px phone once
+              nothing else shares the line. Spacing between the dots comes from
+              the targets themselves, so there is no flex gap on top of it.
             */}
             <div className="-mx-1 flex items-center">
               {HERO_SLIDES.map((slide, i) => (

@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Geist } from "next/font/google";
 import "./globals.css";
+import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
+import { MobileBookBar } from "@/components/mobile-book-bar";
 import { STUDIO } from "@/lib/content";
-import { HERO_SLIDES } from "@/lib/images";
 
 /*
   Type pairing. UI/UX Pro Max matched "Playfair Display / Inter" for the
@@ -28,7 +30,15 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: `${STUDIO.name} | Lace wig installs in ${STUDIO.city}`,
+  /*
+    The template gives every inner page "<Page> | Crown by Nat" from a one-line
+    `title` in its own metadata, so the brand name can never be forgotten on a
+    page and never has to be typed twice.
+  */
+  title: {
+    default: `${STUDIO.name} | Lace wig installs in ${STUDIO.city}`,
+    template: `%s | ${STUDIO.name}`,
+  },
   description: `Lace frontal and closure wig installs in ${STUDIO.city}, performed personally by ${STUDIO.owner}. Custom-tinted lace, bleached knots, and a hairline cut to your face. Unit customization and reinstalls too.`,
   applicationName: STUDIO.name,
   keywords: [
@@ -54,22 +64,16 @@ export const viewport: Viewport = {
   themeColor: "#fdf8fa",
 };
 
-/*
-  The first hero slide is the LCP element on every visit. Preloading it from
-  the head starts the fetch before React has hydrated, which is worth roughly
-  a render pass on a cold mobile connection.
-
-  Two links, mutually exclusive by media query, mirroring the <picture> in the
-  hero exactly: whichever crop the browser is going to choose is the one that
-  gets preloaded, and the other is never requested. These two conditions and the
-  <source> in hero-carousel.tsx have to stay in step, and they have to stay
-  mutually exclusive, or a phone pays for both files.
-
-  The tall condition is the negation of the wide one, written as an OR list:
-  narrower than 768px, or a frame that is taller than it is wide.
-*/
-const lead = HERO_SLIDES[0];
-
+/**
+ * The nav, the footer and the mobile booking bar live here rather than in each
+ * page. They are identical on every route, and putting them in the layout
+ * means a client side page change swaps only the middle of the document: the
+ * nav never repaints, so moving between pages does not flash.
+ *
+ * The hero image preload used to live in this head. It moved into
+ * HeroCarousel, because only the homepage renders a hero and every other page
+ * was paying to preload an image it never showed.
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -77,33 +81,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${playfair.variable} ${geist.variable} h-full antialiased`}
     >
       <head>
-        {/*
-          These two are written as elements rather than through
-          ReactDOM.preload(), because preload() takes no `media` option and an
-          art-directed preload is the entire point: the pair has to be mutually
-          exclusive or a phone pays for both crops.
-
-          React registers each one in its resource float system AND renders the
-          element, so each ends up in the built <head> twice. That is React
-          behaviour, not a mistake here, and it costs about 300 bytes of markup:
-          the browser keys preloads by URL, and only one of the two media
-          queries can match anyway, so nothing is fetched twice. Moving them
-          into <body> does not change it.
-        */}
-        <link
-          rel="preload"
-          as="image"
-          href={lead.wide.src}
-          media="(min-width: 768px) and (min-aspect-ratio: 1/1)"
-          fetchPriority="high"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href={lead.tall.src}
-          media="(max-width: 767.98px), (max-aspect-ratio: 0.9999/1)"
-          fetchPriority="high"
-        />
         {/*
           Scroll reveals are prerendered at opacity 0 by Motion. Without this,
           a visitor with JavaScript off would get a blank page below the fold.
@@ -119,7 +96,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        {children}
+        <SiteNav />
+        <main id="main">{children}</main>
+        <SiteFooter />
+        <MobileBookBar />
       </body>
     </html>
   );

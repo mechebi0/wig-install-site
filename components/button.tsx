@@ -40,6 +40,21 @@ type ButtonLinkProps = ComponentPropsWithoutRef<"a"> & {
   variant?: keyof typeof buttonStyles;
 };
 
+/**
+ * A plain anchor, deliberately, and the same for every destination.
+ *
+ * next/link was tried here and removed. Under `output: "export"` Next 16.3.3
+ * writes each route RSC payload to `work/__next.work/__PAGE__.txt` but asks
+ * for it at `work/__next.work.__PAGE__.txt`, so every prefetch 404s, every
+ * client side navigation fails that fetch and then falls back to a full page
+ * load anyway. The only thing next/link bought was a console full of 404s on
+ * every page. Anchors do the same navigation with none of that, and they keep
+ * the build command exactly `npx next build` rather than needing a post-build
+ * step to move files around.
+ *
+ * It also keeps the STUDIO.bookingUrl switch trivial: the same component takes
+ * "/book" or an external Fresha link without caring which it got.
+ */
 export function ButtonLink({
   variant = "primary",
   className = "",

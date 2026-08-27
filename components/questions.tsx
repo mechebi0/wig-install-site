@@ -23,7 +23,7 @@ export function Questions() {
               id="questions-heading"
               className="font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:sticky lg:top-28 lg:text-5xl"
             >
-              Before you book.
+              Common questions.
             </h2>
           </Reveal>
         </div>

@@ -16,19 +16,18 @@ const OFFSETS = ["lg:mt-0", "lg:mt-14", "lg:mt-6"] as const;
 
 export function Testimonials() {
   return (
+    /*
+      No heading of its own: /reviews opens with this exact sentence. What is
+      kept is the placeholder notice, which has to sit with the quotes rather
+      than in the page header, because it is a claim about these specific
+      words.
+    */
     <section
-      aria-labelledby="testimonials-heading"
-      className="border-t border-line py-20 lg:py-28"
+      aria-label="Client reviews"
+      className="py-16 lg:py-20"
     >
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
         <Reveal>
-          <h2
-            id="testimonials-heading"
-            className="max-w-[18ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
-          >
-            What people say on week three.
-          </h2>
-
           {/*
             Visible while the quotes below are written stand-ins. Presenting
             invented quotes as real reviews would be deceptive, so the notice
@@ -36,7 +35,7 @@ export function Testimonials() {
             once real testimonials replace these.
           */}
           {testimonialsArePlaceholder ? (
-            <p className="mt-5 inline-flex items-start gap-2 rounded-3xl border border-line-strong bg-surface px-4 py-2.5 text-sm leading-relaxed text-muted">
+            <p className="inline-flex items-start gap-2 rounded-3xl border border-line-strong bg-surface px-4 py-2.5 text-sm leading-relaxed text-muted">
               <Info
                 size={16}
                 weight="regular"

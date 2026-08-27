@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { List, X } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
@@ -20,13 +21,38 @@ import { bookingTarget, CTA, NAV_LINKS, STUDIO } from "@/lib/content";
  * cleanly; it fades in a hairline and a soft shadow once the page scrolls and
  * the bar starts overlapping pale content.
  *
+ * The links are routes now rather than in-page anchors, so the current page is
+ * marked with aria-current and carries a permanent rule under it. Without that
+ * a multi-page site gives the visitor no idea where they are.
+ *
  * Mobile navigation is deliberately shallow. Below lg the links move into a
  * full-height sheet with 56px rows, and the booking CTA is duplicated at the
  * bottom of that sheet inside thumb reach rather than only at the top.
  */
+/**
+ * `trailingSlash: true` in next.config.ts means the browser URL is "/work/"
+ * while NAV_LINKS holds "/work". Comparing the two raw would mark nothing as
+ * the current page, so every comparison goes through here first. Root stays
+ * "/" rather than collapsing to "".
+ */
+function samePath(a: string, b: string) {
+  const trim = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+  return trim(a) === trim(b);
+}
+
 export function SiteNav() {
-  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+
+  /*
+    The sheet stores the route it was opened on rather than a boolean, so
+    "still open" is derived rather than synchronised. Any navigation, back
+    button included, changes `pathname` and the sheet is closed by arithmetic
+    on the next render. The effect-plus-setState version of this was both a
+    cascading render and a lint error.
+  */
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const open = openedAt !== null && samePath(openedAt, pathname);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -39,7 +65,7 @@ export function SiteNav() {
     if (!open) return;
 
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") setOpenedAt(null);
     };
 
     const previousOverflow = document.body.style.overflow;
@@ -51,6 +77,8 @@ export function SiteNav() {
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  const isCurrent = (href: string) => samePath(pathname, href);
 
   return (
     /*
@@ -71,32 +99,40 @@ export function SiteNav() {
           className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-8 px-5 sm:px-8 lg:h-[72px]"
         >
           <a
-            href="#main"
-            aria-label={`${STUDIO.name}, back to the top`}
+            href="/"
+            aria-label={`${STUDIO.name}, home`}
             className="text-ink"
           >
             <Wordmark className="text-xl lg:text-[1.4rem]" />
           </a>
 
           <ul className="hidden items-center gap-9 lg:flex">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                {/* min-h-11 gives the link a 44px hit area inside the 72px bar
-                    without changing the bar height (WCAG target size). The rule
-                    wipes in from the left on hover rather than the label just
-                    changing colour. */}
-                <a
-                  href={link.href}
-                  className="group relative flex min-h-11 items-center text-sm text-muted transition-colors duration-200 hover:text-ink"
-                >
-                  {link.label}
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 bottom-2.5 h-px origin-left scale-x-0 bg-accent transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 motion-reduce:transition-none"
-                  />
-                </a>
-              </li>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const current = isCurrent(link.href);
+              return (
+                <li key={link.href}>
+                  {/* min-h-11 gives the link a 44px hit area inside the 72px bar
+                      without changing the bar height (WCAG target size). The
+                      rule wipes in from the left on hover, and stays put on the
+                      page you are actually on. */}
+                  <a
+                    href={link.href}
+                    aria-current={current ? "page" : undefined}
+                    className={`group relative flex min-h-11 items-center text-sm transition-colors duration-200 ${
+                      current ? "text-ink" : "text-muted hover:text-ink"
+                    }`}
+                  >
+                    {link.label}
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-x-0 bottom-2.5 h-px origin-left bg-accent transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+                        current ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                      }`}
+                    />
+                  </a>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="flex items-center gap-2">
@@ -113,7 +149,7 @@ export function SiteNav() {
             </div>
             <button
               type="button"
-              onClick={() => setOpen(true)}
+              onClick={() => setOpenedAt(pathname)}
               aria-label="Open menu"
               aria-expanded={open}
               className="tap -mr-2 inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2 lg:hidden"
@@ -130,7 +166,7 @@ export function SiteNav() {
             <Wordmark className="text-xl text-ink" />
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => setOpenedAt(null)}
               aria-label="Close menu"
               className="tap -mr-2 inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2"
             >
@@ -139,12 +175,25 @@ export function SiteNav() {
           </div>
 
           <ul className="flex flex-col px-5 pt-4 sm:px-8">
+            <li>
+              <a
+                href="/"
+                aria-current={isCurrent("/") ? "page" : undefined}
+                className={`flex min-h-14 items-center border-b border-line font-display text-2xl tracking-tight ${
+                  isCurrent("/") ? "text-accent" : "text-ink"
+                }`}
+              >
+                Home
+              </a>
+            </li>
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <a
                   href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="flex min-h-14 items-center border-b border-line font-display text-2xl tracking-tight text-ink"
+                  aria-current={isCurrent(link.href) ? "page" : undefined}
+                  className={`flex min-h-14 items-center border-b border-line font-display text-2xl tracking-tight ${
+                    isCurrent(link.href) ? "text-accent" : "text-ink"
+                  }`}
                 >
                   {link.label}
                 </a>
@@ -156,7 +205,7 @@ export function SiteNav() {
           <div className="mt-auto px-5 pb-10 pt-8 sm:px-8">
             <a
               {...bookingTarget()}
-              onClick={() => setOpen(false)}
+              onClick={() => setOpenedAt(null)}
               className={`${buttonStyles.primary} w-full`}
             >
               {CTA.book}

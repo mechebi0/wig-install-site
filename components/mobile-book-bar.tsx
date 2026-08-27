@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CalendarCheck, Phone } from "@phosphor-icons/react/dist/ssr";
 import { bookingTarget, CTA, STUDIO } from "@/lib/content";
@@ -12,42 +13,46 @@ import { bookingTarget, CTA, STUDIO } from "@/lib/content";
  * one tap away for the whole page, which is the single biggest conversion
  * lever on a local service site.
  *
- * Visibility is driven by an IntersectionObserver on the hero, never a scroll
- * listener, and it hides itself again over the booking form so it never covers
- * the thing it is pointing at. Its height is reserved on <body> via padding so
- * it cannot obscure the footer.
+ * Now that the site is more than one page, the trigger is a scroll threshold
+ * rather than an observer on the hero: the hero only exists on the homepage,
+ * and the inner pages need the bar just as much. 320px is roughly the point
+ * where the page header has left the screen.
+ *
+ * It hides itself entirely on the booking page. Floating a "book" button over
+ * the booking form is the classic version of this component covering the thing
+ * it is pointing at.
  */
+const REVEAL_AT = 320;
+
 export function MobileBookBar() {
+  const pathname = usePathname();
   const [past, setPast] = useState(false);
-  const [atForm, setAtForm] = useState(false);
 
   useEffect(() => {
-    const hero = document.getElementById("hero");
-    const form = document.getElementById("book");
-    const observers: IntersectionObserver[] = [];
-
-    if (hero) {
-      const o = new IntersectionObserver(
-        ([entry]) => setPast(!entry.isIntersecting),
-        { threshold: 0, rootMargin: "-120px 0px 0px 0px" },
-      );
-      o.observe(hero);
-      observers.push(o);
-    }
-
-    if (form) {
-      const o = new IntersectionObserver(
-        ([entry]) => setAtForm(entry.isIntersecting),
-        { threshold: 0.12 },
-      );
-      o.observe(form);
-      observers.push(o);
-    }
-
-    return () => observers.forEach((o) => o.disconnect());
+    const onScroll = () => setPast(window.scrollY > REVEAL_AT);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const shown = past && !atForm;
+  /*
+    A client side navigation lands at the top of the new page, so the bar has
+    to start hidden again. This is React's documented "adjust state when a
+    prop changes" pattern rather than an effect: setting state during render
+    re-renders immediately without committing the stale frame, where an effect
+    would paint the bar, then hide it.
+  */
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
+    setPast(false);
+  }
+
+  // "/book/" with trailingSlash on, "/book" without. Match either.
+  const onBookingPage = pathname.replace(/\/$/, "") === "/book";
+  const shown = past && !onBookingPage;
+
+  if (onBookingPage) return null;
 
   return (
     <div

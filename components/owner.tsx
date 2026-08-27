@@ -16,9 +16,14 @@ import { OWNER_IMAGE } from "@/lib/images";
  */
 export function Owner() {
   return (
+    /*
+      No heading of its own. /meet-nat opens with this exact sentence in its
+      page header, and repeating it here would give the page two h-levels
+      saying the same thing four hundred pixels apart.
+    */
     <section
       id="about"
-      aria-labelledby="about-heading"
+      aria-label={`About ${STUDIO.owner}`}
       className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
     >
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
@@ -38,19 +43,12 @@ export function Owner() {
 
         <div className="lg:col-span-6 lg:col-start-7">
           <Reveal index={1}>
-            <p className="label text-accent">Meet {STUDIO.owner}</p>
-
-            <h2
-              id="about-heading"
-              className="mt-5 max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
-            >
-              {OWNER.heading}
-            </h2>
-
-            {OWNER.paragraphs.map((paragraph) => (
+            {OWNER.paragraphs.map((paragraph, i) => (
               <p
                 key={paragraph.slice(0, 24)}
-                className="mt-6 max-w-[58ch] text-base leading-relaxed text-muted lg:text-lg"
+                className={`max-w-[58ch] text-base leading-relaxed text-muted lg:text-lg ${
+                  i === 0 ? "" : "mt-6"
+                }`}
               >
                 {paragraph}
               </p>

@@ -3,13 +3,21 @@ import { Wordmark } from "@/components/wordmark";
 import { NAV_LINKS, STUDIO } from "@/lib/content";
 
 /**
- * Footer. Address and hours are here because this is a real physical venue
- * people drive to, which is the one case location content earns its place.
- * No atmospheric locale strip, no build stamp, no version string.
+ * Footer, kept minimal on purpose.
  *
- * This is where the brand mark lives. The nav and the hero both carry the
- * wordmark as type, so the drawn lockup gets exactly one appearance on the
- * page, at the end, which is how a mark keeps its weight.
+ * It used to carry a fourth column of opening hours. Those now live on /book,
+ * beside the form, which is the only place someone is deciding when to come
+ * in; repeating them here made the footer a second information panel rather
+ * than a way out of the page.
+ *
+ * What is left is the shape a footer should be: the mark, where the studio is,
+ * how to reach a person, and the pages. The address stays because this is a
+ * real venue people drive to, which is the one case location content earns its
+ * place. No atmospheric locale strip, no build stamp, no version string.
+ *
+ * This is also where the brand mark lives. The nav and the hero both carry the
+ * wordmark as type, so the drawn lockup gets exactly one appearance per page,
+ * at the end, which is how a mark keeps its weight.
  *
  * Extra bottom padding on small screens clears the sticky booking bar.
  */
@@ -18,9 +26,9 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-line bg-surface-2/60">
-      <div className="mx-auto max-w-[1400px] px-5 pb-28 pt-16 sm:px-8 lg:pb-16 lg:pt-20">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-          <div>
+      <div className="mx-auto max-w-[1400px] px-5 pb-28 pt-16 sm:px-8 lg:pb-14 lg:pt-20">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
+          <div className="lg:col-span-5">
             {STUDIO.logo ? (
               /*
                 The drawn lockup. Swapping public/brand/crown-by-nat.svg for a
@@ -35,7 +43,7 @@ export function SiteFooter() {
                 alt={STUDIO.name}
                 width={320}
                 height={150}
-                className="-ml-1 h-auto w-[210px] max-w-full"
+                className="-ml-1 h-auto w-[190px] max-w-full"
               />
             ) : (
               <Wordmark className="text-2xl text-ink" />
@@ -48,7 +56,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <nav aria-label="Footer">
+          <nav aria-label="Footer" className="lg:col-span-3">
             <h2 className="label text-ink">Pages</h2>
             <ul className="mt-4 flex flex-col">
               {NAV_LINKS.map((link) => (
@@ -64,7 +72,7 @@ export function SiteFooter() {
             </ul>
           </nav>
 
-          <div>
+          <div className="lg:col-span-4">
             <h2 className="label text-ink">Contact</h2>
             <ul className="mt-4 flex flex-col text-sm">
               <li>
@@ -94,22 +102,9 @@ export function SiteFooter() {
               </li>
             </ul>
           </div>
-
-          <div>
-            <h2 className="label text-ink">Hours</h2>
-            <ul className="mt-4 flex flex-col gap-2 text-sm text-muted">
-              {STUDIO.hours.map((slot) => (
-                <li key={slot.days}>
-                  {slot.days}
-                  <br />
-                  {slot.time}
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
 
-        <p className="mt-14 border-t border-line pt-8 text-sm text-muted">
+        <p className="mt-12 border-t border-line pt-8 text-sm text-muted">
           &copy; {year} {STUDIO.name}. Every install performed by {STUDIO.owner}.
         </p>
       </div>

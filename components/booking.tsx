@@ -317,8 +317,12 @@ export function Booking() {
 
 function BookingShell({ children }: { children: React.ReactNode }) {
   return (
+    /*
+      id="request" rather than "book": the page itself is /book now, so an
+      anchor called #book on it would read as /book#book.
+    */
     <section
-      id="book"
+      id="request"
       aria-labelledby="booking-heading"
       className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
     >

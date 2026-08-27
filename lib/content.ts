@@ -62,8 +62,9 @@ export const STUDIO = {
   /**
    * THE BOOKING DESTINATION. One switch for the whole site.
    *
-   * Empty string  -> every booking CTA scrolls to the on-page booking form at
-   *                  #book. This is the current behaviour.
+   * Empty string  -> every booking CTA goes to the /book page, which carries
+   *                  the services, the studio details and the request form.
+   *                  This is the current behaviour.
    * A URL         -> every CTA instead opens that URL in a new tab. Paste the
    *                  real Square / Fresha / Calendly / Acuity link here and
    *                  the on-page form section hides itself automatically.
@@ -77,7 +78,7 @@ export const STUDIO = {
 
 /** One label per intent, reused everywhere. */
 export const CTA = {
-  book: "Book Your Install",
+  book: "Book Your Chair",
   work: "See the work",
 } as const;
 
@@ -90,18 +91,78 @@ export function bookingTarget() {
   const external = STUDIO.bookingUrl.trim();
   return external
     ? { href: external, target: "_blank" as const, rel: "noopener noreferrer" }
-    : { href: "#book" };
+    : { href: "/book/" };
 }
 
-/** True while booking runs through the on-page form rather than an external tool. */
+/** True while booking runs through the form on /book rather than an external tool. */
 export const usesOnPageBooking = STUDIO.bookingUrl.trim() === "";
 
+/**
+ * Four destinations, four pages. The homepage is a landing experience rather
+ * than a table of contents, so everything detailed lives behind one of these
+ * and the booking CTA is kept separate from them as the single primary action.
+ */
 export const NAV_LINKS = [
-  { label: "Services", href: "#services" },
-  { label: "Installs", href: "#installs" },
-  { label: "Styles", href: "#styles" },
-  { label: "Questions", href: "#questions" },
+  { label: "Work", href: "/work/" },
+  { label: "Meet Nat", href: "/meet-nat/" },
+  { label: "Reviews", href: "/reviews/" },
+  { label: "Before you book", href: "/before-you-book/" },
 ] as const;
+
+/**
+ * Per page kicker, title and lede. One place to review every page opening,
+ * and the source for each page title tag.
+ */
+export const PAGES = {
+  work: {
+    kicker: "The work",
+    title: "Finished, and still holding.",
+    lede: "Recent installs, grouped by the look people actually ask for. Bring a screenshot to your consult and Nat will work from it.",
+  },
+  book: {
+    kicker: "Book",
+    title: "Book your chair.",
+    lede: "Pick a service, send the form, and Nat will text back with two or three slots. Usually the same day.",
+  },
+  beforeYouBook: {
+    kicker: "Before you book",
+    title: "Everything worth knowing first.",
+    lede: "What the appointment involves, how long an install lasts, and what happens if the lace lifts early.",
+  },
+  reviews: {
+    kicker: "Reviews",
+    title: "What people say on week three.",
+    lede: "Not on the day, when everything looks good. Three weeks in, which is when an install has to prove itself.",
+  },
+  meetNat: {
+    kicker: "Meet Nat",
+    title: "One pair of hands, start to finish.",
+    lede: "One stylist, one chair, and one client in the room at a time.",
+  },
+} as const;
+
+/**
+ * HOMEPAGE ONLY.
+ *
+ * The homepage carries a preview of two things and a closing CTA, and nothing
+ * else. Anything that needs a paragraph to explain belongs on its own page.
+ */
+export const HOME = {
+  featured: {
+    heading: "Recent work.",
+    body: "Three from the last few weeks.",
+    link: "See all the work",
+  },
+  services: {
+    heading: "What you can book.",
+    body: "Prices are for the service. You bring the unit.",
+    link: "See every service",
+  },
+  closing: {
+    heading: "Your chair is waiting.",
+    body: "Tuesday through Saturday, one client at a time. Send the form and Nat will text you back with two or three slots.",
+  },
+} as const;
 
 /**
  * Hero. The brand name is the display element, because it is the first thing a
@@ -144,7 +205,7 @@ export const ASSURANCES = [
 ] as const;
 
 export const CAROUSEL_SECTION = {
-  heading: "Finished, and still holding.",
+  heading: "Recent installs.",
   body: "A slow look through recent work. Pause it, or step through at your own pace.",
 } as const;
 
@@ -290,6 +351,6 @@ export const QUESTIONS = [
 ] as const;
 
 export const BOOKING = {
-  heading: "Book your chair.",
+  heading: "Send a request.",
   body: "Send the form and Nat will text back with two or three slots, usually the same day. Tuesday through Saturday.",
 } as const;

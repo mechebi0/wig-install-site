@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { ButtonLink } from "@/components/button";
 import { Reveal } from "@/components/reveal";
-import { bookingTarget, CTA, SERVICES } from "@/lib/content";
+import { SERVICES } from "@/lib/content";
 import { SERVICE_IMAGE } from "@/lib/images";
 
 /**
@@ -61,9 +60,6 @@ export function Services() {
             <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">
               {featured.body}
             </p>
-            <div className="mt-auto pt-8">
-              <ButtonLink {...bookingTarget()}>{CTA.book}</ButtonLink>
-            </div>
           </div>
         </Reveal>
 

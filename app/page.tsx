@@ -1,42 +1,33 @@
-import { SiteNav } from "@/components/site-nav";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { Intro } from "@/components/intro";
-import { Assurances } from "@/components/assurances";
-import { Services } from "@/components/services";
-import { InstallCarousel } from "@/components/install-carousel";
-import { StyleGalleries } from "@/components/style-galleries";
-import { Process } from "@/components/process";
-import { Owner } from "@/components/owner";
-import { Testimonials } from "@/components/testimonials";
-import { Questions } from "@/components/questions";
-import { Booking } from "@/components/booking";
-import { SiteFooter } from "@/components/site-footer";
-import { MobileBookBar } from "@/components/mobile-book-bar";
-import { QUESTIONS, SERVICES, STUDIO, usesOnPageBooking } from "@/lib/content";
+import { FeaturedWork } from "@/components/featured-work";
+import { ServicesPreview } from "@/components/services-preview";
+import { BookingCta } from "@/components/booking-cta";
+import { QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
 
 /**
- * Section order and layout family, so the repetition rules stay checkable:
+ * The homepage is a landing experience, not a table of contents.
  *
- *   Hero          full bleed crossfading carousel
- *   Intro         typographic two column statement
- *   Assurances    hairline strip
- *   Services      asymmetric bento
- *   Installs      auto-rotating peek rail
- *   Styles        tabbed swipe galleries
- *   Process       four column rule, typographic
- *   Owner         asymmetric split, image left
- *   Testimonials  offset baseline row
- *   Questions     sticky aside plus accordion
- *   Booking       detail column plus form panel
+ * Five blocks, and every one of them is either the brand or a way forward:
  *
- * Eleven sections, eleven layout families. The two carousels are separated by
- * three sections and use different mechanisms (crossfade versus peek rail), so
- * the page never reads as the same component twice. The only image-plus-text
- * split on the page is Owner, and it is five sections clear of the hero.
+ *   Hero            full bleed crossfading carousel, brand and booking CTA
+ *   Intro           short typographic brand statement, Nat named as installer
+ *   Featured work   three installs, then out to /work
+ *   Services        three services and their prices, then out to /book
+ *   Closing CTA     the wine band, booking again
  *
- * Services sits ahead of Installs on purpose: a visitor who has just been sold
- * by the hero wants to know what can be booked and what it costs before being
- * shown more photographs.
+ * Everything that needs a paragraph to explain now lives on its own page:
+ *
+ *   /work             the full install rail and the style galleries
+ *   /book             every service, the studio details, the request form
+ *   /before-you-book  the appointment step by step, and the full FAQ
+ *   /reviews          the client quotes
+ *   /meet-nat         the biography, the credentials, the assurances
+ *
+ * The structured data stays here rather than being split across pages: it
+ * describes the business, and the homepage is what a search engine treats as
+ * the business. It is generated from the same STUDIO and SERVICES constants
+ * the visible page uses, so the two cannot drift apart.
  */
 
 const localBusiness = {
@@ -93,27 +84,11 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
       />
-      <SiteNav />
-      <main id="main">
-        <HeroCarousel />
-        <Intro />
-        <Assurances />
-        <Services />
-        <InstallCarousel />
-        <StyleGalleries />
-        <Process />
-        <Owner />
-        <Testimonials />
-        <Questions />
-        {/*
-          The on-page form only exists while booking runs through this site.
-          Set STUDIO.bookingUrl to the real booking tool and every CTA points
-          there instead, so this section would be a dead end.
-        */}
-        {usesOnPageBooking ? <Booking /> : null}
-      </main>
-      <SiteFooter />
-      <MobileBookBar />
+      <HeroCarousel />
+      <Intro />
+      <FeaturedWork />
+      <ServicesPreview />
+      <BookingCta />
     </>
   );
 }
