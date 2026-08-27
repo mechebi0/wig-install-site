@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Crown by Nat">
+  <!--
+    Favicon. Picked up automatically by the App Router from app/icon.svg and
+    emitted as <link rel="icon"> at build time.
+
+    Solid rather than the hairline crown from the full lockup: at 16px an
+    outlined mark with a 2px stroke closes up into a smudge, so the tab icon
+    is the same crown filled.
+  -->
+  <rect width="64" height="64" rx="14" fill="#fdf8fa" />
+  <path d="M13 43 L17.5 21 L26 32 L32 16 L38 32 L46.5 21 L51 43 Z" fill="#b01050" />
+  <rect x="13" y="46.5" width="38" height="4.5" rx="2.25" fill="#b01050" />
+</svg>

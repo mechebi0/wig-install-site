@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Crown by Nat
 
-## Getting Started
+Marketing site for **Crown by Nat**, a one-chair lace wig install studio. Every
+install is performed personally by Nat.
 
-First, run the development server:
+Next.js (App Router) + TypeScript + Tailwind CSS v4, exported as a fully static
+site and deployed on Cloudflare Pages.
+
+## Running it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run lint
+npx tsc --noEmit
+npx next build   # writes the static site to out/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Cloudflare Pages, building from `main`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Setting          | Value                        |
+| ---------------- | ---------------------------- |
+| Production branch| `main`                       |
+| Framework preset | Next.js (Static HTML Export) |
+| Build command    | `npx next build`             |
+| Output directory | `out`                        |
+| Root directory   | `/`                          |
 
-## Learn More
+`next.config.ts` sets `output: "export"` and `images.unoptimized`. **Do not add
+API routes, server actions, middleware, or ISR** — none of them exist on a
+static host and any one of them breaks the deployment.
 
-To learn more about Next.js, take a look at the following resources:
+## Where to change things
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Almost everything Nat will want to edit lives in two files.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### `lib/content.ts` — all copy and business details
 
-## Deploy on Vercel
+- `STUDIO` — brand name, owner, address, phone, email, Instagram, hours.
+  The invented stand-ins are grouped in a `PLACEHOLDER` block at the top of the
+  file so there is one place to edit and nothing gets missed.
+- `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it
+  empty and every CTA scrolls to the on-page form. Paste a Square / Fresha /
+  Calendly / Acuity link and every CTA opens that instead, and the on-page form
+  section removes itself automatically.
+- `SERVICES` — names, prices, durations.
+- `OWNER`, `QUESTIONS`, `TESTIMONIALS`, and the per-section headings.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### `lib/images.ts` — every photograph
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Each slot points at a file under `public/images/`. Drop a replacement in using
+the same filename and matching aspect ratio and nothing else changes. Keep the
+`width` / `height` values truthful to the file: they reserve layout space and
+are what holds layout shift at zero.
+
+```
+public/images/hero/     six hero slides, two crops each (see below)
+public/images/          everything else, 4:5 portrait unless noted
+public/brand/           the brand lockup used in the footer
+```
+
+The hero ships **two crops per slide** — `*-wide.jpg` at 1920x1200 for tablet
+and desktop, `*-tall.jpg` at 1080x1440 for phones — and `<picture>` fetches
+exactly one of them. A single landscape image cropped into a phone viewport
+shows a narrow band through the middle of the frame and cuts the hair out of a
+hair photograph, which is the whole reason for the second crop.
+
+## Things that still need Nat
+
+- Real address, phone, email, Instagram handle and opening hours
+- Confirmed service prices and durations
+- Her own biography and a photograph of her working
+- Real client photos to replace the stock imagery
+- Real client reviews. Until then `testimonialsArePlaceholder` in
+  `lib/content.ts` stays `true`, which keeps a visible "sample wording" notice
+  on the section. **Do not flip that flag while the words are still invented.**
+- A booking link, if she uses a booking tool
+
+## Photography licence
+
+All current imagery is royalty-free stock from
+[Pexels](https://www.pexels.com/license/): free for commercial use, no
+attribution required. Files are downloaded and committed rather than hotlinked,
+so the deployment has no third-party image dependency. Each slot records its
+originating `sourceId` for traceability.
+
+Two limits worth knowing: the licence does not permit implying that an
+identifiable person endorses the business, which is why gallery captions
+describe the style and never name a client and why testimonials carry no faces.
+And these are stand-ins — Nat's real portfolio will convert better than any of
+them.

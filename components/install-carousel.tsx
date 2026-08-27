@@ -9,15 +9,20 @@ import {
   Play,
 } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
-import { CAROUSEL_SECTION, STUDIO } from "@/lib/content";
+import { CAROUSEL_SECTION } from "@/lib/content";
 import { CAROUSEL } from "@/lib/images";
 
 /**
- * Slow-moving finished-install carousel.
+ * Featured installs: a slow moving peek rail of finished work.
  *
- * Built on a scroll-snap rail rather than a transform track, so touch swipe,
- * trackpad swipe and momentum are the browser's native implementations rather
- * than a reimplementation that fights them.
+ * Different job from the hero carousel, and deliberately a different mechanism
+ * so the page does not repeat itself. The hero is one full bleed frame at a
+ * time; this is a rail where the next photograph is already half visible,
+ * which is what invites the swipe.
+ *
+ * Built on scroll-snap rather than a transform track, so touch swipe, trackpad
+ * swipe and momentum are the browser implementations rather than a
+ * reimplementation that fights them.
  *
  * Auto-rotation follows the UI/UX Pro Max "Auto-Rotating Content Controls"
  * rule in full:
@@ -26,9 +31,6 @@ import { CAROUSEL } from "@/lib/images";
  *   - never runs at all under prefers-reduced-motion
  *   - position announced politely, so it is not silent to a screen reader
  *   - every slide reachable by button and keyboard, never drag-only
- *
- * Slide 1 is the brand slide. Drop a logo at public/brand-logo.svg and it
- * renders automatically; until then it falls back to the wordmark.
  */
 
 const DWELL_MS = 6500;
@@ -41,7 +43,6 @@ export function InstallCarousel() {
   const [held, setHeld] = useState(false);
   const [inView, setInView] = useState(false);
   const [reduced, setReduced] = useState(false);
-  const [logoOk, setLogoOk] = useState(true);
 
   const count = CAROUSEL.length;
 
@@ -56,9 +57,9 @@ export function InstallCarousel() {
 
   /*
     Rotation only runs while the section is actually on screen. Two reasons:
-    a visitor who scrolls down should arrive on slide 1, which is the brand
-    slide, rather than wherever an invisible timer happened to leave it; and
-    nothing should be animating off screen.
+    a visitor who scrolls down should arrive on the first install rather than
+    wherever an invisible timer happened to leave it, and nothing should be
+    animating off screen.
   */
   useEffect(() => {
     const node = sectionRef.current;
@@ -80,7 +81,7 @@ export function InstallCarousel() {
     position from what was actually on screen.
 
     Instead the rail is measured, and the slide whose centre sits closest to
-    the rail's centre wins. `scrollend` handles the settle, and the observer is
+    the rail centre wins. `scrollend` handles the settle, and the observer is
     kept purely as a trigger for browsers without it (Safari before 17.4).
   */
   useEffect(() => {
@@ -102,9 +103,9 @@ export function InstallCarousel() {
 
       /*
         Clamp at the extremes. Slides are a fraction of the rail width, so the
-        first and last can never physically reach the rail's centre: at
+        first and last can never physically reach the rail centre: at
         scrollLeft 0 the centre of slide 1 sits left of the midpoint and its
-        neighbour measures closer. Without this, showing the brand slide
+        neighbour measures closer. Without this, showing the first slide
         highlighted dot 2 and announced the wrong position.
       */
       const maxScroll = rail.scrollWidth - rail.clientWidth;
@@ -165,15 +166,13 @@ export function InstallCarousel() {
   };
 
   const active = CAROUSEL[index];
-  const activeLabel =
-    active.kind === "brand" ? STUDIO.name : active.title;
 
   return (
     <section
       ref={sectionRef}
-      id="work"
+      id="installs"
       aria-roledescription="carousel"
-      aria-label="Finished installs"
+      aria-label="Featured installs"
       className="scroll-mt-24 overflow-hidden bg-surface-2/60 py-20 lg:py-28"
       onMouseEnter={() => setHeld(true)}
       onMouseLeave={() => setHeld(false)}
@@ -234,85 +233,60 @@ export function InstallCarousel() {
         tabIndex={0}
         onKeyDown={onKeyDown}
         onPointerDown={() => setPlaying(false)}
-        aria-label="Finished installs, swipe or use the arrow keys"
+        aria-label="Featured installs, swipe or use the arrow keys"
         className="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 sm:gap-6 sm:px-8 lg:mt-14"
       >
         {CAROUSEL.map((slide, i) => (
           <li
-            key={i}
+            key={slide.image.src}
             data-slide={i}
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${count}`}
             className="w-[82%] shrink-0 snap-center sm:w-[58%] lg:w-[40%] xl:w-[34%]"
           >
-            {slide.kind === "brand" ? (
-              <div className="flex aspect-4/5 flex-col items-center justify-center rounded-3xl border border-line-strong bg-linear-to-b from-surface to-surface-2 px-8 text-center shadow-soft">
-                {/*
-                  Slide 1 is the brand slot. It renders STUDIO.logo, which is
-                  currently a clearly-marked temporary placeholder; swapping in
-                  the client's real file needs no change here. If the logo is
-                  cleared or fails to load, the typographic wordmark stands in
-                  so the slide is never blank.
-                */}
-                {STUDIO.logo && logoOk ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={STUDIO.logo}
-                    alt={`${STUDIO.name} logo`}
-                    width={400}
-                    height={300}
-                    className="h-auto w-[76%] max-w-[300px] object-contain"
-                    onError={() => setLogoOk(false)}
-                  />
-                ) : (
-                  <span className="font-display text-4xl leading-tight tracking-tight text-ink lg:text-5xl">
-                    {STUDIO.name}
-                  </span>
-                )}
-                <span className="mt-6 max-w-[24ch] text-sm leading-relaxed text-muted">
+            <figure>
+              <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-surface-2 shadow-soft">
+                <Image
+                  src={slide.image.src}
+                  alt={slide.image.alt}
+                  width={slide.image.width}
+                  height={slide.image.height}
+                  loading="lazy"
+                  sizes="(min-width: 1280px) 34vw, (min-width: 1024px) 40vw, (min-width: 640px) 58vw, 82vw"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <figcaption className="mt-4 px-1">
+                <span className="block font-display text-lg tracking-tight text-ink">
+                  {slide.title}
+                </span>
+                <span className="mt-1 block text-sm leading-relaxed text-muted">
                   {slide.caption}
                 </span>
-              </div>
-            ) : (
-              <figure>
-                <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-surface-2 shadow-soft">
-                  <Image
-                    src={slide.image.src}
-                    alt={slide.image.alt}
-                    width={slide.image.width}
-                    height={slide.image.height}
-                    loading={i <= 1 ? "eager" : "lazy"}
-                    sizes="(min-width: 1280px) 34vw, (min-width: 1024px) 40vw, (min-width: 640px) 58vw, 82vw"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <figcaption className="mt-4 px-1">
-                  <span className="block font-display text-lg tracking-tight text-ink">
-                    {slide.title}
-                  </span>
-                  <span className="mt-1 block text-sm leading-relaxed text-muted">
-                    {slide.caption}
-                  </span>
-                </figcaption>
-              </figure>
-            )}
+              </figcaption>
+            </figure>
           </li>
         ))}
       </ul>
 
-      {/* Dots double as direct jumps. Kept 44px tall for the tap target. */}
-      <div className="mx-auto mt-6 flex max-w-[1400px] items-center justify-center gap-1 px-5 sm:px-8">
-        {CAROUSEL.map((_, i) => (
+      {/*
+        Dots double as direct jumps, and stay 44px for the tap target. No flex
+        gap on top of that: six 44px targets plus 4px gaps came to 284px, which
+        is 4px more than a 320px phone has between the page gutters. The spacing
+        you see between the pills is the padding inside each target.
+      */}
+      <div className="mx-auto mt-6 flex max-w-[1400px] items-center justify-center px-5 sm:px-8">
+        {CAROUSEL.map((slide, i) => (
           <button
-            key={i}
+            key={slide.image.src}
             type="button"
-            aria-label={`Go to slide ${i + 1} of ${count}`}
+            aria-label={`Go to ${slide.title}, slide ${i + 1} of ${count}`}
             aria-current={i === index}
             onClick={() => {
               setPlaying(false);
               goTo(i);
             }}
-            className="tap group flex items-center justify-center px-1"
+            className="tap group flex cursor-pointer items-center justify-center px-1"
           >
             <span
               className={`block h-1.5 rounded-full transition-all duration-300 ${
@@ -327,7 +301,7 @@ export function InstallCarousel() {
 
       {/* Politely announced, so the rotation is not silent. */}
       <p aria-live="polite" aria-atomic="true" className="sr-only">
-        {`Slide ${index + 1} of ${count}: ${activeLabel}`}
+        {`Slide ${index + 1} of ${count}: ${active.title}`}
       </p>
     </section>
   );

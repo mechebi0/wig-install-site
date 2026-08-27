@@ -5,15 +5,22 @@ import { OWNER, STUDIO } from "@/lib/content";
 import { OWNER_IMAGE } from "@/lib/images";
 
 /**
- * The owner section, image on the left. The hero put its image on the right
- * and several sections sit between them, so the page never runs a third
- * consecutive image plus text split.
+ * About Crown by Nat. Image on the left, and the only image-plus-text split on
+ * the page: the hero is a full bleed carousel and the two galleries are rails,
+ * so this composition is not competing with anything above it.
  *
- * This is the section the whole brief hangs on: one person does the work.
+ * This is the section the whole brief hangs on: one named person does the work.
+ * The shape is built to take Nat's real biography and her own photograph with
+ * no layout change. Swap the words in OWNER (lib/content.ts) and drop the
+ * photo in at public/images/owner-at-work.jpg.
  */
 export function Owner() {
   return (
-    <section className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28">
+    <section
+      id="about"
+      aria-labelledby="about-heading"
+      className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
+    >
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">
           <div className="relative aspect-4/5 w-full overflow-hidden rounded-3xl bg-surface-2 shadow-lifted">
@@ -31,7 +38,12 @@ export function Owner() {
 
         <div className="lg:col-span-6 lg:col-start-7">
           <Reveal index={1}>
-            <h2 className="max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl">
+            <p className="label text-accent">Meet {STUDIO.owner}</p>
+
+            <h2
+              id="about-heading"
+              className="mt-5 max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
+            >
               {OWNER.heading}
             </h2>
 

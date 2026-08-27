@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  MAISON LUXE - design tokens
+  CROWN BY NAT - design tokens
   ==========================================================================
   Sources this palette reconciles:
 
@@ -9,7 +9,7 @@
     service premium feminine" returned the "Soft pink + lavender luxury"
     profile (primary #EC4899, bg #FDF2F8, fg #831843) with an explicit
     anti-pattern list of "bright neon colors, harsh animations, dark mode".
-  - Taste Skill's colour rules: one accent, saturation held down, no pure
+  - Taste Skill colour rules: one accent, saturation held down, no pure
     #fff / #000, and a documented shape scale.
 
   Where they differ, the reconciliation is written down:
@@ -21,11 +21,16 @@
     anti-pattern for this palette, and a blush-paper luxury brand inverted to
     charcoal stops being the same brand. The page is light locked, and
     `color-scheme: light` is declared so native controls follow.
+  * No second brand colour was introduced for "luxury". Gold or champagne
+    beside rose is the fastest way to make a pink brand look cheap. The
+    luxury here is carried by type, space, and photography instead.
 
   ACCENT LOCK: rose is the only accent. There is no secondary brand colour.
   SHAPE RULE, applied everywhere, no exceptions:
       buttons and pills          -> rounded-full
       cards, media, inputs       -> rounded-3xl (24px)
+      the hero stage             -> square, full bleed. It is a stage, not a
+                                    card, and it is the only exception.
 */
 
 :root {
@@ -54,6 +59,14 @@
   --danger: #a71123;
 
   --shadow-rose: 62 12 34;
+
+  /*
+    Hero scrim. The wine ink as an rgb triple so the hero gradients can tint
+    the photography in the brand colour rather than in neutral grey. Tinting
+    to the ink is what keeps a high-key photograph from going muddy under an
+    overlay: it reads as a duotone wash instead of a grey veil.
+  */
+  --scrim: 61 15 34;
 }
 
 @theme inline {
@@ -78,6 +91,8 @@
 /*
   Z-index scale. These are the only layers on the page.
   10 = sticky nav, 15 = mobile booking bar, 20 = mobile menu sheet.
+  Inside the hero a local stacking context runs 0 (photo) / 1 (scrim) /
+  2 (copy), which is why the hero section carries `isolate`.
 */
 
 @layer base {
@@ -108,12 +123,20 @@
     border-radius: 6px;
   }
 
+  /*
+    Over the hero photography the rose outline loses contrast against a dark
+    scrim, so focus there switches to the near-white. Same weight, same offset.
+  */
+  .on-photo :focus-visible {
+    outline-color: var(--on-accent);
+  }
+
   ::selection {
     background-color: var(--accent);
     color: var(--on-accent);
   }
 
-  /* Playfair's numerals are old style by default; line them up in prices. */
+  /* Playfair numerals are old style by default; line them up in prices. */
   .tabular {
     font-variant-numeric: lining-nums tabular-nums;
   }
@@ -128,6 +151,20 @@
     display: none;
   }
 
+  /*
+    The one typographic flourish the brand allows itself: a small, widely
+    letterspaced upper-case label. Used for the hero kicker and the footer
+    column heads and nowhere else, because the moment it appears on every
+    section it stops reading as luxury and starts reading as a template.
+  */
+  .label {
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
   /* Shadows are tinted to the wine ink, never neutral black. */
   .shadow-soft {
     box-shadow: 0 2px 8px -2px rgb(var(--shadow-rose) / 0.06),
@@ -136,6 +173,58 @@
   .shadow-lifted {
     box-shadow: 0 4px 12px -4px rgb(var(--shadow-rose) / 0.08),
       0 24px 60px -20px rgb(var(--shadow-rose) / 0.18);
+  }
+
+  /*
+    HERO SCRIM.
+
+    Two gradients over one element, both tinted to --scrim (the wine ink):
+
+      1. a bottom-left wash that carries the brand block. It reaches 0.82
+         alpha behind the copy, which puts near-white text at roughly 7.5:1
+         over the lightest photograph in the set and about 4.7:1 over pure
+         white, so the contrast floor holds whatever slide is showing.
+      2. a short top wash, so the sticky nav never sits on a bright frame
+         edge as a slide changes underneath it.
+
+    The whole point of computing rather than eyeballing these is that the
+    image behind them changes every seven seconds. The text cannot be tuned
+    per slide, so the floor has to be set by the scrim.
+  */
+  .hero-scrim {
+    background-image: linear-gradient(
+        to top,
+        rgb(var(--scrim) / 0.82) 0%,
+        rgb(var(--scrim) / 0.62) 22%,
+        rgb(var(--scrim) / 0.24) 52%,
+        rgb(var(--scrim) / 0.06) 78%,
+        transparent 100%
+      ),
+      linear-gradient(
+        to right,
+        rgb(var(--scrim) / 0.42) 0%,
+        rgb(var(--scrim) / 0.12) 45%,
+        transparent 72%
+      );
+  }
+
+  @media (min-width: 1024px) {
+    /* Wider frame, so the bottom wash can sit lower and show more photograph. */
+    .hero-scrim {
+      background-image: linear-gradient(
+          to top,
+          rgb(var(--scrim) / 0.8) 0%,
+          rgb(var(--scrim) / 0.55) 26%,
+          rgb(var(--scrim) / 0.16) 55%,
+          transparent 80%
+        ),
+        linear-gradient(
+          to right,
+          rgb(var(--scrim) / 0.52) 0%,
+          rgb(var(--scrim) / 0.2) 38%,
+          transparent 68%
+        );
+    }
   }
 
   /*
