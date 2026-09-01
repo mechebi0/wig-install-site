@@ -252,6 +252,24 @@ export const HOME = {
       "Nat's clients say it better than a homepage can. Real reviews are being collected now and go up here as they land.",
     link: "Read the reviews",
   },
+  /**
+   * The service summary. Names and one line each, and deliberately NO prices:
+   * every figure in SERVICES is still a placeholder awaiting Nat, and a number
+   * on the homepage is the one thing a visitor will quote back. /book carries
+   * them, in one place, where they can be corrected once.
+   */
+  services: {
+    kicker: "The appointment",
+    heading: "What happens in the chair.",
+    body: "Three ways to book, and Nat performs every one of them herself.",
+    link: "See what is included",
+  },
+  featured: {
+    kicker: "Recent work",
+    heading: "Lately, from the chair.",
+    body: "A few of the most recent installs. The full set lives in the collections.",
+    link: "View the gallery",
+  },
   closing: {
     heading: "Your chair is waiting.",
     body: "One client at a time, in Towson and in Laurel. Send a request and Nat comes back to you with two or three slots.",
@@ -341,6 +359,64 @@ export const ASSURANCES = [
  * slightly different voices. The per-collection words live in
  * lib/collections.ts beside the photographs they describe.
  */
+/**
+ * The explainer that only the Natural Lace page shows.
+ *
+ * Natural Lace is the one collection that is not a hairstyle, and without
+ * saying so it reads as a sixth texture sitting oddly beside five real ones.
+ * Every look on that page is a different style; what they have in common is
+ * how the unit meets the skin. This block says that in the client's language
+ * rather than in the data model's, and it describes only what is visible in
+ * the photographs above it - no lace brand, no product claim.
+ */
+export const FINISH_FOCUS = {
+  eyebrow: "A finish, not a hairstyle",
+  heading: "What natural lace actually means",
+  body: "Every look on this page is a different style. What they share is how the unit meets the skin, which is the part that decides whether an install reads as hair or as a wig.",
+  points: [
+    {
+      title: "Lace melt",
+      body: "Lace tinted to your skin and pressed flat, so the edge disappears into it rather than sitting on top of it.",
+    },
+    {
+      title: "Hairline realism",
+      body: "Edges laid to follow the hairline you already have, rather than a shape drawn on to a face it does not belong to.",
+    },
+    {
+      title: "Scalp realism",
+      body: "Knots bleached down until the parting reads as scalp at conversational distance.",
+    },
+    {
+      title: "Seamless installation",
+      body: "Secured to sit flat the whole way round, with nothing lifting at the temples or the nape by the end of the day.",
+    },
+  ],
+} as const;
+
+/**
+ * The one place the site explains its own filing system.
+ *
+ * Six collections sit on the gallery index and five of them are hairstyles,
+ * so a visitor reasonably assumes the sixth is too. Rather than bolt filter
+ * chips onto a page of six items - controls for six things are furniture, not
+ * navigation - the distinction is made once, in two sentences, above the
+ * grid. After that the cards can just be photographs.
+ */
+export const GALLERY_AXES = {
+  heading: "Two ways to read this work",
+  body: "Most of these collections are about the hair. One is about the install.",
+  axes: [
+    {
+      label: "Style",
+      body: "The texture, the length, the cut and the colour - what you picture when you book. Deep wave, sleek straight, bobs, body wave, and custom colour.",
+    },
+    {
+      label: "Finish",
+      body: "How well the unit is attached: the melt, the hairline, the parting. Natural Lace collects installs of every texture that share that standard.",
+    },
+  ],
+} as const;
+
 export const COLLECTION_PAGE = {
   back: "All six collections",
   gallery: "Explore the collection",

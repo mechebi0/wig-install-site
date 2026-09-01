@@ -4,7 +4,9 @@ import { Intro } from "@/components/intro";
 import {
   ClosingTeasers,
   CollectionShowcase,
+  ServiceSummary,
 } from "@/components/home-teasers";
+import { FeaturedInstalls } from "@/components/featured-installs";
 import { BookingCta } from "@/components/booking-cta";
 import { COLLECTIONS_IN_ORDER } from "@/lib/collections";
 import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
@@ -13,14 +15,17 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * The homepage is a premium introduction and a visual directory. It is not a
  * table of contents, and it is not the site.
  *
- * Six blocks, and every one of them is either the brand or a way forward:
+ * Eight blocks, and every one of them is either the brand or a way forward:
  *
  *   Masthead      the live location strip, then Nat's neon mark centred, with
  *                 the one line that says what this is and where.
  *   Hero          the full-width crossfading carousel: the proposition, the
  *                 two actions, and six of her installs.
  *   Intro         a short typographic brand statement, Nat named as installer
+ *   Services      the three appointments by name, no prices, out to /book
  *   Collections   all six, as cards, then out to /gallery
+ *   Featured      six recent installs, none of them a hero slide, each out to
+ *                 the collection it belongs to
  *   Teasers       Meet Nat and the reviews side by side, four lines each,
  *                 then out to /meet-nat and /reviews
  *   Closing CTA   the wine band, booking again
@@ -113,7 +118,9 @@ export default function Home() {
       <BrandMasthead />
       <HeroCarousel />
       <Intro />
+      <ServiceSummary />
       <CollectionShowcase />
+      <FeaturedInstalls />
       <ClosingTeasers />
       <BookingCta />
     </>

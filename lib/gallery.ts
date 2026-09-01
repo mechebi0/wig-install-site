@@ -46,8 +46,10 @@
 
 import {
   COLLECTIONS_IN_ORDER,
+  featuredItems,
   getCollection,
   relatedCollections,
+  type GalleryItem,
   type Photo,
   type StyleCollection,
 } from "@/lib/collections";
@@ -74,7 +76,20 @@ export function suggestCollections(slug: string, count = 3): StyleCollection[] {
   return relatedCollections(slug, count);
 }
 
-/** Every photograph in a collection, in the order it should be read. */
+/** Every item in a collection, in the order it should be read. */
+export function collectionItems(collection: StyleCollection): GalleryItem[] {
+  return collection.items;
+}
+
+/**
+ * Just the photographs, for the lightbox and anything that only needs images.
+ * Same order as `collectionItems`, so an index means the same thing to both.
+ */
 export function collectionPhotos(collection: StyleCollection): Photo[] {
-  return collection.gallery;
+  return collection.items.map((item) => item.image);
+}
+
+/** The featured rail on the homepage. */
+export function featuredInstalls(): GalleryItem[] {
+  return featuredItems();
 }

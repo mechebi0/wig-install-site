@@ -7,11 +7,11 @@ import { BookingCta } from "@/components/booking-cta";
 import { Reveal } from "@/components/reveal";
 import { COLLECTIONS } from "@/lib/collections";
 import {
-  collectionPhotos,
+  collectionItems,
   findCollection,
   suggestCollections,
 } from "@/lib/gallery";
-import { COLLECTION_PAGE, STUDIO } from "@/lib/content";
+import { COLLECTION_PAGE, FINISH_FOCUS, STUDIO } from "@/lib/content";
 
 /**
  * One page per collection, generated from lib/collections.ts.
@@ -102,12 +102,53 @@ export default async function CollectionPage({
 
           <div className="mt-10 lg:mt-14">
             <StyleGallery
-              photos={collectionPhotos(collection)}
+              items={collectionItems(collection)}
               label={`${collection.title} gallery`}
             />
           </div>
         </div>
       </section>
+
+      {/*
+        Only Natural Lace reaches this. It is the one collection on the site
+        that is not a hairstyle, and the gallery above it is deliberately a
+        mix of textures, so without this the page reads as an incoherent
+        sixth style rather than as the thing all five others are judged by.
+      */}
+      {collection.dimension === "finish" ? (
+        <section
+          aria-labelledby="finish-heading"
+          className="border-t border-line bg-surface-2/50"
+        >
+          <div className="mx-auto max-w-[1400px] px-5 py-16 sm:px-8 lg:py-24">
+            <Reveal>
+              <p className="label text-accent">{FINISH_FOCUS.eyebrow}</p>
+              <h2
+                id="finish-heading"
+                className="mt-4 font-display text-2xl leading-tight tracking-tight text-ink md:text-3xl"
+              >
+                {FINISH_FOCUS.heading}
+              </h2>
+              <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-muted lg:text-lg">
+                {FINISH_FOCUS.body}
+              </p>
+            </Reveal>
+
+            <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
+              {FINISH_FOCUS.points.map((point, index) => (
+                <Reveal as="li" key={point.title} index={index % 3}>
+                  <h3 className="border-t border-line pt-5 font-display text-lg leading-tight text-ink">
+                    {point.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted">
+                    {point.body}
+                  </p>
+                </Reveal>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
 
       <BookingCta
         heading={COLLECTION_PAGE.cta.heading}

@@ -2,7 +2,11 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { COLLECTION_PAGE } from "@/lib/content";
-import { lookCount, type StyleCollection } from "@/lib/collections";
+import {
+  focalFor,
+  lookCount,
+  type StyleCollection,
+} from "@/lib/collections";
 
 /**
  * The opening of a collection page: a way back, the name, the three-beat line,
@@ -50,7 +54,17 @@ export function CollectionHero({
           </Reveal>
 
           <Reveal index={1}>
-            <h1 className="mt-6 max-w-[13ch] font-display text-4xl leading-[1.02] tracking-tight text-on-accent md:text-5xl lg:text-6xl">
+            {/*
+              Which axis this collection cuts along, said out loud. Five of
+              the six are hairstyles and one is a standard of finish, and a
+              visitor who does not know that reads Natural Lace as a texture
+              she has never heard of. Two words fix it.
+            */}
+            <p className="label mt-8 text-on-accent/60">
+              {collection.dimension === "finish" ? "Finish" : "Style"}
+            </p>
+
+            <h1 className="mt-3 max-w-[13ch] font-display text-4xl leading-[1.02] tracking-tight text-on-accent md:text-5xl lg:text-6xl">
               {collection.title}
             </h1>
 
@@ -81,7 +95,8 @@ export function CollectionHero({
               sizes="(min-width: 1024px) 48vw, calc(100vw - 2.5rem)"
               large
               priority
-              className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
+              style={{ objectPosition: focalFor(collection.hero) }}
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
         </Reveal>

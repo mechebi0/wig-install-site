@@ -181,19 +181,17 @@
     Scoped to the carousel, and it does two different jobs at two widths
     because the copy sits somewhere different at each.
 
-    BELOW lg the photograph covers the frame and the copy sits over its lower
-    half, so this is a contrast floor and it has to be a deep one. Half of this
-    set is high key: a pale curtain, a cream wall, platinum hair. The wash
-    therefore holds above 0.85 through the whole band the copy occupies, which
-    puts near-white text over 9:1 on the lightest slide in the set, and only
-    releases above it so the top of the frame stays a photograph. That is also
-    why the hero subtext is hidden at this width: every extra line would push
-    the dark band further up the picture.
+    BELOW lg the photograph is a band at the top of the hero with the copy on
+    flat wine beneath it, so this is no longer a contrast floor: nothing has to
+    be legible over the picture. It is a seam at each edge, short and light,
+    handing the band to the wine above and below without eating into the
+    photograph. That is also why the hero subtext is no longer hidden at this
+    width; it used to cost another step of scrim.
 
-    AT lg AND UP the copy has moved left, over the blurred backdrop rather than
-    over the subject, so the wash turns ninety degrees with it: heavy at the
-    left edge, gone by 62%, which is roughly where the uncropped portrait
-    begins. The subject is never washed over.
+    AT lg AND UP the copy is over the blurred backdrop in the left 38% and the
+    photograph fills the right 60%, so the wash turns ninety degrees with it:
+    heavy at the left edge and gone by 46%, just past where the subject panel
+    begins. The subject itself is never washed over.
 
     Everything is tinted to --scrim, the wine ink, so the photograph reads as a
     duotone rather than as a grey veil. The whole point of computing these
@@ -203,17 +201,15 @@
   .hero-veil {
     background-image: linear-gradient(
         to top,
-        rgb(var(--scrim) / 0.93) 0%,
-        rgb(var(--scrim) / 0.87) 26%,
-        rgb(var(--scrim) / 0.62) 48%,
-        rgb(var(--scrim) / 0.22) 72%,
-        transparent 100%
+        rgb(var(--scrim) / 0.85) 0%,
+        rgb(var(--scrim) / 0.3) 9%,
+        transparent 22%
       ),
       linear-gradient(
         to bottom,
-        rgb(var(--scrim) / 0.38) 0%,
-        rgb(var(--scrim) / 0.1) 20%,
-        transparent 38%
+        rgb(var(--scrim) / 0.5) 0%,
+        rgb(var(--scrim) / 0.14) 10%,
+        transparent 24%
       );
   }
 
@@ -221,15 +217,15 @@
     .hero-veil {
       background-image: linear-gradient(
           to right,
-          rgb(var(--scrim) / 0.82) 0%,
-          rgb(var(--scrim) / 0.62) 28%,
-          rgb(var(--scrim) / 0.2) 48%,
-          transparent 62%
+          rgb(var(--scrim) / 0.86) 0%,
+          rgb(var(--scrim) / 0.66) 22%,
+          rgb(var(--scrim) / 0.18) 36%,
+          transparent 46%
         ),
         linear-gradient(
           to bottom,
-          rgb(var(--scrim) / 0.3) 0%,
-          transparent 22%
+          rgb(var(--scrim) / 0.28) 0%,
+          transparent 20%
         );
     }
   }
@@ -269,33 +265,14 @@
   }
 
   /*
-    The hero photograph's focal point, driven per slide.
-
-    Every hero file is 3:4 portrait and the panel it fills never is, so
-    `object-cover` always has vertical overflow and something must choose which
-    slice survives. That choice belongs to the photograph, not to this
-    stylesheet: lib/images.ts measures each frame and hands the answer down as
-    a custom property, which is why the value here is a variable rather than a
-    number. A new slide changes one line of data and nothing else.
-
-    Two breakpoints, because the panel changes shape at `lg` rather than just
-    changing size: below it the panel is full width and close to the shape of
-    the file, so there is little overflow to spend and a value can be pushed
-    hard; above it the panel is the right-hand seven columns of a stage that
-    stops growing at 880px tall, so it keeps getting more landscape as the
-    screen widens and the same value crops harder.
-
-    The fallbacks match HERO_FOCAL_DEFAULT and exist so a slide that supplies
-    neither still renders a sane crop rather than falling back to `50% 50%`.
+    The hero's per-slide crop. The value is data, so it arrives as a custom
+    property set on the element; a Tailwind breakpoint variant cannot carry a
+    value that changes with the slide, and reading the breakpoint in JavaScript
+    would leave the server render and the first client render disagreeing about
+    which crop to use.
   */
   .hero-focal {
-    object-position: var(--hero-focal-narrow, center 75%);
-  }
-
-  @media (min-width: 1024px) {
-    .hero-focal {
-      object-position: var(--hero-focal-wide, center 68%);
-    }
+    object-position: var(--hero-focal, center 68%);
   }
 
   /*

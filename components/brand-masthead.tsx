@@ -18,6 +18,12 @@ import { HERO, STUDIO } from "@/lib/content";
  * the page three distinct registers in the first two screens, and it means the
  * sticky nav never has to sit on a bright frame edge as a slide changes.
  *
+ * It is deliberately restrained at desktop. Everything here is height the
+ * carousel underneath does not get, and on a 1280x800 laptop a larger mark put
+ * the carousel's own controls below the fold: a carousel whose dots cannot be
+ * seen does not read as a carousel. The mark is the only object on a wine
+ * field, so it does not need to be large to be the first thing seen.
+ *
  * ---------------------------------------------------------------------------
  * WHY THE BRAND NAME IS HERE AND NOT IN THE CAROUSEL OVERLAY
  * ---------------------------------------------------------------------------
@@ -37,7 +43,7 @@ export function BrandMasthead() {
     <div className="bg-ink">
       <LocationStrip />
 
-      <div className="mx-auto flex max-w-[1400px] flex-col items-center px-5 pb-7 pt-7 text-center sm:px-8 sm:pb-8 sm:pt-8 lg:pb-9 lg:pt-9">
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center px-5 pb-7 pt-7 text-center sm:px-8 sm:pb-8 sm:pt-8 lg:pb-5 lg:pt-5">
         <h1 className="flex flex-col items-center">
           {STUDIO.logo ? (
             /*
@@ -53,13 +59,13 @@ export function BrandMasthead() {
               width={STUDIO.logoWidth}
               height={STUDIO.logoHeight}
               fetchPriority="high"
-              className="h-auto w-[14rem] max-w-full sm:w-[18rem] lg:w-[21rem]"
+              className="h-auto w-[14rem] max-w-full sm:w-[18rem] lg:w-[18rem]"
             />
           ) : (
             <Wordmark className="text-4xl text-on-accent sm:text-5xl lg:text-6xl" />
           )}
 
-          <span className="mt-4 font-display text-sm italic leading-snug text-on-accent/65 sm:mt-5 sm:text-base">
+          <span className="mt-4 font-display text-sm italic leading-snug text-on-accent/65 sm:mt-4 sm:text-base">
             {HERO.line}
           </span>
         </h1>

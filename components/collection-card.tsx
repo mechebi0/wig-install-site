@@ -1,6 +1,10 @@
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
-import { lookCount, type StyleCollection } from "@/lib/collections";
+import {
+  focalFor,
+  lookCount,
+  type StyleCollection,
+} from "@/lib/collections";
 
 /**
  * One collection, as a card. The single card component for the whole site:
@@ -82,6 +86,7 @@ export function CollectionCard({
           photo={collection.hero}
           sizes={SIZES[variant]}
           priority={index < 2}
+          style={{ objectPosition: focalFor(collection.hero) }}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
 
@@ -94,6 +99,7 @@ export function CollectionCard({
           photo={collection.hoverImage}
           sizes={SIZES[variant]}
           decorative
+          style={{ objectPosition: focalFor(collection.hoverImage) }}
           className="absolute inset-0 h-full w-full scale-[1.04] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 motion-reduce:hidden"
         />
 
@@ -111,6 +117,18 @@ export function CollectionCard({
         <p className="absolute bottom-5 left-6 z-[1] font-display text-sm italic text-on-accent/85">
           {lookCount(collection)}
         </p>
+
+        {/*
+          Only the finish collection carries a badge. Tagging all six "Style"
+          or "Finish" would put a chip on every card for the sake of one, and
+          the five hairstyles are self-evidently hairstyles; the odd one out
+          is the only one that needs saying.
+        */}
+        {collection.dimension === "finish" ? (
+          <p className="label absolute right-5 top-5 z-[1] rounded-full bg-[rgb(var(--scrim)/0.55)] px-3 py-1.5 text-on-accent/90 backdrop-blur-sm">
+            Finish
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-6 flex items-start justify-between gap-6 border-t border-line pt-5 transition-colors duration-300 group-hover:border-line-strong">

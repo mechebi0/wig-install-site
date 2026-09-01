@@ -85,12 +85,17 @@ const img = (file: string) => `/images/${file}`;
  * it buries the straight install, tuned for the straight install it crops the
  * copper. Each slide carries its own.
  */
-export type HeroFocal = {
-  /** Below 1024px, where the photograph covers a full-width portrait frame. */
-  narrow: string;
-  /** From 1024px up, where it fills the right 46% of a landscape hero. */
-  wide: string;
-};
+/**
+ * An `object-position` value. One per slide, and one for both hero frames.
+ *
+ * It used to be two, because the phone frame was near-portrait and cropped
+ * almost nothing while the desktop panel was 1.18 and cropped a third of the
+ * height. Both frames changed with the 40/60 layout: the phone band is now
+ * about 1.2 and the desktop panel 1.33, and a single measured value covers
+ * both to within a few percent of frame height. Splitting it again would mean
+ * two numbers that have to be kept in step for no reason.
+ */
+export type HeroFocal = string;
 
 /**
  * For a slide that does not set its own: the middle of the measured set.
@@ -99,18 +104,15 @@ export type HeroFocal = {
  * correctly untouched, and only needs its own value if it is framed unusually
  * loose or unusually tight.
  */
-export const HERO_FOCAL_DEFAULT: HeroFocal = {
-  narrow: "center 75%",
-  wide: "center 68%",
-};
+export const HERO_FOCAL_DEFAULT: HeroFocal = "center 68%";
 
 export type HeroSlide = {
   id: string;
   /** Short style name, announced to screen readers and shown at desktop. */
   label: string;
   photo: Photo;
-  /** Overrides `HERO_FOCAL_DEFAULT`. Either half may be omitted. */
-  focal?: Partial<HeroFocal>;
+  /** Overrides `HERO_FOCAL_DEFAULT`. */
+  focal?: HeroFocal;
 };
 
 /*
@@ -125,7 +127,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: "deep-wave",
     label: "Deep wave install",
     photo: HERO_PHOTOS.deepWave,
-    focal: { narrow: "center 75%", wide: "center 68%" },
+    focal: "center 68%",
   },
   {
     id: "pink",
@@ -133,7 +135,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     photo: HERO_PHOTOS.pink,
     // Shot from further back, with the sign high on the wall: the client sits
     // low in the file, so most of the overflow comes off the top.
-    focal: { narrow: "center 95%", wide: "center 88%" },
+    focal: "center 88%",
   },
   {
     id: "straight",
@@ -141,7 +143,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     photo: HERO_PHOTOS.straight,
     // The loosest frame in the set - almost half the file is bare wall above
     // her - so this one is pushed hardest.
-    focal: { narrow: "center 100%", wide: "center 90%" },
+    focal: "center 90%",
   },
   {
     id: "blonde",
@@ -149,22 +151,22 @@ export const HERO_SLIDES: HeroSlide[] = [
     photo: HERO_PHOTOS.blonde,
     // The only close frame: she already fills it, and anything higher than
     // this strands her against the top edge.
-    focal: { narrow: "center 43%", wide: "center 43%" },
+    focal: "center 43%",
   },
   {
     id: "bob",
     label: "Signature bob",
     photo: HERO_PHOTOS.bob,
-    focal: { narrow: "center 78%", wide: "center 73%" },
+    focal: "center 73%",
   },
   {
     id: "copper",
     label: "Copper body wave",
     photo: HERO_PHOTOS.copper,
     // The mane reaches the top of the file, so the ceiling here is the hair
-    // rather than the face; held back to keep the crown intact on a wide
-    // monitor.
-    focal: { narrow: "center 46%", wide: "center 43%" },
+    // rather than the face. Nudged up from 43% for the taller 60% panel, which
+    // was leaving the crown flush against the top edge.
+    focal: "center 38%",
   },
 ];
 
@@ -189,7 +191,7 @@ export const SERVICE_IMAGE: ImageSlot = {
   sourceId: 13074451,
 };
 
-/** The slide's focal point, with `HERO_FOCAL_DEFAULT` filling any gap. */
+/** The slide's focal point, falling back to `HERO_FOCAL_DEFAULT`. */
 export function heroFocal(slide: HeroSlide): HeroFocal {
-  return { ...HERO_FOCAL_DEFAULT, ...slide.focal };
+  return slide.focal ?? HERO_FOCAL_DEFAULT;
 }
