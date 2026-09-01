@@ -30,7 +30,7 @@ import {
   parseDateOnly,
 } from "@/lib/format";
 import type { BookedSlot, GuestBookingReceipt } from "@/lib/supabase/types";
-import { BOOKING_FLOW, STUDIO } from "@/lib/content";
+import { BOOKING_FLOW, REACH } from "@/lib/content";
 
 /**
  * BOOK YOUR CHAIR. Five steps, one question each.
@@ -296,7 +296,7 @@ export function BookingFlow() {
   if (locationsStatus === "error") {
     return (
       <Notice tone="error" title="The diary would not open.">
-        Refresh the page, or call the studio on {STUDIO.phone} and Nat will book
+        Refresh the page, or {REACH.phrase} and Nat will book
         you in directly.
       </Notice>
     );
@@ -311,7 +311,7 @@ export function BookingFlow() {
     return (
       <EmptyState title={BOOKING_FLOW.closed.title} body={BOOKING_FLOW.closed.body}>
         <a
-          href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
+          href={REACH.href}
           className={buttonStyles.primary}
         >
           <Phone size={17} weight="regular" aria-hidden="true" />

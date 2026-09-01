@@ -1,6 +1,6 @@
 import { ButtonLink } from "@/components/button";
 import { Reveal } from "@/components/reveal";
-import { bookingTarget, CTA, HOME, STUDIO } from "@/lib/content";
+import { CTA, HOME, REACH, REACH_SECONDARY, bookingTarget } from "@/lib/content";
 
 /**
  * The closing CTA. Used at the foot of the homepage and of the inner pages
@@ -15,7 +15,14 @@ import { bookingTarget, CTA, HOME, STUDIO } from "@/lib/content";
  * It reuses the hero button variants rather than inventing a third pair, so
  * the primary action looks identical at the top and the bottom of the page.
  */
-export function BookingCta() {
+export function BookingCta({
+  heading = HOME.closing.heading,
+  body = HOME.closing.body,
+}: {
+  /** Overridden on the collection pages, which close on "Ready for your crown?" */
+  heading?: string;
+  body?: string;
+} = {}) {
   return (
     <section
       aria-labelledby="closing-heading"
@@ -27,10 +34,10 @@ export function BookingCta() {
             id="closing-heading"
             className="max-w-[14ch] font-display text-3xl leading-[1.05] tracking-tight text-on-accent md:text-4xl lg:text-5xl"
           >
-            {HOME.closing.heading}
+            {heading}
           </h2>
           <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-on-accent/75 lg:text-lg">
-            {HOME.closing.body}
+            {body}
           </p>
         </Reveal>
 
@@ -40,10 +47,10 @@ export function BookingCta() {
               {CTA.book}
             </ButtonLink>
             <a
-              href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
+              href={REACH.href}
               className="inline-flex min-h-11 items-center justify-center px-2 text-sm text-on-accent/75 underline decoration-on-accent/30 underline-offset-4 transition-colors hover:text-on-accent hover:decoration-on-accent"
             >
-              Or call {STUDIO.phone}
+              {REACH_SECONDARY}
             </a>
           </div>
         </Reveal>

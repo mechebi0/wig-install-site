@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local tooling checkouts, not project source. The Python virtualenv ships
+    // vendored minified JavaScript and graphify writes a cache of generated
+    // files; linting either buries the project's own output in noise.
+    ".venv/**",
+    "graphify-out/**",
   ]),
   {
     rules: {

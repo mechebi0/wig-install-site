@@ -1,23 +1,42 @@
 import { InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/wordmark";
-import { NAV_LINKS, STUDIO } from "@/lib/content";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { LOCATIONS, NAV_LINKS, REACH, STUDIO } from "@/lib/content";
 
 /**
  * Footer, kept minimal on purpose.
  *
- * It used to carry a fourth column of opening hours. Those now live on /book,
- * beside the form, which is the only place someone is deciding when to come
- * in; repeating them here made the footer a second information panel rather
- * than a way out of the page.
+ * It is not a second information panel. What is left is the shape a footer
+ * should be: the mark, where Nat works, how to reach a person, the pages, and
+ * a way into an account.
  *
- * What is left is the shape a footer should be: the mark, where the studio is,
- * how to reach a person, and the pages. The address stays because this is a
- * real venue people drive to, which is the one case location content earns its
- * place. No atmospheric locale strip, no build stamp, no version string.
+ * ---------------------------------------------------------------------------
+ * NOTHING HERE IS INVENTED
+ * ---------------------------------------------------------------------------
+ * Every row below renders only if there is a real value behind it. No street
+ * address has been supplied, so the towns are named instead; no phone number
+ * has been supplied, so no number appears; no Instagram handle has been
+ * confirmed, so the social row does not exist. A footer is exactly where a
+ * placeholder survives to launch, because it is the part of a page nobody
+ * re-reads, so the conditionals are the guard rather than a note in a file.
  *
- * This is also where the brand mark lives. The nav and the hero both carry the
- * wordmark as type, so the drawn lockup gets exactly one appearance per page,
- * at the end, which is how a mark keeps its weight.
+ * The account column follows the same rule for a different reason. SiteNav
+ * already hides its account control when no Supabase project is configured,
+ * on the grounds that pointing at a sign-in nobody can complete is worse than
+ * saying nothing. A footer that still listed "Log in" would undo that
+ * decision from the other end of the page, so it reads the same build-time
+ * constant. Set the two environment variables and both come back at once.
+ *
+ * ---------------------------------------------------------------------------
+ * THE BRAND MARK
+ * ---------------------------------------------------------------------------
+ * Nat's own neon studio sign, lifted off the black it was photographed on so
+ * it composites over the wine. The nav and the mobile sheet carry the brand as
+ * type, so the real mark gets exactly one appearance per page below the fold,
+ * which is how a mark keeps its weight.
+ *
+ * That is also why this band is wine rather than blush: the mark is a light
+ * source and it only exists on a dark field. See the note on STUDIO.logo.
  *
  * Extra bottom padding on small screens clears the sticky booking bar.
  */
@@ -25,89 +44,122 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-line bg-surface-2/60">
-      <div className="mx-auto max-w-[1400px] px-5 pb-28 pt-16 sm:px-8 lg:pb-14 lg:pt-20">
+    <footer className="on-photo border-t border-line bg-ink">
+      <div className="mx-auto max-w-[1400px] px-5 pb-28 pt-16 sm:px-8 lg:pb-16 lg:pt-20">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-5">
             {STUDIO.logo ? (
               /*
-                The drawn lockup. Swapping public/brand/crown-by-nat.svg for a
-                real logo needs no change here. eslint-disable because this is
-                a fixed-size brand asset, not content photography: next/image
-                would add a wrapper and no optimisation, since the static
-                export runs unoptimized anyway.
+                A fixed-size brand asset rather than content photography, so a
+                plain <img>: next/image would add a wrapper and, under the
+                `unoptimized` static export, no optimisation.
               */
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={STUDIO.logo}
                 alt={STUDIO.name}
-                width={320}
-                height={150}
-                className="-ml-1 h-auto w-[190px] max-w-full"
+                width={STUDIO.logoWidth}
+                height={STUDIO.logoHeight}
+                loading="lazy"
+                className="h-auto w-[13rem] max-w-full"
               />
             ) : (
-              <Wordmark className="text-2xl text-ink" />
+              <Wordmark className="text-2xl text-on-accent" />
             )}
 
-            <p className="mt-5 text-sm leading-relaxed text-muted">
-              {STUDIO.street}
-              <br />
-              {STUDIO.region}
+            <p className="mt-6 text-sm leading-relaxed text-on-accent/65">
+              {STUDIO.street ? (
+                <>
+                  {STUDIO.street}
+                  <br />
+                </>
+              ) : null}
+              Now booking in{" "}
+              {LOCATIONS.map((location) => `${location.name}, ${location.region}`).join(
+                " and ",
+              )}
+              .
             </p>
           </div>
 
           <nav aria-label="Footer" className="lg:col-span-3">
-            <h2 className="label text-ink">Pages</h2>
+            <h2 className="label text-on-accent">Pages</h2>
             <ul className="mt-4 flex flex-col">
+              <li>
+                <FooterLink href="/">Home</FooterLink>
+              </li>
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className="flex min-h-11 items-center text-sm text-muted transition-colors hover:text-accent"
-                  >
-                    {link.label}
-                  </a>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
               ))}
+              <li>
+                <FooterLink href="/book/">Book Your Chair</FooterLink>
+              </li>
             </ul>
           </nav>
 
           <div className="lg:col-span-4">
-            <h2 className="label text-ink">Contact</h2>
+            {isSupabaseConfigured ? (
+              <>
+                <h2 className="label text-on-accent">Your account</h2>
+                <ul className="mt-4 flex flex-col text-sm">
+                  <li>
+                    <FooterLink href="/login/">Log in</FooterLink>
+                  </li>
+                  <li>
+                    <FooterLink href="/account/">My appointments</FooterLink>
+                  </li>
+                </ul>
+              </>
+            ) : null}
+
+            <h2
+              className={`label text-on-accent ${isSupabaseConfigured ? "mt-8" : ""}`}
+            >
+              Contact
+            </h2>
             <ul className="mt-4 flex flex-col text-sm">
               <li>
-                <a
-                  href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
-                  className="flex min-h-11 items-center text-muted transition-colors hover:text-accent"
-                >
-                  {STUDIO.phone}
-                </a>
+                <FooterLink href={REACH.href}>{REACH.label}</FooterLink>
               </li>
-              <li>
-                <a
-                  href={`mailto:${STUDIO.email}`}
-                  className="flex min-h-11 items-center text-muted transition-colors hover:text-accent"
-                >
-                  {STUDIO.email}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={STUDIO.instagram}
-                  className="flex min-h-11 items-center gap-2 text-muted transition-colors hover:text-accent"
-                >
-                  <InstagramLogo size={16} weight="regular" aria-hidden="true" />
-                  Instagram
-                </a>
-              </li>
+              {STUDIO.instagram ? (
+                <li>
+                  <FooterLink href={STUDIO.instagram}>
+                    <InstagramLogo
+                      size={16}
+                      weight="regular"
+                      aria-hidden="true"
+                    />
+                    Instagram
+                  </FooterLink>
+                </li>
+              ) : null}
             </ul>
           </div>
         </div>
 
-        <p className="mt-12 border-t border-line pt-8 text-sm text-muted">
+        <p className="mt-14 border-t border-on-accent/15 pt-8 text-sm text-on-accent/55">
           &copy; {year} {STUDIO.name}. Every install performed by {STUDIO.owner}.
         </p>
       </div>
     </footer>
+  );
+}
+
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      className="flex min-h-11 items-center gap-2 text-sm text-on-accent/65 transition-colors hover:text-on-accent"
+    >
+      {children}
+    </a>
   );
 }

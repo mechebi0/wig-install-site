@@ -1,0 +1,16 @@
+# Cloudflare Pages redirects.
+#
+# Everything in public/ is copied verbatim into out/, so this file lands at the
+# root of the deployment where Pages looks for it. It costs no build step and
+# no server: Pages reads it at the edge.
+#
+# /work was the single page that carried the whole portfolio before it was
+# split into six collections. It has been linked from Nat's Instagram bio and
+# from anything that indexed the site in the meantime, so it redirects rather
+# than 404s. 301, because the move is permanent and the old URL should stop
+# being served from search results.
+#
+# `trailingSlash: true` in next.config.ts means the canonical form of every
+# route ends in a slash, hence both spellings below.
+/work    /styles/  301
+/work/   /styles/  301

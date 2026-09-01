@@ -12,10 +12,10 @@ import { signOut } from "@/lib/auth/session";
 import { ACCOUNT_PATH, leaveTo } from "@/lib/auth/redirect";
 import { formatDateMedium, formatTime } from "@/lib/format";
 import type { Appointment, Profile } from "@/lib/supabase/types";
-import { ACCOUNT, STUDIO } from "@/lib/content";
+import { ACCOUNT, REACH } from "@/lib/content";
 
 /**
- * MY CROWN BY NAT. The customer's own appointments.
+ * MY CROWNED BY NAT. The customer's own appointments.
  *
  * ---------------------------------------------------------------------------
  * WHY IT IS THREE SECTIONS AND NOT A TABLE
@@ -44,7 +44,7 @@ import { ACCOUNT, STUDIO } from "@/lib/content";
  */
 export function AccountDashboard() {
   return (
-    <Guarded returnTo={ACCOUNT_PATH} heading="My Crown by Nat">
+    <Guarded returnTo={ACCOUNT_PATH} heading="My Crowned by Nat">
       {({ profile }) => <Dashboard profile={profile} />}
     </Guarded>
   );
@@ -132,7 +132,7 @@ function Dashboard({ profile }: { profile: Profile | null }) {
       {error ? (
         <div className="mt-10">
           <Notice tone="error" title="Could not load your appointments.">
-            {error} Refresh the page, or call the studio on {STUDIO.phone}.
+            {error} Refresh the page, or {REACH.phrase}.
           </Notice>
         </div>
       ) : null}

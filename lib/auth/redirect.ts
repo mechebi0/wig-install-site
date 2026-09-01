@@ -14,9 +14,9 @@
  *
  * That one line is an open redirect. A link to
  *
- *     crownbynat.com/login/?next=https://crownbynat.evil.example/
+ *     crownedbynat.com/login/?next=https://crownedbynat.evil.example/
  *
- * shows the real domain in the address bar, shows a real Crown by Nat login
+ * shows the real domain in the address bar, shows a real Crowned by Nat login
  * form, and hands the visitor to a copy of it the moment they authenticate.
  * The phish borrows the site's own credibility, and the site did the
  * redirecting itself.

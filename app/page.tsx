@@ -1,55 +1,66 @@
 import { HeroStage } from "@/components/hero-stage";
 import { Intro } from "@/components/intro";
-import { FeaturedWork } from "@/components/featured-work";
-import { ServicesPreview } from "@/components/services-preview";
+import {
+  ClosingTeasers,
+  CollectionShowcase,
+} from "@/components/home-teasers";
 import { BookingCta } from "@/components/booking-cta";
-import { QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
+import { COLLECTIONS_IN_ORDER } from "@/lib/collections";
+import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
 
 /**
- * The homepage is a landing experience, not a table of contents.
+ * The homepage is a premium introduction and a visual directory. It is not a
+ * table of contents, and it is not the site.
  *
  * Five blocks, and every one of them is either the brand or a way forward:
  *
- *   Hero            the live location strip, then the full bleed crossfading
- *                   carousel with the brand and the booking CTA. Both sized as
- *                   one viewport by HeroStage.
- *   Intro           short typographic brand statement, Nat named as installer
- *   Featured work   three installs, then out to /work
- *   Services        three services and their prices, then out to /book
- *   Closing CTA     the wine band, booking again
+ *   Hero          the live location strip, then the crossfading carousel with
+ *                 Nat's neon mark and the booking CTA. Sized as one viewport
+ *                 by HeroStage.
+ *   Intro         a short typographic brand statement, Nat named as installer
+ *   Collections   all six, as cards, then out to /styles
+ *   Teasers       Meet Nat and the reviews side by side, four lines each,
+ *                 then out to /meet-nat and /reviews
+ *   Closing CTA   the wine band, booking again
  *
- * Everything that needs a paragraph to explain now lives on its own page:
+ * WHAT IS DELIBERATELY NOT HERE
+ * The complete gallery for any style, the price list, the FAQ, Nat's story and
+ * the testimonials. Each of those needs a paragraph or a grid to be worth
+ * anything, and each of them has a page:
  *
- *   /work             the full install rail and the style galleries
- *   /book             every service, the studio details, the request form
+ *   /styles           the six collections, and a page each below that
+ *   /book             every service, the studio details, the booking flow
  *   /before-you-book  the appointment step by step, and the full FAQ
  *   /reviews          the client quotes
- *   /meet-nat         the biography, the credentials, the assurances
+ *   /meet-nat         the introduction, the approach, the credentials
  *
  * The structured data stays here rather than being split across pages: it
  * describes the business, and the homepage is what a search engine treats as
- * the business. It is generated from the same STUDIO and SERVICES constants
- * the visible page uses, so the two cannot drift apart.
+ * the business. It is generated from the same constants the visible page uses,
+ * so the two cannot drift apart.
  */
 
 const localBusiness = {
   "@context": "https://schema.org",
   "@type": "HairSalon",
   name: STUDIO.name,
-  telephone: STUDIO.phone,
-  email: STUDIO.email,
+  description: `Lace wig installs performed personally by ${STUDIO.owner}.`,
   founder: { "@type": "Person", name: STUDIO.owner },
-  sameAs: [STUDIO.instagram],
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: STUDIO.street,
-    addressLocality: STUDIO.city,
-    addressRegion: STUDIO.regionCode,
-    postalCode: STUDIO.postalCode,
-    addressCountry: "US",
-  },
-  // Keep in step with STUDIO.hours; this is the machine readable copy of it.
-  openingHours: ["Tu-Fr 09:00-19:00", "Sa 08:00-16:00"],
+  url: "/",
+  /*
+    No street address has been supplied, so `address` would be a fabrication
+    and is omitted. `areaServed` says the true thing instead: two towns, both
+    confirmed. Contact details are emitted only where a real value exists, so
+    this block can never advertise a phone number nobody owns.
+  */
+  areaServed: LOCATIONS.map((location) => ({
+    "@type": "City",
+    name: location.name,
+    addressRegion: location.region,
+  })),
+  ...(STUDIO.email ? { email: STUDIO.email } : {}),
+  ...(STUDIO.phone ? { telephone: STUDIO.phone } : {}),
+  ...(STUDIO.instagram ? { sameAs: [STUDIO.instagram] } : {}),
   // Picked up by search engines as a booking action once the real booking
   // tool is set in STUDIO.bookingUrl.
   ...(STUDIO.bookingUrl
@@ -69,6 +80,17 @@ const localBusiness = {
     price: (service.priceCents / 100).toFixed(2),
     priceCurrency: "USD",
   })),
+  /* The six collections, so a search engine can see the shape of the site
+     from its front door rather than having to crawl for it. */
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Styles",
+    itemListElement: COLLECTIONS_IN_ORDER.map((collection) => ({
+      "@type": "OfferCatalog",
+      name: collection.title,
+      url: `/styles/${collection.slug}/`,
+    })),
+  },
   mainEntityOfPage: {
     "@type": "FAQPage",
     mainEntity: QUESTIONS.map((item) => ({
@@ -88,8 +110,8 @@ export default function Home() {
       />
       <HeroStage />
       <Intro />
-      <FeaturedWork />
-      <ServicesPreview />
+      <CollectionShowcase />
+      <ClosingTeasers />
       <BookingCta />
     </>
   );

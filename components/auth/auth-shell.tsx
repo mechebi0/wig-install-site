@@ -1,8 +1,8 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { Photograph } from "@/components/photo";
 import { Wordmark } from "@/components/wordmark";
-import { HERO_SLIDES } from "@/lib/images";
+import { HERO_PHOTOS } from "@/lib/collections";
 
 /**
  * The frame every authentication screen sits in.
@@ -35,14 +35,13 @@ import { HERO_SLIDES } from "@/lib/images";
  * ---------------------------------------------------------------------------
  * THE PHOTOGRAPH
  * ---------------------------------------------------------------------------
- * "In the chair" out of the hero set, which is a stylist's hands mid
- * appointment. Chosen over the finished-hair frames because this screen is
- * about the appointment rather than the result, and because it shows no face:
- * the stock licence does not permit implying an identifiable person endorses
- * the business, and a portrait beside a Crown by Nat sign-in would quietly do
- * that. See the note at the top of lib/images.ts.
+ * One of Nat's own installs, taken straight from the shared set in
+ * lib/collections.ts so it is never separately described or separately
+ * exported. The sleek straight frame is chosen because it is the quietest one
+ * in the set: this screen is a door, not a shop window, and the loudest
+ * photograph in the library would be competing with a password field.
  */
-const PANEL_SLIDE = HERO_SLIDES.find((slide) => slide.id === "in-the-chair")!;
+const PANEL_PHOTO = HERO_PHOTOS.straight;
 
 export function AuthShell({
   kicker,
@@ -62,23 +61,21 @@ export function AuthShell({
     <div className="grid min-h-[calc(100svh-4rem)] lg:min-h-[calc(100svh-72px)] lg:grid-cols-2">
       {/* ---------- photography, desktop only ---------- */}
       <div className="on-photo relative isolate hidden overflow-hidden bg-ink lg:block">
-        <Image
-          src={PANEL_SLIDE.tall.src}
-          alt={PANEL_SLIDE.alt}
-          width={PANEL_SLIDE.tall.width}
-          height={PANEL_SLIDE.tall.height}
-          priority
+        <Photograph
+          photo={PANEL_PHOTO}
           sizes="50vw"
-          className="absolute inset-0 h-full w-full object-cover"
+          large
+          priority
+          className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
         />
         {/*
-          The same wine scrim the hero uses, so the type over it clears the
-          same contrast floor without anyone having to re-measure it against
-          this particular photograph.
+          The same wine veil the hero uses, so the type over it clears the same
+          contrast floor without anyone having to re-measure it against this
+          particular photograph.
         */}
         <div
           aria-hidden="true"
-          className="hero-scrim pointer-events-none absolute inset-0"
+          className="photo-veil pointer-events-none absolute inset-0"
         />
         <div className="relative flex h-full flex-col justify-end p-12 xl:p-16">
           <p className="font-display text-3xl italic leading-snug text-on-accent xl:text-4xl">

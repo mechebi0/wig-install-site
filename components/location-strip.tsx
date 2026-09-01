@@ -1,7 +1,7 @@
 "use client";
 
-import { bookingTarget } from "@/lib/content";
-import { formatLocationList, useActiveLocations } from "@/lib/catalog";
+import { ANNOUNCEMENT, bookingTarget } from "@/lib/content";
+import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
 
 /**
  * "Now booking in Towson, MD", above the hero.
@@ -36,11 +36,16 @@ import { formatLocationList, useActiveLocations } from "@/lib/catalog";
  * masthead device rather than a UI device, which is the register this needs.
  *
  * ---------------------------------------------------------------------------
- * THE FOUR STATES, AND WHY LOADING RESERVES ITS HEIGHT
+ * THE STATES, AND WHY LOADING RESERVES ITS HEIGHT
  * ---------------------------------------------------------------------------
- *   unconfigured  render nothing at all, and take no space. Known at build
- *                 time from the env vars, so the prerendered HTML and the
- *                 first client render agree and nothing shifts.
+ *   unconfigured  the strip falls back to the confirmed towns in
+ *                 lib/content.ts by way of useAnnouncedLocations, because
+ *                 Towson and Laurel are known facts and there is no Supabase
+ *                 project yet to hold them. Resolved at build time from the
+ *                 env vars, so the prerendered HTML and the first client
+ *                 render agree and nothing shifts. This is the ONLY component
+ *                 that gets that fallback; see the long note in lib/catalog.ts
+ *                 for why booking and admin do not.
  *   loading       the band renders at full height with its content invisible.
  *                 It is the same wine as the hero, so an empty one is not
  *                 visible as anything; what it buys is that the hero does not
@@ -55,7 +60,7 @@ import { formatLocationList, useActiveLocations } from "@/lib/catalog";
  * Laurel is the exact failure this component exists to prevent.
  */
 export function LocationStrip() {
-  const { locations, status } = useActiveLocations();
+  const { locations, status } = useAnnouncedLocations();
 
   if (status === "unconfigured") return null;
 
@@ -97,7 +102,7 @@ export function LocationStrip() {
           >
             <Ornament />
             <span className="font-display text-sm italic text-on-accent/65 sm:text-[0.9375rem]">
-              Now booking in
+              {ANNOUNCEMENT.lead}
             </span>
             <span className="font-display text-sm uppercase tracking-[0.18em] text-on-accent transition-colors duration-200 group-hover:text-white sm:text-[0.9375rem]">
               {formatLocationList(locations)}
@@ -119,7 +124,7 @@ export function LocationStrip() {
 
         {closed ? (
           <p className="font-display text-sm italic leading-relaxed text-on-accent/70 sm:text-[0.9375rem]">
-            The chair is between studios just now. New dates announced soon.
+            {ANNOUNCEMENT.closed}
           </p>
         ) : null}
 

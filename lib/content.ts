@@ -8,56 +8,95 @@
  *  - prices are plausible service prices, not invented engineering precision
  *
  * ---------------------------------------------------------------------------
- * PLACEHOLDER BUSINESS DETAILS - REPLACE BEFORE LAUNCH
+ * WHAT IS CONFIRMED AND WHAT IS STILL MISSING
  * ---------------------------------------------------------------------------
- * The brand name and the owner name are real and confirmed:
+ * Confirmed, and safe to present as fact:
  *
- *      Crown by Nat, installs performed by Nat.
+ *      Crowned by Nat. Installs performed by Nat. Chairs in Towson, MD and
+ *      Laurel, MD. The neon mark in public/brand is her own studio sign.
  *
- * Everything in the PLACEHOLDER block below is INVENTED and must be replaced
- * with real details before this goes live. They are grouped together so there
- * is exactly one place to edit and nothing gets missed:
+ * NOT supplied yet, and therefore deliberately EMPTY rather than invented. An
+ * empty string here is not an oversight: every component reads these through
+ * the helpers below and renders nothing at all when a value is missing, which
+ * is the only honest option. A made-up phone number on a live site is a real
+ * stranger's phone, and a made-up Instagram handle is a real stranger's
+ * account.
  *
- *      address, city, region, postcode, phone, email, Instagram, opening
- *      hours. Service prices, durations and credentials are stand-ins too and
- *      are marked where they are defined.
+ *      studio street address, phone number, opening hours, Instagram
  *
- * Testimonials are stand-ins as well and carry a visible on-page notice while
- * testimonialsArePlaceholder is true. See the note above that flag.
+ * Service prices, durations and credentials are stand-ins too, and are marked
+ * where they are defined. Testimonials are stand-ins and carry a visible
+ * on-page notice while testimonialsArePlaceholder is true.
  */
 
-/** Invented stand-ins. Every one of these needs a real value from Nat. */
-const PLACEHOLDER = {
-  city: "Baltimore",
-  street: "1411 Fleet Street, Studio 4",
-  region: "Baltimore, MD 21231",
-  regionCode: "MD",
-  postalCode: "21231",
-  phone: "+1 (410) 662-3184",
-  email: "hello@crownbynat.com",
-  instagram: "https://instagram.com/crownbynat",
-  hours: [
-    { days: "Tuesday to Friday", time: "9:00am to 7:00pm" },
-    { days: "Saturday", time: "8:00am to 4:00pm" },
-    { days: "Sunday and Monday", time: "Closed" },
-  ],
+/**
+ * Contact details. Fill any of these in and the site starts showing it; leave
+ * it empty and the site simply does not mention it.
+ *
+ * The email is Nat's own business address, and is also the account the admin
+ * dashboard is granted to in supabase/migrations. If she would rather the
+ * public contact went somewhere else, this is the line to change.
+ */
+const CONTACT = {
+  /*
+    The three empty ones are annotated `as string` rather than left to infer.
+    Without it `as const` gives them the literal type "", TypeScript proves
+    every `STUDIO.phone ? ...` branch below is dead, and narrows the truthy arm
+    to `never` so `.replace` on it fails to compile. Widening to `string` is
+    what tells the compiler these are values waiting to be filled in rather
+    than constants that are permanently empty.
+  */
+
+  /** No studio number supplied. Every "or call" fallback switches to email. */
+  phone: "" as string,
+  email: "crownedbynattt@gmail.com",
+  /** No handle confirmed. The footer omits the social row while this is "". */
+  instagram: "" as string,
+  /** Not supplied. Chairs are described by town instead; see LOCATIONS. */
+  street: "" as string,
+  /** Not supplied. The studio panel on /book omits the row while this is []. */
+  hours: [] as ReadonlyArray<{ days: string; time: string }>,
 } as const;
+
+/**
+ * WHERE NAT WORKS.
+ *
+ * The database in supabase/migrations owns this once a project is connected,
+ * and lib/catalog.ts reads it from there. This constant is the compiled-in
+ * fallback for the state the site is actually in today: no Supabase project,
+ * so no rows to read, but two towns that are confirmed and worth announcing.
+ *
+ * Keep the order deliberate. It is the order the announcement strip reads them
+ * out in.
+ */
+export const LOCATIONS = [
+  { name: "Towson", region: "MD" },
+  { name: "Laurel", region: "MD" },
+] as const;
 
 export const STUDIO = {
   /** Confirmed brand name. Used verbatim everywhere it appears. */
-  name: "Crown by Nat",
+  name: "Crowned by Nat",
   /** Confirmed. Nat performs every install personally. */
   owner: "Nat",
   ownerShort: "Nat",
 
   /**
-   * BRAND MARK. A restrained crown and wordmark lockup drawn for Crown by Nat
-   * as a temporary identity, not a supplied logo. Replace
-   * public/brand/crown-by-nat.svg with the real file (keep the filename, or
-   * point this at a new path) and the footer mark updates with it. Set to ""
-   * to fall back to the typographic wordmark alone.
+   * BRAND MARK, and it is the real one.
+   *
+   * This is Nat's own neon studio sign, the same one hanging behind the client
+   * in half the photographs on this site. It was supplied as a photograph on a
+   * black wall; the black has been lifted out so the glow composites over any
+   * dark field rather than sitting in a black box. It therefore belongs on
+   * WINE OR DARKER SURFACES ONLY. On blush paper it would be invisible, which
+   * is why the nav and the mobile sheet use the typographic wordmark instead
+   * and the mark itself appears on the hero and in the footer band.
+   *
+   * Set to "" to fall back to the typographic wordmark everywhere.
    */
-  logo: "/brand/crown-by-nat.svg",
+  logo: "/brand/crowned-by-nat-neon.webp",
+  logoWidth: 900,
+  logoHeight: 294,
 
   /**
    * THE BOOKING DESTINATION. One switch for the whole site.
@@ -73,13 +112,46 @@ export const STUDIO = {
    */
   bookingUrl: "",
 
-  ...PLACEHOLDER,
+  /** Towns rather than a street, because a street was never supplied. */
+  city: LOCATIONS.map((l) => l.name).join(" and "),
+  regionCode: LOCATIONS[0].region,
+
+  ...CONTACT,
 } as const;
+
+/**
+ * "call 410 555 0134" or "email crownedbynattt@gmail.com", as one fragment.
+ *
+ * A dozen places on this site offer a way to reach a person when a form is not
+ * the right tool. Each of them used to hardcode the phone. Routing them all
+ * through one derived fragment means the day a real studio number arrives,
+ * every one of those sentences starts saying "call" instead of "email" from a
+ * single edit, and until that day none of them prints a number nobody owns.
+ */
+export const REACH = {
+  /** Sentence fragment: "call ..." or "email ...". Never capitalised here. */
+  phrase: STUDIO.phone ? `call ${STUDIO.phone}` : `email ${STUDIO.email}`,
+  /** The address itself, for use as a link label. */
+  label: STUDIO.phone || STUDIO.email,
+  href: STUDIO.phone
+    ? `tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`
+    : `mailto:${STUDIO.email}`,
+} as const;
+
+/** "Or call ..." / "Or email ...". The standing secondary action. */
+export const REACH_SECONDARY = `Or ${REACH.phrase}`;
 
 /** One label per intent, reused everywhere. */
 export const CTA = {
+  /**
+   * ONE booking verb for the whole site. "Book Your Chair" is the only wording
+   * used, top to bottom, so a visitor learns the button once. Variants like
+   * "Reserve your chair" were considered and dropped: a second phrase for the
+   * same action reads as a second action.
+   */
   book: "Book Your Chair",
-  work: "See the work",
+  styles: "Explore the styles",
+  collection: "View collection",
 } as const;
 
 /**
@@ -98,15 +170,25 @@ export function bookingTarget() {
 export const usesOnPageBooking = STUDIO.bookingUrl.trim() === "";
 
 /**
- * Four destinations, four pages. The homepage is a landing experience rather
- * than a table of contents, so everything detailed lives behind one of these
- * and the booking CTA is kept separate from them as the single primary action.
+ * Four destinations, four pages, in the order a visitor needs them: see the
+ * work, find out what the appointment involves, check other people's word for
+ * it, then meet the person doing it.
+ *
+ * Styles leads because the work is what sells a wig install.
+ *
+ * The booking CTA is deliberately NOT in this list. It is the site's single
+ * primary action and it renders as a filled pill beside the links, so putting
+ * it in the row as well would make it the fifth-most-important thing on a bar
+ * where it is the first.
+ *
+ * There is no Admin entry here and there will not be one. Nat reaches her
+ * dashboard by bookmarking /admin.
  */
 export const NAV_LINKS = [
-  { label: "Work", href: "/work/" },
-  { label: "Meet Nat", href: "/meet-nat/" },
-  { label: "Reviews", href: "/reviews/" },
+  { label: "Styles", href: "/styles/" },
   { label: "Before you book", href: "/before-you-book/" },
+  { label: "Reviews", href: "/reviews/" },
+  { label: "Meet Nat", href: "/meet-nat/" },
 ] as const;
 
 /**
@@ -114,10 +196,10 @@ export const NAV_LINKS = [
  * and the source for each page title tag.
  */
 export const PAGES = {
-  work: {
-    kicker: "The work",
-    title: "Finished, and still holding.",
-    lede: "Recent installs, grouped by the look people actually ask for. Bring a screenshot to your consult and Nat will work from it.",
+  styles: {
+    kicker: "Styles",
+    title: "Explore the collection.",
+    lede: "Six ways to wear a Crowned by Nat install, each one a room full of finished work. Find the one you keep coming back to and bring it to your consult.",
   },
   book: {
     kicker: "Book",
@@ -148,19 +230,31 @@ export const PAGES = {
  * else. Anything that needs a paragraph to explain belongs on its own page.
  */
 export const HOME = {
-  featured: {
-    heading: "Recent work.",
-    body: "Three from the last few weeks.",
-    link: "See all the work",
+  collections: {
+    kicker: "The collection",
+    heading: "Explore the Crowned by Nat collection.",
+    body: "Six ways to wear an install. Open the one you keep coming back to.",
+    link: "See every style",
   },
-  services: {
-    heading: "What you can book.",
-    body: "Prices are for the service. You bring the unit.",
-    link: "See every service",
+  meetNat: {
+    kicker: "Meet Nat",
+    heading: "The hands behind the crown.",
+    body: "One stylist, one chair, one client in the room. Nat customizes the unit, lays the lace and cuts the hairline to your face in the same appointment.",
+    link: "Meet Nat",
+  },
+  reviews: {
+    kicker: "The Crowned experience",
+    heading: "In her clients' words.",
+    /** Rendered only while testimonialsArePlaceholder is false. */
+    body: "Three weeks in, which is when an install has to prove itself.",
+    /** Rendered instead while the quotes on /reviews are still stand-ins. */
+    bodyPending:
+      "Nat's clients say it better than a homepage can. Real reviews are being collected now and go up here as they land.",
+    link: "Read the reviews",
   },
   closing: {
     heading: "Your chair is waiting.",
-    body: "Tuesday through Saturday, one client at a time. Send the form and Nat will text you back with two or three slots.",
+    body: "One client at a time, in Towson and in Laurel. Send a request and Nat comes back to you with two or three slots.",
   },
 } as const;
 
@@ -177,10 +271,23 @@ export const HERO = {
     "Nat does every install herself, from the braid down to the last cut. One chair, one client, one appointment.",
 } as const;
 
+/**
+ * The announcement strip, above the hero.
+ *
+ * `lead` is Playfair italic and `places` is tracked Playfair caps; see the type
+ * note in components/location-strip.tsx for why it is set that way rather than
+ * in the site's `.label` style.
+ */
+export const ANNOUNCEMENT = {
+  lead: "Now booking in",
+  /** Shown when every chair is closed. Never falls back to a town name. */
+  closed: "The chair is between studios just now. New dates announced soon.",
+} as const;
+
 export const INTRO = {
   heading: "A crown should look like it grew there.",
   paragraphs: [
-    "Crown by Nat is one stylist and one chair. Nat customizes the unit, lays the lace, and cuts the hairline to your face in the same appointment, so nothing is handed off half finished.",
+    "Crowned by Nat is one stylist and one chair. Nat customizes the unit, lays the lace, and cuts the hairline to your face in the same appointment, so nothing is handed off half finished.",
     "That means fewer slots in the week, and a wait for a Saturday. It also means the person who answers your message is the person doing your hair.",
   ],
   signature: "Nat, founder and installer",
@@ -204,14 +311,20 @@ export const ASSURANCES = [
   },
 ] as const;
 
-export const CAROUSEL_SECTION = {
-  heading: "Recent installs.",
-  body: "A slow look through recent work. Pause it, or step through at your own pace.",
-} as const;
-
-export const STYLES_SECTION = {
-  heading: "Browse by the look you want.",
-  body: "Pick a style and swipe through it. Bring a screenshot to your consult and Nat will work from that.",
+/**
+ * Wording shared by every collection page, so six pages cannot drift into six
+ * slightly different voices. The per-collection words live in
+ * lib/collections.ts beside the photographs they describe.
+ */
+export const COLLECTION_PAGE = {
+  back: "All styles",
+  gallery: "Explore the collection",
+  galleryHint: "Select any photograph to see it larger.",
+  related: "More from the collection",
+  cta: {
+    heading: "Ready for your crown?",
+    body: "Bring this page to your consult. Nat will tell you straight whether the unit you have will get you there.",
+  },
 } as const;
 
 /**
@@ -338,7 +451,26 @@ export const TESTIMONIALS = [
   },
 ] as const;
 
+/**
+ * PLACEHOLDER POLICIES.
+ *
+ * The answers below describe how an appointment runs, how long an install
+ * lasts, and what happens when someone cancels. They are professionally
+ * written stand-ins, NOT policies Nat has confirmed, and /before-you-book
+ * carries a visible notice saying so while this flag is true.
+ *
+ * The same rule as the testimonials applies, for the same reason: a policy a
+ * customer relies on and the business has never agreed to is worse than no
+ * policy at all. Flip this to false only once Nat has read every answer below
+ * and said yes to it.
+ */
+export const policiesAreDraft = true;
+
 export const QUESTIONS = [
+  {
+    q: "Where does the appointment happen?",
+    a: "Nat takes appointments in Towson, MD and in Laurel, MD. Which chair is open depends on the week, so the location is confirmed when your appointment is, and the strip at the top of the site always shows where she is currently booking.",
+  },
   {
     q: "Who actually does my install?",
     a: "Nat does, every time. There is no second chair and no assistant finishing the work. If she is booked out, you wait for her rather than being passed along.",
@@ -365,7 +497,11 @@ export const QUESTIONS = [
   },
   {
     q: "How do I move or cancel an appointment?",
-    a: "Text the studio line. Moving it more than 24 hours out costs nothing. Inside 24 hours, half the service price holds your next slot rather than being lost.",
+    a: "Get in touch as early as you can. Moving an appointment more than 24 hours out costs nothing. Inside 24 hours, half the service price holds your next slot rather than being lost.",
+  },
+  {
+    q: "What should I bring, and how should I turn up?",
+    a: "Your unit, and a screenshot of the look you are after. Come with your own hair washed, fully dried and detangled, and with no heavy oil or grease on your scalp, because adhesive will not hold on a conditioned hairline. If you are between installs, leave the takedown to Nat rather than pulling it out the night before.",
   },
 ] as const;
 
@@ -421,7 +557,7 @@ export const ACCOUNT = {
     submit: "Save it and sign me in",
   },
   dashboard: {
-    kicker: "My Crown by Nat",
+    kicker: "My Crowned by Nat",
     upcoming: "Upcoming appointment",
     upcomingPlural: "Upcoming appointments",
     past: "Past appointments",

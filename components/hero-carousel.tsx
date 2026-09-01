@@ -2,62 +2,109 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ButtonLink } from "@/components/button";
-import { bookingTarget, CTA, HERO } from "@/lib/content";
+import { Photograph } from "@/components/photo";
+import { Wordmark } from "@/components/wordmark";
+import { bookingTarget, CTA, HERO, STUDIO } from "@/lib/content";
 import { HERO_SLIDES } from "@/lib/images";
 
 /**
- * The homepage hero: a full-bleed carousel that crossfades slowly through six
- * finished installs while the brand block and the booking CTA stay put.
+ * The homepage hero: six of Nat's installs crossfading slowly beside a brand
+ * block that never moves.
  *
- * WHY THE COPY DOES NOT CHANGE WITH THE SLIDE
+ * ---------------------------------------------------------------------------
+ * THE SHAPE, AND WHY IT IS A SPLIT RATHER THAN A FULL-BLEED BANNER
+ * ---------------------------------------------------------------------------
+ * Every photograph on this site is one person standing in a room, shot on a
+ * phone, in portrait. That is not a defect to be worked around; it is what
+ * real salon photography looks like, and it is why the site reads as a real
+ * business. But it means a full-bleed 16:9 desktop banner is the one shape
+ * this photography cannot take: cropping 3:4 down to 16:9 removes the lengths,
+ * and the lengths are the entire subject of a wig install photograph.
+ *
+ * So the frame changes with the viewport instead of the picture doing so.
+ * It is ONE composition, a photograph beside a wine brand block, folded
+ * between the two shapes:
+ *
+ *   below lg   stacked, brand block first. The mark, the line and the
+ *              booking button sit on flat wine at the top of the frame, and
+ *              the photograph runs below them, deliberately taller than the
+ *              space left in the viewport so its top third shows as a peek
+ *              that pulls the scroll.
+ *
+ *   lg and up  side by side. The photograph becomes a tall panel filling the
+ *              right seven columns and the brand block holds the left five.
+ *
+ * The brand block leads in BOTH, which is also the DOM order, so the reading
+ * order a screen reader gets is the reading order everyone else gets.
+ *
+ * WHY THE PHOTOGRAPH IS ALLOWED TO RUN PAST THE FOLD ON A PHONE. Fitting the
+ * whole hero into one phone screen means about 250px of picture, and 250px of
+ * a 3:4 portrait is a crop through someone's face with the hair cut off top
+ * and bottom. On a wig installer's website that is the worst 250px available.
+ * Letting it run to a real portrait crop costs nothing, because the primary
+ * action is not stranded: components/mobile-book-bar.tsx puts a sticky Book
+ * Your Chair bar in thumb reach from 320px of scroll onward, and the booking
+ * button in this block is above the fold regardless.
+ *
+ * WHY THE COPY IS NOT OVER THE PICTURE ON A PHONE. It was, and two things went
+ * wrong. Both are specific to this photography rather than general:
+ *
+ *   1. Nat's neon sign is on the wall in most of these frames, and the brand
+ *      mark IS that sign. Laying the mark over the photograph put two
+ *      Crownedbynat scripts on the screen at once, one of them an echo of the
+ *      other, and it read as a rendering fault rather than as branding.
+ *   2. These are bright, warm, high-key phone photographs, and a wash heavy
+ *      enough to float five lines of copy over one turns the picture to mud.
+ *      The veil and the photograph were fighting over the same pixels.
+ *
+ * Stacking gives the mark clean wine to sit on, gives the type a contrast
+ * floor no slide can change, and gives the photograph back its whole frame.
+ * One image layer still serves both shapes: it is an in-flow flex item on a
+ * phone and an absolutely positioned panel at lg, so nothing is rendered twice
+ * and no photograph is downloaded twice.
+ *
+ * ---------------------------------------------------------------------------
+ * THE COPY DOES NOT CHANGE WITH THE SLIDE
+ * ---------------------------------------------------------------------------
  * Text that swaps every seven seconds cannot be read at a glance and cannot be
- * relied on by anyone who looks away. So the photograph is the only thing that
- * moves: brand, proposition and CTA are fixed, and the only per-slide text is
- * the small style label beside the dots.
+ * relied on by anyone who looks away. The photograph is the only thing that
+ * moves. The brand, the proposition and the CTA are fixed, and the only
+ * per-slide text is the small style label above the dots.
  *
+ * ---------------------------------------------------------------------------
  * TIMING
- * DWELL 7s, FADE 1.8s, and a 12s drift on the transform. That is deliberately
- * slower than a stock carousel. A frame needs roughly five seconds before it
- * stops being motion and starts being a photograph, and the drift is long
- * enough that it is never perceived as a zoom, only as the image being alive.
+ * ---------------------------------------------------------------------------
+ * DWELL 7s, FADE 1.8s, and a 12s drift on the transform. Deliberately slower
+ * than a stock carousel. A frame needs roughly five seconds before it stops
+ * being motion and starts being a photograph, and the drift is long enough to
+ * never be perceived as a zoom, only as the image being alive.
  *
- * LEGIBILITY
- * Handled entirely by `.hero-scrim` in globals.css rather than per slide, and
- * the contrast floor is computed there. Nothing here needs to know how bright
- * the current photograph is.
- *
+ * ---------------------------------------------------------------------------
  * STOPPING IT, AND THE TRADE THAT WAS MADE
- * There is no play/pause button: that is a deliberate design decision to keep
- * the hero clean. It costs something, and the cost is written down here rather
- * than hidden. WCAG 2.2.2 asks for a mechanism to pause, stop or hide anything
- * that moves automatically for more than five seconds, and a labelled control
- * is the obvious way to provide one. What stands in its place:
+ * ---------------------------------------------------------------------------
+ * There is no play/pause button; that is a deliberate decision to keep the
+ * hero clean, and it costs something, so the cost is written down rather than
+ * hidden. WCAG 2.2.2 asks for a mechanism to pause, stop or hide anything that
+ * moves automatically for more than five seconds, and a labelled control is
+ * the obvious way to provide one. What stands in its place:
  *
  *   - touching any dot stops the rotation for good, so a visitor who wants it
  *     to hold still has a way to make it hold still
  *   - rotation pauses while keyboard focus is anywhere inside the hero, so it
- *     never moves under someone reading it with the keyboard
- *   - under prefers-reduced-motion it never starts at all, and the dots remain
- *     the full manual control
+ *     never moves under someone reading it with a keyboard
+ *   - under prefers-reduced-motion it never starts at all, and the dots are
+ *     full manual control
+ *   - it stops when scrolled past or when the tab is in the background
  *
- * Hover deliberately does NOT pause. The hero is the whole viewport, so at
- * desktop a pointer rests on it almost all the time, and pausing on hover
+ * Hover deliberately does NOT pause. The hero is most of the viewport, so at
+ * desktop the pointer rests on it almost all the time, and pausing on hover
  * would mean the carousel effectively never advanced.
  *
- * SIZING LIVES IN HeroStage, NOT HERE
- * This section used to carry `min-h-[calc(100svh-4rem)]` itself. It now takes
- * `flex-1` inside components/hero-stage.tsx, because the location strip sits
- * directly above it and the two have to share one viewport between them. The
- * viewport arithmetic is unchanged; it just moved up one level so the strip
- * can take its natural height without pushing the fold down. HeroCarousel is
- * only ever rendered by HeroStage.
- *
- * PERFORMANCE
- * Slide one is the LCP element. The preload pair below is rendered by this
- * component rather than the root layout, so only the page that actually shows
- * the hero pays for it. The other five slides are not put in the DOM until
- * `warm` flips shortly after mount, so they cannot compete with it. Each slide
- * ships a landscape and a portrait crop and <picture> fetches one of them.
+ * ---------------------------------------------------------------------------
+ * SIZING LIVES IN HeroStage
+ * ---------------------------------------------------------------------------
+ * This takes `flex-1` inside components/hero-stage.tsx, because the location
+ * strip sits directly above and the two share one viewport between them.
  */
 
 const DWELL_MS = 7000;
@@ -65,20 +112,37 @@ const FADE_MS = 1800;
 const DRIFT_MS = 12000;
 const REDUCED_FADE_MS = 200;
 
+/**
+ * The photograph: an in-flow flex item below the brand block on a phone, and
+ * an absolutely positioned right-hand panel from `lg` (seven of twelve
+ * columns).
+ *
+ * `min-h-[60svh]` with `flex-1` is a floor, not a height. It grows to take
+ * whatever the brand block leaves on a tall phone, and holds 60svh on a short
+ * one, which keeps the frame taller than it is wide at every phone width and
+ * so keeps the crop portrait. At `lg` both are dropped and the panel is sized
+ * by `inset-0` instead.
+ */
+const PANEL =
+  "relative min-h-[60svh] w-full flex-1 lg:absolute lg:inset-0 lg:left-[41.6667%] lg:min-h-0 lg:w-auto lg:flex-none";
+
+/** What the image actually occupies, for the browser to size the srcSet from. */
+const HERO_SIZES = "(min-width: 1024px) 60vw, 100vw";
+
 export function HeroCarousel() {
   const count = HERO_SLIDES.length;
   const sectionRef = useRef<HTMLElement>(null);
 
   const [index, setIndex] = useState(0);
-  /** Flipped for good the first time the visitor drives the carousel. */
+  /** Flipped for good the first time a visitor drives the carousel. */
   const [stopped, setStopped] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [inView, setInView] = useState(true);
   const [pageVisible, setPageVisible] = useState(true);
+  /** The other five slides stay out of the DOM until the first has landed. */
   const [warm, setWarm] = useState(false);
 
-  // Read the platform preference, and keep it live if the user changes it.
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => setReduced(mq.matches);
@@ -87,13 +151,11 @@ export function HeroCarousel() {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  // Mount the remaining slides once the first one has had the network to itself.
   useEffect(() => {
     const id = window.setTimeout(() => setWarm(true), 900);
     return () => window.clearTimeout(id);
   }, []);
 
-  // Nothing animates while the hero is scrolled past or the tab is in the background.
   useEffect(() => {
     const node = sectionRef.current;
     if (!node) return;
@@ -124,7 +186,7 @@ export function HeroCarousel() {
     return () => window.clearTimeout(timer);
   }, [rotating, index, count]);
 
-  /** Manual navigation stops the rotation for good; it never fights the user. */
+  /** Manual navigation stops rotation for good; it never fights the visitor. */
   const goTo = useCallback(
     (target: number) => {
       setStopped(true);
@@ -150,42 +212,152 @@ export function HeroCarousel() {
   return (
     <section
       ref={sectionRef}
-      id="hero"
       aria-roledescription="carousel"
       aria-label={`${HERO.brand} installs`}
-      onFocusCapture={() => setFocusWithin(true)}
-      onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-          setFocusWithin(false);
-        }
+      onFocus={() => setFocusWithin(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setFocusWithin(false);
       }}
-      className="on-photo relative isolate flex flex-1 flex-col justify-end overflow-hidden bg-ink"
+      className="on-photo relative isolate flex flex-1 flex-col overflow-hidden bg-ink lg:justify-center"
     >
       {/*
-        Written as elements rather than through ReactDOM.preload(), because
-        preload() takes no `media` option and an art-directed preload is the
-        whole point: the pair has to be mutually exclusive or a phone pays for
-        both crops. React hoists them into <head>, so they work from here, and
-        keeping them here rather than in the root layout means /work and /book
-        no longer preload a hero image they never render.
+        The LCP element. Preloaded from here rather than from the root layout,
+        so /styles and /book no longer pay to fetch a hero they never render.
+        imageSrcSet/imageSizes rather than a bare href, or the browser preloads
+        one width and then the <img> asks for a different one.
       */}
       <link
         rel="preload"
         as="image"
-        href={lead.wide.src}
-        media="(min-width: 768px) and (min-aspect-ratio: 1/1)"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        as="image"
-        href={lead.tall.src}
-        media="(max-width: 767.98px), (max-aspect-ratio: 0.9999/1)"
+        href={lead.photo.src}
+        imageSrcSet={`${lead.photo.small} 600w, ${lead.photo.src} 1200w, ${lead.photo.large} 1600w`}
+        imageSizes={HERO_SIZES}
         fetchPriority="high"
       />
 
-      {/* Photography, layer 0. */}
-      <div className="absolute inset-0 z-0">
+      {/* Copy and controls, layer 2. */}
+      <div className="relative z-[2] mx-auto w-full max-w-[1400px] shrink-0 px-5 pb-6 pt-6 sm:px-8 sm:pb-9 sm:pt-8 lg:pb-0 lg:pt-0">
+        <div className="lg:grid lg:grid-cols-12 lg:items-center">
+          <div className="min-w-0 lg:col-span-5 lg:pr-10">
+            <p className="label text-on-accent/70">{HERO.kicker}</p>
+
+            <h1 className="mt-4 flex flex-col items-start lg:mt-6">
+              {STUDIO.logo ? (
+                /*
+                  Nat's own neon studio sign, carrying the brand name as the
+                  accessible name of the heading. It is a fixed-size brand
+                  asset rather than content photography, so it is a plain <img>
+                  with explicit dimensions: next/image would add a wrapper and,
+                  under `unoptimized`, no optimisation.
+                */
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={STUDIO.logo}
+                  alt={HERO.brand}
+                  width={STUDIO.logoWidth}
+                  height={STUDIO.logoHeight}
+                  fetchPriority="high"
+                  className="h-auto w-[12rem] max-w-full sm:w-[18rem] lg:w-[23rem]"
+                />
+              ) : (
+                <Wordmark className="text-5xl text-on-accent lg:text-6xl" />
+              )}
+
+              <span className="mt-3 max-w-[17ch] font-display text-xl leading-snug tracking-tight text-on-accent/90 sm:mt-6 sm:text-3xl lg:text-[2rem]">
+                {HERO.line}
+              </span>
+            </h1>
+
+            {/*
+              Hidden on the narrowest phones, and not because it does not
+              matter. It is almost the first paragraph of the Intro section
+              immediately below, so on a 390px screen it would be read twice
+              inside one scroll while pushing the booking button under the
+              fold. Everything from `sm` up has the room for both.
+            */}
+            <p className="mt-5 hidden max-w-[44ch] text-base leading-relaxed text-on-accent/80 sm:block lg:text-lg">
+              {HERO.subtext}
+            </p>
+
+            {/*
+              One filled pill and, below sm, one text link rather than a second
+              pill. Two full-width pills stacked on a phone cost 64px of the
+              fold and read as two actions of equal weight, and this site has
+              exactly one primary action. From `sm` up there is room for the
+              pair side by side and the outline variant comes back.
+            */}
+            <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
+              <ButtonLink {...bookingTarget()} variant="onPhoto">
+                {CTA.book}
+              </ButtonLink>
+              <a
+                href="/styles/"
+                className="inline-flex min-h-11 items-center justify-center px-2 text-sm text-on-accent/80 underline decoration-on-accent/30 underline-offset-4 transition-colors hover:text-on-accent hover:decoration-on-accent sm:hidden"
+              >
+                {CTA.styles}
+              </a>
+              <div className="hidden sm:block">
+                <ButtonLink href="/styles/" variant="quiet">
+                  {CTA.styles}
+                </ButtonLink>
+              </div>
+            </div>
+
+            {/*
+              The controls sit under the copy on the wine rather than over the
+              photograph, so their contrast is fixed rather than decided by
+              whichever slide happens to be showing.
+
+              Left/right arrows are a shortcut on top of working keyboard
+              access, never a replacement for it: every dot is a real button.
+            */}
+            <div
+              onKeyDown={onControlKeyDown}
+              className="mt-5 flex items-center gap-4 sm:mt-9 lg:mt-12"
+            >
+              {/*
+                Six 44px targets need 264px, which fits a 320px phone once
+                nothing else shares the line. The spacing between the dots comes
+                from the targets themselves, so there is no flex gap on top.
+              */}
+              <div className="-mx-1 flex shrink-0 items-center">
+                {HERO_SLIDES.map((slide, i) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    onClick={() => goTo(i)}
+                    aria-label={`Show ${slide.label}, slide ${i + 1} of ${count}`}
+                    aria-current={i === index}
+                    className="tap group flex cursor-pointer items-center justify-center px-1"
+                  >
+                    <span
+                      className={`block h-1.5 rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+                        i === index
+                          ? "w-8 bg-on-accent"
+                          : "w-1.5 bg-on-accent/45 group-hover:bg-on-accent/85"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/*
+                The one piece of text that changes with the slide. Announced
+                through the live region below rather than being read twice.
+              */}
+              <p
+                aria-hidden="true"
+                className="hidden min-w-0 truncate font-display text-sm italic text-on-accent/60 sm:block"
+              >
+                {active.label}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Photography, layer 0. Top of the frame on a phone, panel at lg. */}
+      <div className={`${PANEL} z-0`}>
         {HERO_SLIDES.map((slide, i) => {
           const isActive = i === index;
           const mounted = i === 0 || warm || isActive;
@@ -215,135 +387,29 @@ export function HeroCarousel() {
               }
             >
               {mounted ? (
-                <picture>
-                  {/*
-                    The crop is chosen by the shape of the frame, not by width
-                    alone. The hero is the viewport minus the nav, so a portrait
-                    tablet at 834x1048 is a 0.8 frame and wants the portrait
-                    crop just as much as a phone does; keying only off width
-                    handed it the 1.6 landscape file, which then lost the hair
-                    off the right edge and left the top third empty. Landscape
-                    frames from 768px up get the wide crop, everything else gets
-                    the tall one. This condition and the preload pair above have
-                    to stay in step.
-                  */}
-                  <source
-                    media="(min-width: 768px) and (min-aspect-ratio: 1/1)"
-                    srcSet={slide.wide.src}
-                    width={slide.wide.width}
-                    height={slide.wide.height}
-                  />
-                  {/*
-                    A plain <img> rather than next/image, because next/image
-                    cannot render <picture> and art direction is the point
-                    here. `unoptimized` is already set globally for the static
-                    export, so next/image would add nothing but a wrapper.
-                    (@next/next/no-img-element does not fire on this: the rule
-                    exempts an <img> that is the fallback inside a <picture>.)
-                  */}
-                  <img
-                    src={slide.tall.src}
-                    alt={slide.alt}
-                    width={slide.tall.width}
-                    height={slide.tall.height}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    fetchPriority={i === 0 ? "high" : "low"}
-                    decoding={i === 0 ? "sync" : "async"}
-                    className="h-full w-full object-cover"
-                  />
-                </picture>
+                <Photograph
+                  photo={slide.photo}
+                  sizes={HERO_SIZES}
+                  priority={i === 0}
+                  className="h-full w-full object-cover object-[center_22%]"
+                />
               ) : null}
             </div>
           );
         })}
-      </div>
 
-      {/* Scrim, layer 1. Carries the contrast floor for everything above it. */}
-      <div
-        aria-hidden="true"
-        className="hero-scrim pointer-events-none absolute inset-0 z-[1]"
-      />
-
-      {/* Copy and controls, layer 2. */}
-      <div className="relative z-[2] mx-auto w-full max-w-[1400px] px-5 pb-10 pt-28 sm:px-8 lg:pb-14 lg:pt-32">
-        <div className="grid gap-9 lg:grid-cols-12 lg:items-end lg:gap-8">
-          {/*
-            min-w-0 on both columns. A grid track sized `auto` takes its
-            maximum from the max-content of its items, and it is NOT clamped to
-            the container, so one wide row of fixed-size controls can push the
-            whole track past the viewport and the section then clips it.
-          */}
-          <div className="min-w-0 lg:col-span-7">
-            <h1>
-              <span className="label block text-on-accent/75">
-                {HERO.kicker}
-              </span>
-              <span className="mt-5 block font-display text-[3.25rem] leading-[0.92] tracking-tight text-on-accent sm:text-6xl lg:text-7xl xl:text-[5.25rem]">
-                {HERO.brand}
-              </span>
-              <span className="mt-4 block max-w-[18ch] font-display text-xl italic leading-snug text-on-accent/85 sm:text-2xl lg:text-[1.75rem]">
-                {HERO.line}
-              </span>
-            </h1>
-
-            <p className="mt-6 max-w-[46ch] text-base leading-relaxed text-on-accent/80 lg:text-lg">
-              {HERO.subtext}
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <ButtonLink {...bookingTarget()} variant="onPhoto">
-                {CTA.book}
-              </ButtonLink>
-              <ButtonLink href="/work/" variant="quiet">
-                {CTA.work}
-              </ButtonLink>
-            </div>
-          </div>
-
-          {/*
-            Arrow keys step the carousel while focus is anywhere in the control
-            group. Every dot is already a real button, so this is a shortcut on
-            top of working keyboard access, never a replacement for it.
-          */}
-          <div
-            onKeyDown={onControlKeyDown}
-            className="flex min-w-0 flex-col gap-3 lg:col-span-5 lg:items-end lg:gap-5"
-          >
-            {/*
-              The one piece of text that changes with the slide. Announced
-              through the live region below rather than read twice.
-            */}
-            <p aria-hidden="true" className="label text-on-accent/70">
-              {active.label}
-            </p>
-
-            {/*
-              Six 44px targets need 264px, which fits a 320px phone once
-              nothing else shares the line. Spacing between the dots comes from
-              the targets themselves, so there is no flex gap on top of it.
-            */}
-            <div className="-mx-1 flex items-center">
-              {HERO_SLIDES.map((slide, i) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={`Show ${slide.label}, slide ${i + 1} of ${count}`}
-                  aria-current={i === index}
-                  className="tap group flex cursor-pointer items-center justify-center px-1"
-                >
-                  <span
-                    className={`block h-1.5 rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
-                      i === index
-                        ? "w-8 bg-on-accent"
-                        : "w-1.5 bg-on-accent/45 group-hover:bg-on-accent/85"
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/*
+          Layer 1, and it lives INSIDE the photograph's box so it tracks that
+          box through both layouts. No copy sits on the picture in either one,
+          so this is not a contrast floor, it is the seam: on a phone it fades
+          the foot of the frame into the wine block below, and at lg it
+          feathers the left edge into the brand field. Both ends also keep the
+          sticky nav off a bright frame edge as a slide changes under it.
+        */}
+        <div
+          aria-hidden="true"
+          className="hero-veil pointer-events-none absolute inset-0 z-[1]"
+        />
       </div>
 
       {/*

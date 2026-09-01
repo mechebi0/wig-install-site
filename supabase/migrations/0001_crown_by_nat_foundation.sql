@@ -1,5 +1,5 @@
 -- ===========================================================================
--- CROWN BY NAT - accounts, locations, services and appointments
+-- CROWNED BY NAT - accounts, locations, services and appointments
 -- ===========================================================================
 -- Run this once in the Supabase SQL editor (or `supabase db push`).
 -- It is written to be re-runnable: every object is created with `if not
@@ -99,7 +99,7 @@ create index if not exists profiles_role_idx  on public.profiles (role);
 -- ---------------------------------------------------------------------------
 -- LOCATIONS
 -- ---------------------------------------------------------------------------
--- Where Crown by Nat is currently taking appointments. `active` is the switch
+-- Where Crowned by Nat is currently taking appointments. `active` is the switch
 -- the homepage strip and the booking flow both read; it is never hard-coded
 -- into a page. All four states the brief asks for fall out of two booleans:
 -- Towson only, Laurel only, both, neither.

@@ -9,7 +9,7 @@ import { formatDateMedium } from "@/lib/format";
 import type { AppointmentWithCustomer, Profile } from "@/lib/supabase/types";
 
 /**
- * Who books with Crown by Nat.
+ * Who books with Crowned by Nat.
  *
  * ---------------------------------------------------------------------------
  * TWO KINDS OF CUSTOMER, ONE LIST

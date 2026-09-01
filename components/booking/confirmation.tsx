@@ -5,7 +5,7 @@ import { buttonStyles } from "@/components/button";
 import { StatusPill } from "@/components/ui/feedback";
 import { formatDateLong, formatDuration, formatPrice, formatTime } from "@/lib/format";
 import type { GuestBookingReceipt } from "@/lib/supabase/types";
-import { ACCOUNT, STUDIO } from "@/lib/content";
+import { ACCOUNT, REACH } from "@/lib/content";
 
 /**
  * The screen after a booking goes through.
@@ -132,10 +132,10 @@ export function BookingConfirmation({
       <p className="mt-8 text-sm leading-relaxed text-muted">
         Need to change something? Text the studio on{" "}
         <a
-          href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
+          href={REACH.href}
           className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent"
         >
-          {STUDIO.phone}
+          {REACH.label}
         </a>
         . Moving an appointment more than 24 hours out costs nothing.
       </p>

@@ -7,11 +7,11 @@ import { ButtonLink } from "@/components/button";
 import { Reveal } from "@/components/reveal";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import {
-  bookingTarget,
   BOOKING_FLOW,
   CTA,
   PAGES,
-  STUDIO,
+  REACH,
+  bookingTarget,
   usesOnPageBooking,
 } from "@/lib/content";
 
@@ -117,7 +117,7 @@ function ExternalBooking() {
           </h2>
           <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted">
             The live calendar opens in a new tab. If nothing there works, text
-            the studio on {STUDIO.phone} and Nat will find you something.
+            the studio ({REACH.phrase}) and Nat will find you something.
           </p>
           <div className="mt-8">
             <ButtonLink {...bookingTarget()}>{CTA.book}</ButtonLink>

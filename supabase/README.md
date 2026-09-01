@@ -1,4 +1,4 @@
-# Crown by Nat — Supabase setup
+# Crowned by Nat — Supabase setup
 
 Everything in this file is a **manual step that has not been done for you**. The
 code is complete and the site builds and deploys without any of it, but until
@@ -99,12 +99,12 @@ will not see their old appointment, and you would have to link it by hand.
 
 Dashboard → **Authentication** → **URL Configuration**
 
-- **Site URL**: your production domain, e.g. `https://crownbynat.pages.dev`
+- **Site URL**: your production domain, e.g. `https://crownedbynat.pages.dev`
 - **Redirect URLs**: add every origin the site runs on, each with `/**`:
 
 ```
 http://localhost:3000/**
-https://crownbynat.pages.dev/**
+https://crownedbynat.pages.dev/**
 https://<your-custom-domain>/**
 ```
 
@@ -115,7 +115,7 @@ it. If a reset link "does nothing", the origin is missing from this list.
 ### Email templates (optional but worth ten minutes)
 
 Dashboard → **Authentication** → **Email Templates**. The defaults say
-"Supabase". Change the sender name to Crown by Nat and the wording to match the
+"Supabase". Change the sender name to Crowned by Nat and the wording to match the
 site's voice.
 
 Supabase's built-in email service is rate-limited to a handful of messages per

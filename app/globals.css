@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  CROWN BY NAT - design tokens
+  CROWNED BY NAT - design tokens
   ==========================================================================
   Sources this palette reconciles:
 
@@ -176,53 +176,83 @@
   }
 
   /*
-    HERO SCRIM.
+    THE HERO SEAM.
 
-    Two gradients over one element, both tinted to --scrim (the wine ink):
+    Scoped to the photograph's own box in both hero layouts, and it is a seam
+    rather than a contrast floor: no copy sits on the picture at any width, so
+    nothing here is holding text legible. See the note in
+    components/hero-carousel.tsx for why the copy moved off the photograph.
 
-      1. a bottom-left wash that carries the brand block. It reaches 0.82
-         alpha behind the copy, which puts near-white text at roughly 7.5:1
-         over the lightest photograph in the set and about 4.7:1 over pure
-         white, so the contrast floor holds whatever slide is showing.
-      2. a short top wash, so the sticky nav never sits on a bright frame
-         edge as a slide changes underneath it.
+    BELOW lg the picture sits directly BELOW the wine brand block, so the wash
+    runs top-down and hands one surface to the other. It is deliberately short
+    and light, gone by 13%: the top edge of this photograph is the part a
+    visitor sees first, at the fold, and a heavy wash there makes the picture
+    look like more wine rather than like something worth scrolling to.
 
-    The whole point of computing rather than eyeballing these is that the
-    image behind them changes every seven seconds. The text cannot be tuned
-    per slide, so the floor has to be set by the scrim.
+    AT lg AND UP the picture sits to the RIGHT of the brand block, so the same
+    job rotates: a feather down the left edge, over in sixteen percent, plus a
+    short top wash so the sticky nav never lands on a bright frame edge as a
+    slide changes underneath it. (On a phone the nav sits over the wine block
+    instead, so no top wash is needed there.)
+
+    Everything is tinted to --scrim, the wine ink, so the photograph reads as a
+    duotone rather than as a grey veil.
   */
-  .hero-scrim {
+  .hero-veil {
     background-image: linear-gradient(
-        to top,
-        rgb(var(--scrim) / 0.82) 0%,
-        rgb(var(--scrim) / 0.62) 22%,
-        rgb(var(--scrim) / 0.24) 52%,
-        rgb(var(--scrim) / 0.06) 78%,
-        transparent 100%
-      ),
-      linear-gradient(
-        to right,
-        rgb(var(--scrim) / 0.42) 0%,
-        rgb(var(--scrim) / 0.12) 45%,
-        transparent 72%
-      );
+      to bottom,
+      rgb(var(--scrim) / 0.62) 0%,
+      rgb(var(--scrim) / 0.22) 5%,
+      transparent 13%
+    );
   }
 
   @media (min-width: 1024px) {
-    /* Wider frame, so the bottom wash can sit lower and show more photograph. */
-    .hero-scrim {
+    .hero-veil {
       background-image: linear-gradient(
-          to top,
-          rgb(var(--scrim) / 0.8) 0%,
-          rgb(var(--scrim) / 0.55) 26%,
-          rgb(var(--scrim) / 0.16) 55%,
-          transparent 80%
+          to right,
+          rgb(var(--scrim) / 0.92) 0%,
+          rgb(var(--scrim) / 0.34) 6%,
+          transparent 16%
         ),
         linear-gradient(
+          to bottom,
+          rgb(var(--scrim) / 0.22) 0%,
+          transparent 24%
+        );
+    }
+  }
+
+  /*
+    The general-purpose version of the hero veil, for any photograph carrying
+    copy at its foot: the collection hero and the photography panel on the
+    authentication screens. Same wine tint, same contrast floor, no breakpoint,
+    because both of those frames keep their copy over the picture at every
+    width they render at.
+  */
+  .photo-veil {
+    background-image: linear-gradient(
+      to top,
+      rgb(var(--scrim) / 0.88) 0%,
+      rgb(var(--scrim) / 0.66) 26%,
+      rgb(var(--scrim) / 0.26) 58%,
+      rgb(var(--scrim) / 0.05) 82%,
+      transparent 100%
+    );
+  }
+
+  @media (min-width: 1024px) {
+    .hero-veil {
+      background-image: linear-gradient(
           to right,
-          rgb(var(--scrim) / 0.52) 0%,
-          rgb(var(--scrim) / 0.2) 38%,
-          transparent 68%
+          rgb(var(--scrim) / 0.92) 0%,
+          rgb(var(--scrim) / 0.34) 6%,
+          transparent 16%
+        ),
+        linear-gradient(
+          to bottom,
+          rgb(var(--scrim) / 0.22) 0%,
+          transparent 24%
         );
     }
   }

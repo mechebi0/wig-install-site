@@ -36,7 +36,7 @@ import { formatLocationList, useActiveLocations } from "@/lib/catalog";
  *     site. Nat's back office should look like her business, not like a
  *     different product she also has to log into
  *   - the display serif for headings and numbers, so the dashboard reads as
- *     Crown by Nat before it reads as software
+ *     Crowned by Nat before it reads as software
  *   - density where density is useful (the appointment list) and space where
  *     it is not (the overview). An operations screen earns its density by
  *     being scanned twenty times a day; a summary read once does not
@@ -78,7 +78,7 @@ export function AdminDashboard() {
       brand and nothing about what is behind it: no "Admin", no "Dashboard", no
       confirmation that a privileged area exists here at all.
     */
-    <Guarded requireAdmin returnTo={ADMIN_PATH} heading="Crown by Nat">
+    <Guarded requireAdmin returnTo={ADMIN_PATH} heading="Crowned by Nat">
       {() => <Portal />}
     </Guarded>
   );
@@ -126,7 +126,7 @@ function Portal() {
         {/*
           One h1, carrying both lines. The wordmark alone is not a heading and
           "Admin dashboard" alone is not the brand, so the two are one element
-          and a screen reader gets "Crown by Nat, Admin dashboard" as the page
+          and a screen reader gets "Crowned by Nat, Admin dashboard" as the page
           title rather than a decorative span followed by an orphaned label.
         */}
         <h1>

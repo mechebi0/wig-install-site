@@ -145,7 +145,7 @@ export function authErrorMessage(error: AuthError | Error | null): string {
     return "That email and password do not match. Try again, or reset your password.";
   }
   if (raw.includes("email not confirmed")) {
-    return "Confirm your email address first. Check your inbox for the link from Crown by Nat.";
+    return "Confirm your email address first. Check your inbox for the link from Crowned by Nat.";
   }
   if (raw.includes("user already registered") || raw.includes("already been registered")) {
     return "There is already an account with that email. Log in instead, or reset the password.";

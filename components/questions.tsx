@@ -1,9 +1,9 @@
-import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { Info, Plus } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
-import { QUESTIONS } from "@/lib/content";
+import { policiesAreDraft, QUESTIONS } from "@/lib/content";
 
 /**
- * Seven questions, so an accordion rather than a stack of open paragraphs.
+ * Nine questions, so an accordion rather than a stack of open paragraphs.
  * Built on native <details>, which means it opens with keyboard, opens with
  * JavaScript disabled, and is announced correctly with no ARIA of our own.
  *
@@ -25,6 +25,31 @@ export function Questions() {
             >
               Common questions.
             </h2>
+
+            {/*
+              The same device the testimonials use, for the same reason. These
+              answers describe timings, aftercare and a cancellation policy,
+              and none of them has been confirmed by Nat yet. A visitor is
+              entitled to know which parts of a page are a draft, and the
+              notice sits beside the questions rather than in a footnote
+              because that is where it is read. Remove it by flipping
+              policiesAreDraft in lib/content.ts, once and only once Nat has
+              agreed to every answer.
+            */}
+            {policiesAreDraft ? (
+              <p className="mt-6 inline-flex max-w-[38ch] items-start gap-2 rounded-3xl border border-line-strong bg-surface px-4 py-2.5 text-sm leading-relaxed text-muted">
+                <Info
+                  size={16}
+                  weight="regular"
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-accent"
+                />
+                <span>
+                  Draft answers, shown while Nat confirms timings and studio
+                  policy. Ask her directly and she will tell you straight.
+                </span>
+              </p>
+            ) : null}
           </Reveal>
         </div>
 

@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CalendarCheck, Phone } from "@phosphor-icons/react/dist/ssr";
-import { bookingTarget, CTA, STUDIO } from "@/lib/content";
+import { CalendarCheck, EnvelopeSimple, Phone } from "@phosphor-icons/react/dist/ssr";
+import { CTA, REACH, STUDIO, bookingTarget } from "@/lib/content";
 
 /**
  * Sticky booking bar, mobile only, z-15.
@@ -17,6 +17,12 @@ import { bookingTarget, CTA, STUDIO } from "@/lib/content";
  * rather than an observer on the hero: the hero only exists on the homepage,
  * and the inner pages need the bar just as much. 320px is roughly the point
  * where the page header has left the screen.
+ *
+ * The glyph on the secondary button follows the link rather than being fixed:
+ * a handset beside a mailto: is a small lie, and it is the kind a visitor only
+ * discovers by tapping it and watching their mail client open. No studio phone
+ * number has been supplied, so today it is an envelope; add STUDIO.phone in
+ * lib/content.ts and it becomes a handset on its own.
  *
  * It hides itself entirely on the booking page, the admin dashboard and the
  * account screens. Floating a "book" button over the booking form is the
@@ -79,12 +85,16 @@ export function MobileBookBar() {
     >
       <div className="flex items-center gap-2 px-4 pt-3">
         <a
-          href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
+          href={REACH.href}
           tabIndex={shown ? 0 : -1}
-          aria-label={`Call the studio on ${STUDIO.phone}`}
+          aria-label={`Reach the studio: ${REACH.phrase}`}
           className="tap inline-flex shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface text-ink transition-colors hover:border-accent hover:text-accent"
         >
-          <Phone size={19} weight="regular" />
+          {STUDIO.phone ? (
+            <Phone size={19} weight="regular" />
+          ) : (
+            <EnvelopeSimple size={19} weight="regular" />
+          )}
         </a>
         <a
           {...bookingTarget()}

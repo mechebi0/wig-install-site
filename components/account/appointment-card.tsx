@@ -18,7 +18,7 @@ import {
   formatTime,
 } from "@/lib/format";
 import type { Appointment } from "@/lib/supabase/types";
-import { STUDIO } from "@/lib/content";
+import { REACH } from "@/lib/content";
 
 /**
  * One upcoming appointment, with the two things a customer is allowed to do
@@ -190,7 +190,7 @@ export function AppointmentCard({
                 ) : (
                   <p className="flex min-h-11 items-center text-sm leading-relaxed text-muted">
                     Cancelling closes {CANCEL_CUTOFF_HOURS} hours before. Text
-                    the studio on {STUDIO.phone}.
+                    the studio: {REACH.phrase}.
                   </p>
                 )}
               </div>

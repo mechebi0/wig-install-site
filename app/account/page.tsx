@@ -13,7 +13,7 @@ import { AccountDashboard } from "@/components/account/account-dashboard";
  */
 export const metadata: Metadata = {
   title: "My appointments",
-  description: "Your upcoming and past appointments with Crown by Nat.",
+  description: "Your upcoming and past appointments with Crowned by Nat.",
   robots: { index: false, follow: false },
 };
 

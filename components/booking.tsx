@@ -9,7 +9,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
 import { Reveal } from "@/components/reveal";
-import { BOOKING, SERVICES, STUDIO } from "@/lib/content";
+import { BOOKING, LOCATIONS, REACH, SERVICES, STUDIO } from "@/lib/content";
 import { formatPrice } from "@/lib/format";
 
 /**
@@ -286,8 +286,8 @@ export function Booking() {
               aria-hidden="true"
             />
             <p className="text-sm leading-relaxed text-ink">
-              That did not send. Try again, or text the studio directly on{" "}
-              {STUDIO.phone}.
+              That did not send. Try again, or reach the studio directly:{" "}
+              {REACH.phrase}.
             </p>
           </div>
         ) : null}
@@ -340,23 +340,54 @@ function BookingShell({ children }: { children: React.ReactNode }) {
               {BOOKING.body}
             </p>
 
+            {/*
+              Only rows with a real value behind them. No street address and no
+              opening hours have been supplied, so those rows do not render at
+              all rather than rendering an invented one. Fill STUDIO.street or
+              STUDIO.hours in lib/content.ts and they appear here on their own.
+            */}
             <dl className="mt-10 flex flex-col gap-5 border-t border-line pt-8">
               <div>
-                <dt className="text-sm text-muted">Studio</dt>
-                <dd className="mt-1 text-base text-ink">
-                  {STUDIO.street}
-                  <br />
-                  {STUDIO.region}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm text-muted">Hours</dt>
+                <dt className="text-sm text-muted">Where</dt>
                 <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
-                  {STUDIO.hours.map((slot) => (
-                    <span key={slot.days}>
-                      {slot.days}, {slot.time}
+                  {STUDIO.street ? <span>{STUDIO.street}</span> : null}
+                  {LOCATIONS.map((location) => (
+                    <span key={location.name}>
+                      {location.name}, {location.region}
                     </span>
                   ))}
+                </dd>
+              </div>
+
+              {STUDIO.hours.length > 0 ? (
+                <div>
+                  <dt className="text-sm text-muted">Hours</dt>
+                  <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
+                    {STUDIO.hours.map((slot) => (
+                      <span key={slot.days}>
+                        {slot.days}, {slot.time}
+                      </span>
+                    ))}
+                  </dd>
+                </div>
+              ) : null}
+
+              <div>
+                <dt className="text-sm text-muted">Reach Nat</dt>
+                <dd className="text-base">
+                  {/*
+                    inline-flex + min-h-11 rather than a bare inline link. The
+                    other REACH links on the site sit inside a sentence, which
+                    WCAG 2.5.8 exempts from the 44px minimum; this one is alone
+                    in a definition list, so the exemption does not apply and it
+                    has to carry its own target.
+                  */}
+                  <a
+                    href={REACH.href}
+                    className="inline-flex min-h-11 items-center text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    {REACH.label}
+                  </a>
                 </dd>
               </div>
             </dl>

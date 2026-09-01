@@ -6,7 +6,14 @@ import { List, UserCircle, X } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
 import { useAuthState } from "@/lib/auth/session";
 import { Wordmark } from "@/components/wordmark";
-import { bookingTarget, CTA, NAV_LINKS, STUDIO } from "@/lib/content";
+import {
+  CTA,
+  NAV_LINKS,
+  REACH,
+  REACH_SECONDARY,
+  STUDIO,
+  bookingTarget,
+} from "@/lib/content";
 
 /**
  * Sticky nav, z-10. 64px on mobile, 72px at desktop, inside the 80px cap, and
@@ -271,10 +278,10 @@ export function SiteNav() {
               {CTA.book}
             </a>
             <a
-              href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
+              href={REACH.href}
               className="mt-3 flex min-h-11 items-center justify-center text-sm text-muted"
             >
-              Or call {STUDIO.phone}
+              {REACH_SECONDARY}
             </a>
           </div>
         </div>

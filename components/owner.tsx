@@ -1,18 +1,17 @@
-import Image from "next/image";
 import { Check } from "@phosphor-icons/react/dist/ssr";
+import { BrandPlate } from "@/components/brand-plate";
 import { Reveal } from "@/components/reveal";
-import { OWNER, STUDIO } from "@/lib/content";
-import { OWNER_IMAGE } from "@/lib/images";
+import { OWNER, REACH, STUDIO } from "@/lib/content";
 
 /**
- * About Crown by Nat. Image on the left, and the only image-plus-text split on
- * the page: the hero is a full bleed carousel and the two galleries are rails,
- * so this composition is not competing with anything above it.
+ * About Crowned by Nat. Portrait on the left, words on the right.
  *
- * This is the section the whole brief hangs on: one named person does the work.
- * The shape is built to take Nat's real biography and her own photograph with
- * no layout change. Swap the words in OWNER (lib/content.ts) and drop the
- * photo in at public/images/owner-at-work.jpg.
+ * This is the section the whole brief hangs on: one named person does the
+ * work. The shape is built to take Nat's real biography and her own photograph
+ * with no layout change. Swap the words in OWNER (lib/content.ts), and swap
+ * BrandPlate for a <Photograph> when a picture of Nat arrives. See the note in
+ * components/brand-plate.tsx for why the slot is not holding a stock portrait
+ * in the meantime.
  */
 export function Owner() {
   return (
@@ -29,15 +28,7 @@ export function Owner() {
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">
           <div className="relative aspect-4/5 w-full overflow-hidden rounded-3xl bg-surface-2 shadow-lifted">
-            <Image
-              src={OWNER_IMAGE.src}
-              alt={OWNER_IMAGE.alt}
-              width={OWNER_IMAGE.width}
-              height={OWNER_IMAGE.height}
-              loading="lazy"
-              sizes="(min-width: 1024px) 40vw, 100vw"
-              className="h-full w-full object-cover"
-            />
+            <BrandPlate />
           </div>
         </Reveal>
 
@@ -73,12 +64,12 @@ export function Owner() {
 
           <Reveal index={3}>
             <p className="mt-9 text-base text-muted">
-              Studio line:{" "}
+              Reach Nat:{" "}
               <a
-                href={`tel:${STUDIO.phone.replace(/[^+\d]/g, "")}`}
+                href={REACH.href}
                 className="text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:decoration-accent"
               >
-                {STUDIO.phone}
+                {REACH.label}
               </a>
             </p>
           </Reveal>

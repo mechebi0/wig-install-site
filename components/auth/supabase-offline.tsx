@@ -2,7 +2,7 @@
 
 import { buttonStyles } from "@/components/button";
 import { Notice } from "@/components/ui/feedback";
-import { STUDIO } from "@/lib/content";
+import { REACH, STUDIO } from "@/lib/content";
 
 /**
  * What every account screen shows when no Supabase project is wired up.
@@ -18,14 +18,12 @@ import { STUDIO } from "@/lib/content";
  *     environment variable. That is the developer's problem, and it is written
  *     up in supabase/README.md where a developer will look
  *   - it DOES give the visitor a way to reach Nat, because a customer who
- *     arrived here still wants an appointment and the phone still works
+ *     arrived here still wants an appointment
  *
  * See the long note in lib/supabase/client.ts for why a missing configuration
  * is a first-class state rather than a crash.
  */
 export function SupabaseOffline() {
-  const tel = STUDIO.phone.replace(/[^+\d]/g, "");
-
   return (
     <div className="flex flex-col gap-6">
       <Notice tone="info" title="Accounts are not open yet.">
@@ -34,8 +32,8 @@ export function SupabaseOffline() {
       </Notice>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <a href={`tel:${tel}`} className={buttonStyles.primary}>
-          Call the studio
+        <a href={REACH.href} className={buttonStyles.primary}>
+          {STUDIO.phone ? "Call the studio" : "Email the studio"}
         </a>
         <a href="/book/" className={buttonStyles.secondary}>
           Send a request

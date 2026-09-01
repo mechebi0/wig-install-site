@@ -3,7 +3,7 @@ import { STUDIO } from "@/lib/content";
 /**
  * The typographic wordmark, used in the nav, the mobile sheet and the footer.
  *
- * "Crown by Nat" reads as three words of equal weight if it is set plainly, so
+ * "Crowned by Nat" reads as three words of equal weight if it is set plainly, so
  * the connector is dropped into Playfair italic at a lighter colour. It is a
  * small move and it is the whole difference between a business name and a
  * lockup.

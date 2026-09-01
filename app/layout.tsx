@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBookBar } from "@/components/mobile-book-bar";
 import { STUDIO } from "@/lib/content";
+import { HERO_PHOTOS } from "@/lib/collections";
 
 /*
   Type pairing. UI/UX Pro Max matched "Playfair Display / Inter" for the
@@ -31,7 +32,14 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   /*
-    The template gives every inner page "<Page> | Crown by Nat" from a one-line
+    Absolute URLs for the social cards. Next resolves og:image against this, and
+    without it every share preview points at localhost. The site is a static
+    export with no request context to infer a host from, so it has to be
+    stated. Change it here if the production domain changes.
+  */
+  metadataBase: new URL("https://crownedbynat.pages.dev"),
+  /*
+    The template gives every inner page "<Page> | Crowned by Nat" from a one-line
     `title` in its own metadata, so the brand name can never be forgotten on a
     page and never has to be typed twice.
   */
@@ -39,10 +47,14 @@ export const metadata: Metadata = {
     default: `${STUDIO.name} | Lace wig installs in ${STUDIO.city}`,
     template: `%s | ${STUDIO.name}`,
   },
-  description: `Lace frontal and closure wig installs in ${STUDIO.city}, performed personally by ${STUDIO.owner}. Custom-tinted lace, bleached knots, and a hairline cut to your face. Unit customization and reinstalls too.`,
+  description: `Lace frontal and closure wig installs in ${STUDIO.city}, performed personally by ${STUDIO.owner}. Six style collections, custom-tinted lace, bleached knots, and a hairline cut to your face.`,
   applicationName: STUDIO.name,
   keywords: [
     "wig install",
+    "deep wave install",
+    "sleek straight wig",
+    "bob wig install",
+    "body wave install",
     "lace frontal install",
     "closure install",
     "wig customization",
@@ -56,6 +68,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: STUDIO.name,
+    /* Nat's own work, so a shared link opens on a real install rather than on
+       a logo. Same file the homepage hero loads first, so it is already warm. */
+    images: [{ url: HERO_PHOTOS.deepWave.large, alt: HERO_PHOTOS.deepWave.alt }],
   },
 };
 

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  *
  * The whole page is built to take Nat's real words and her own photograph with
  * no layout change. Swap the copy in OWNER (lib/content.ts) and drop the photo
- * in at public/images/owner-at-work.jpg.
+ * in by swapping BrandPlate for a Photograph in components/owner.tsx.
  */
 export default function MeetNatPage() {
   return (

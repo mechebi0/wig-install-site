@@ -7,7 +7,7 @@ import { formatLocationList } from "@/lib/catalog";
 import type { Location } from "@/lib/supabase/types";
 
 /**
- * Where Crown by Nat is taking appointments.
+ * Where Crowned by Nat is taking appointments.
  *
  * ---------------------------------------------------------------------------
  * WHAT THIS SWITCH ACTUALLY DOES, AND WHAT IT DELIBERATELY DOES NOT
