@@ -52,9 +52,8 @@ const img = (file: string) => `/images/${file}`;
    THE ORDER
 
    No two adjacent slides share a texture or a colour family, so the rotation
-   always reads as a change, with one deliberate exception at the lead; see
-   "THE SEVEN, AND WHY IN THIS ORDER" below, next to the array itself, for the
-   current order and the reasoning.
+   always reads as a change; see "THE SEVEN, AND WHY IN THIS ORDER" below,
+   next to the array itself, for the current order and the reasoning.
 
    Slide one is the LCP element and carries the neon studio sign in frame,
    which is the fastest way to establish that this is a real place.
@@ -162,18 +161,21 @@ export type HeroSlide = {
    only frame in the deep wave set with no neon sign on the wall behind the
    client, matching the same sign the nav bar now carries as its logo. The new
    lead was supplied directly, sign and all, as the frame the homepage should
-   open on, so that tradeoff is accepted here rather than solved again. The
-   crimped deep wave keeps its place immediately after it rather than being
-   reordered elsewhere in the six, which costs the rule below its one
-   exception: two adjacent slides now share both a texture and a label,
-   "Deep Wave Glam" twice in a row.
+   open on, so that tradeoff is accepted here rather than solved again.
 
-   After that the rule is the one this rotation has always used: no two
-   adjacent slides share a colour family AND a texture, including across the
-   wrap from seven back to one.
+   Both are "Deep Wave Glam", so putting them next to each other would repeat
+   that label on screen two slides running - the one adjacency the rule below
+   cannot allow no matter what the photographs look like. The crimped deep
+   wave therefore moved rather than staying in place: it now sits fourth,
+   with a straight and a bob between it and the lead on one side and a body
+   wave, a colour and a bob between it and the lead on the other.
 
-       black deep wave (swirl, sign in frame) -> black deep wave (crimped) ->
-       black straight -> burgundy bob -> platinum body wave -> candy pink
+   With that the rule this rotation has always used still holds with no
+   exception: no two adjacent slides share a colour family AND a texture,
+   including across the wrap from seven back to one.
+
+       black deep wave (swirl, sign in frame) -> black straight -> burgundy
+       bob -> black deep wave (crimped) -> platinum body wave -> candy pink
        straight -> black bob -> (back to swirl)
 
    LENGTHS. Headlines are held to roughly 40 characters and descriptions to
@@ -194,19 +196,6 @@ export const HERO_SLIDES: HeroSlide[] = [
     // A moderately close frame: the crown sits at roughly 33% of the file and
     // the face around 55%, close to the crimped deep wave's own numbers.
     focal: "center 55%",
-  },
-  {
-    id: "deep-wave",
-    label: "Deep Wave Glam",
-    headline: "Texture that moves with you.",
-    description:
-      "Defined waves, seamless lace, and a finish designed to turn heads.",
-    photo: HERO_PHOTOS.deepWave,
-    finish: "Melted Hairline",
-    collection: "deep-wave-glam",
-    // A close frame: the crown sits high at 31% of the file while the face is
-    // low at 61%, so this one is held back to keep the hair off the top edge.
-    focal: "center 62%",
   },
   {
     id: "straight",
@@ -230,6 +219,19 @@ export const HERO_SLIDES: HeroSlide[] = [
     finish: "Melted Hairline",
     collection: "signature-bob",
     focal: "center 67%",
+  },
+  {
+    id: "deep-wave",
+    label: "Deep Wave Glam",
+    headline: "Texture that moves with you.",
+    description:
+      "Defined waves, seamless lace, and a finish designed to turn heads.",
+    photo: HERO_PHOTOS.deepWave,
+    finish: "Melted Hairline",
+    collection: "deep-wave-glam",
+    // A close frame: the crown sits high at 31% of the file while the face is
+    // low at 61%, so this one is held back to keep the hair off the top edge.
+    focal: "center 62%",
   },
   {
     id: "body-wave",

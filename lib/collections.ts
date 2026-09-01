@@ -175,13 +175,15 @@ const WORK = {
  * top of the photograph, so a frame containing it printed the same mark twice
  * in one eyeful - most obviously on a phone, where the picture is full width.
  * The lead became the crimped deep wave instead: same collection, same
- * texture, shot against a plain door with no sign in it. That frame is still
- * in the rotation, unmoved, immediately after the lead.
+ * texture, shot against a plain door with no sign in it.
  *
  * `frontSwirl` leads now, sign back in frame. It was supplied directly as the
  * photograph the homepage should open on, so the double-mark tradeoff above
- * is accepted rather than solved a second time. See the note beside
- * HERO_SLIDES in lib/images.ts for what that costs the ordering rule.
+ * is accepted rather than solved a second time. The crimped deep wave is
+ * still in the rotation, just no longer straight after the lead: both carry
+ * the same label, and sitting them together would have repeated it on screen
+ * two slides running. See the note beside HERO_SLIDES in lib/images.ts for
+ * where it moved to.
  */
 export const HERO_PHOTOS = {
   /** Slide one, and the og:image. Sign in frame; see above. */
