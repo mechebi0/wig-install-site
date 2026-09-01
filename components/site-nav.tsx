@@ -57,6 +57,54 @@ import {
  * the current page, so every comparison goes through here first. Root stays
  * "/" rather than collapsing to "".
  */
+/**
+ * NAV_LINKS, cut in half so the mark can sit between them.
+ *
+ * The split is positional rather than curated: the first two links go left of
+ * the mark and the rest go right. NAV_LINKS is already in the order the bar
+ * should read - Gallery, Before you book, then Reviews, Meet Nat - so adding a
+ * fifth link lands it on the right without touching this file, and the bar
+ * stays balanced because the booking pill is on that side too.
+ */
+const NAV_LEFT = NAV_LINKS.slice(0, 2);
+const NAV_RIGHT = NAV_LINKS.slice(2);
+
+/**
+ * One desktop nav link. Extracted only because the bar now renders two lists
+ * instead of one, and two copies of this markup would drift.
+ *
+ * `min-h-11` gives the link a 44px hit area inside the 72px bar without
+ * changing the bar height (WCAG target size). The rule wipes in from the left
+ * on hover and stays put on the page you are actually on.
+ */
+function NavItem({
+  link,
+  current,
+}: {
+  link: (typeof NAV_LINKS)[number];
+  current: boolean;
+}) {
+  return (
+    <li>
+      <a
+        href={link.href}
+        aria-current={current ? "page" : undefined}
+        className={`group relative flex min-h-11 items-center whitespace-nowrap text-sm transition-colors duration-200 ${
+          current ? "text-ink" : "text-muted hover:text-ink"
+        }`}
+      >
+        {link.label}
+        <span
+          aria-hidden="true"
+          className={`absolute inset-x-0 bottom-2.5 h-px origin-left bg-accent transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
+            current ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+          }`}
+        />
+      </a>
+    </li>
+  );
+}
+
 function samePath(a: string, b: string) {
   const trim = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
   return trim(a) === trim(b);
@@ -117,48 +165,65 @@ export function SiteNav() {
           scrolled ? "border-line shadow-soft" : "border-transparent"
         }`}
       >
+        {/*
+          Three tracks, and the middle one is the mark.
+
+          `minmax(0,1fr)` on the outer two rather than `1fr` is what makes the
+          centring real. A bare `1fr` track refuses to shrink below its own
+          content, so the wider side - the one carrying two links, the account
+          control and the booking pill - would push the mark off centre by
+          however much it outweighs the other. Floored at zero, the two side
+          tracks are always exactly equal and the `auto` track between them sits
+          on the centre line of the bar at every width, with nothing measured in
+          JavaScript.
+
+          It also means the mark stays centred on a phone, where the left track
+          is empty and the right one holds the menu button.
+        */}
         <nav
           aria-label="Primary"
-          className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-8 px-5 sm:px-8 lg:h-[72px]"
+          className="mx-auto grid h-16 max-w-[1400px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 sm:gap-5 sm:px-8 lg:h-[72px]"
         >
-          <a
-            href="/"
-            aria-label={`${STUDIO.name}, home`}
-            className="text-ink"
-          >
-            <Wordmark className="text-xl lg:text-[1.4rem]" />
-          </a>
-
-          <ul className="hidden items-center gap-9 lg:flex">
-            {NAV_LINKS.map((link) => {
-              const current = isCurrent(link.href);
-              return (
-                <li key={link.href}>
-                  {/* min-h-11 gives the link a 44px hit area inside the 72px bar
-                      without changing the bar height (WCAG target size). The
-                      rule wipes in from the left on hover, and stays put on the
-                      page you are actually on. */}
-                  <a
-                    href={link.href}
-                    aria-current={current ? "page" : undefined}
-                    className={`group relative flex min-h-11 items-center text-sm transition-colors duration-200 ${
-                      current ? "text-ink" : "text-muted hover:text-ink"
-                    }`}
-                  >
-                    {link.label}
-                    <span
-                      aria-hidden="true"
-                      className={`absolute inset-x-0 bottom-2.5 h-px origin-left bg-accent transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
-                        current ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-                      }`}
-                    />
-                  </a>
-                </li>
-              );
-            })}
+          <ul className="col-start-1 hidden items-center gap-6 lg:flex xl:gap-9">
+            {NAV_LEFT.map((link) => (
+              <NavItem key={link.href} link={link} current={isCurrent(link.href)} />
+            ))}
           </ul>
 
-          <div className="flex items-center gap-2">
+          {/*
+            The brand mark, and the anchor the whole bar is composed around.
+
+            Drawn from 36px tall on a phone to 43px at desktop. That floor is
+            not arbitrary: this is a neon sign, so its white core stops reading
+            as light on pale paper and the letters fall back to their pink
+            outline. Checked against the real bar colour, it is thin at 28px and
+            holds from 36 up.
+
+            A plain <img> with explicit dimensions rather than next/image: it is
+            a fixed-size brand asset, and under the `unoptimized` static export
+            next/image would add a wrapper and optimise nothing. The width and
+            height attributes are the file's real pixels, so the bar reserves
+            the space before the PNG lands and the links either side never jump.
+          */}
+          <a href="/" className="col-start-2 justify-self-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={STUDIO.navLogo}
+              alt={STUDIO.name}
+              width={STUDIO.navLogoWidth}
+              height={STUDIO.navLogoHeight}
+              fetchPriority="high"
+              className="h-auto w-[108px] sm:w-[120px] lg:w-[129px]"
+            />
+          </a>
+
+          <div className="col-start-3 flex items-center justify-end gap-2 lg:gap-6 xl:gap-9">
+            <ul className="hidden items-center gap-6 lg:flex xl:gap-9">
+              {NAV_RIGHT.map((link) => (
+                <NavItem key={link.href} link={link} current={isCurrent(link.href)} />
+              ))}
+            </ul>
+
             {/*
               A fixed-width slot, so the Book button does not slide sideways
               when the session resolves a moment after hydration. Rendered only

@@ -99,6 +99,27 @@ export const STUDIO = {
   logoHeight: 294,
 
   /**
+   * THE SAME MARK, FOR THE NAV BAR.
+   *
+   * Exported from the supplied artwork (photos/Logo.png, 2172x724) at 480x160,
+   * which is 3.2x the widest it is ever drawn, so it stays crisp on a 3x screen
+   * without shipping a 1.2MB file on every page. Same 3:1 proportions, same
+   * artwork, no recolouring.
+   *
+   * It goes on the nav's near-white paper rather than on wine, which the note
+   * above says the mark cannot do. That note is about the OLD asset, which was
+   * a photograph of the sign with the black wall lifted out and a black halo
+   * left behind it. This one is clean-edged, and what actually happens on pale
+   * paper is that the white neon core stops reading as light and the letters
+   * hollow out to their pink outline. Checked at 28, 36 and 44px against the
+   * real --bg: it is thin at 28 and holds from 36 up, which is why the nav
+   * draws it at 36-40px and never smaller.
+   */
+  navLogo: "/brand/crowned-by-nat-logo.png",
+  navLogoWidth: 480,
+  navLogoHeight: 160,
+
+  /**
    * THE BOOKING DESTINATION. One switch for the whole site.
    *
    * Empty string  -> every booking CTA goes to the /book page, which carries
@@ -288,8 +309,8 @@ export const HOME = {
  * HeroCarousel gets `headline` and `subtext`.
  *
  * Nothing is said twice. The mark carries the name, so the carousel underneath
- * it does not repeat it; the masthead line says what and where, so the
- * carousel headline is free to be the proposition rather than an introduction.
+ * it does not repeat it; the announcement strip says where, so the carousel
+ * headline is free to be the proposition rather than an introduction.
  *
  * `subtext` is held under twenty words on purpose. It sits over photography
  * above the fold, and a hero paragraph that runs to four lines on a phone
@@ -297,9 +318,14 @@ export const HOME = {
  */
 export const HERO = {
   brand: STUDIO.name,
-  /** Under the mark. Says what this is and where, in one line. */
-  line: `Lace wig installs in ${LOCATIONS[0].name} and ${LOCATIONS[1].name}, ${LOCATIONS[1].region}.`,
-  /** Over the photography. The proposition. */
+  /*
+    `line` used to live here: "Lace wig installs in Towson and Laurel, MD.",
+    printed under the mark on the old wine masthead. Both went when the mark
+    moved into the nav bar. It said what the announcement strip immediately
+    below it already says - the two towns - and the nav's own logo says the
+    rest, so it was a third statement of the same fact in one eyeful.
+  */
+  /** Over the photography. The proposition, and the page's h1. */
   headline: "Fitted, cut and finished by hand.",
   subtext:
     "Nat does every install herself, from the braid down to the last cut.",

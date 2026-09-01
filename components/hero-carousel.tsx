@@ -65,8 +65,13 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * relied on by anyone who looks away. The photograph is the only thing that
  * moves. The only per-slide text is the small style name beside the controls.
  *
- * There is no h1 here: the brand masthead directly above owns it. Two h1s on
- * one page, one repeating the other, is worse than none.
+ * THE h1 IS HERE NOW. It used to sit on the brand masthead above, which
+ * carried a second copy of the neon mark and a strapline; both were removed
+ * when the mark moved into the nav bar, and the masthead with it. The heading
+ * has to live somewhere real rather than becoming a visually hidden one, and
+ * the proposition is the only fixed line of copy on this page large enough to
+ * be it. It does not change with the slide, so it is still readable at a
+ * glance.
  *
  * ---------------------------------------------------------------------------
  * TIMING
@@ -433,9 +438,9 @@ export function HeroCarousel() {
           ref={copyRef}
           className="max-w-[34ch] lg:max-w-[min(calc(40vw-4rem),calc(700px-10vw-3rem))]"
         >
-          <p className="font-display text-2xl leading-[1.15] tracking-tight text-on-accent sm:text-3xl lg:text-[2.5rem]">
+          <h1 className="font-display text-2xl leading-[1.15] tracking-tight text-on-accent sm:text-3xl lg:text-[2.5rem]">
             {HERO.headline}
-          </p>
+          </h1>
           {/*
             Visible at every width again. It was hidden on phones while the
             copy sat on the photograph, where each line cost another step of

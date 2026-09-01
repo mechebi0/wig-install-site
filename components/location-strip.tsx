@@ -68,6 +68,16 @@ export function LocationStrip() {
   const open = settled && locations.length > 0;
   const closed = settled && locations.length === 0;
 
+  /*
+    The padding is the whole design of this band now.
+
+    It used to open a wine masthead that also carried the mark and a strapline,
+    so its own height did not matter much. With those gone it is the only thing
+    between the nav bar and the photography, and every pixel of it is height
+    the carousel does not get. The 44px touch target on the link inside sets
+    the floor - that is not negotiable - so the padding is trimmed to 6px on a
+    phone and 8px from `sm`, which lands the band at roughly 56px and 60px.
+  */
   return (
     <div className="relative isolate bg-ink">
       {/*
@@ -85,7 +95,7 @@ export function LocationStrip() {
       />
 
       <div
-        className={`mx-auto flex max-w-[1400px] items-center justify-center px-5 py-3 text-center transition-opacity duration-500 motion-reduce:transition-none sm:px-8 ${
+        className={`mx-auto flex max-w-[1400px] items-center justify-center px-5 py-1.5 text-center transition-opacity duration-500 motion-reduce:transition-none sm:px-8 sm:py-2 ${
           settled ? "opacity-100" : "opacity-0"
         }`}
         /*

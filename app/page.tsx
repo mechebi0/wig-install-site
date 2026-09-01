@@ -1,4 +1,4 @@
-import { BrandMasthead } from "@/components/brand-masthead";
+import { LocationStrip } from "@/components/location-strip";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { Intro } from "@/components/intro";
 import {
@@ -17,8 +17,8 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *
  * Eight blocks, and every one of them is either the brand or a way forward:
  *
- *   Masthead      the live location strip, then Nat's neon mark centred, with
- *                 the one line that says what this is and where.
+ *   Strip         one slim band saying where Nat is currently booking. The
+ *                 mark itself is in the nav bar directly above it.
  *   Hero          the full-width crossfading carousel: the proposition, the
  *                 two actions, and six of her installs.
  *   Intro         a short typographic brand statement, Nat named as installer
@@ -115,7 +115,17 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
       />
-      <BrandMasthead />
+      {/*
+        The announcement strip on its own. It used to be the top of a wine
+        masthead that also carried the neon mark and a strapline; the mark now
+        lives in the nav bar, and printing it twice within 100px of itself read
+        as a rendering fault rather than as branding. The strapline went with
+        it because it repeated what the nav and the hero already say.
+
+        What is left is one slim band of availability, and the carousel starts
+        directly under it.
+      */}
+      <LocationStrip />
       <HeroCarousel />
       <Intro />
       <ServiceSummary />
