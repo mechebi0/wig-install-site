@@ -59,27 +59,43 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * subtext no longer has to be hidden to keep the picture out of the mud.
  *
  * ---------------------------------------------------------------------------
- * THE COPY DOES NOT CHANGE WITH THE SLIDE
+ * THE COPY CHANGES WITH THE SLIDE, AND IS DRIVEN BY THE SAME INDEX
  * ---------------------------------------------------------------------------
- * Text that swaps every seven seconds cannot be read at a glance and cannot be
- * relied on by anyone who looks away. The photograph is the only thing that
- * moves. The only per-slide text is the small style name beside the controls.
+ * Each entry in HERO_SLIDES carries its own label, headline and sentence
+ * beside its photograph, and the block that renders them reads them off
+ * `active` - which is just HERO_SLIDES[index]. One piece of state, one timer,
+ * one render. There is no separate schedule for the words, so there is no way
+ * for slide two's headline to end up over slide three's photograph.
  *
- * THE h1 IS HERE NOW. It used to sit on the brand masthead above, which
- * carried a second copy of the neon mark and a strapline; both were removed
- * when the mark moved into the nav bar, and the masthead with it. The heading
- * has to live somewhere real rather than becoming a visually hidden one, and
- * the proposition is the only fixed line of copy on this page large enough to
- * be it. It does not change with the slide, so it is still readable at a
- * glance.
+ * This is a reversal. The copy used to be fixed on purpose, the argument being
+ * that text swapping every few seconds cannot be read at a glance. That still
+ * holds for text a visitor NEEDS - which is why the two buttons and their
+ * visible labels are fixed, sit outside the keyed block, and never remount.
+ * What changes is the editorial line, and there the argument runs the other
+ * way: a headline about texture over a photograph of a bob is worse than no
+ * headline, because it describes something the visitor cannot see.
+ *
+ * THE h1 IS HERE. It used to sit on the brand masthead above, which carried a
+ * second copy of the neon mark and a strapline; both were removed when the
+ * mark moved into the nav bar, and the masthead with it. The heading has to
+ * live somewhere real rather than becoming a visually hidden one, so it is the
+ * active slide's headline. A changing h1 is fine - it is still one h1, it
+ * still describes what is on screen, and the live region below announces the
+ * change for anyone not looking at it.
+ *
+ * THE COPY BLOCK RESERVES A HEIGHT. Six headlines of different lengths wrap to
+ * two or three lines depending on the width, and without a floor the buttons
+ * underneath would step up and down by a line every few seconds.
  *
  * ---------------------------------------------------------------------------
  * TIMING
  * ---------------------------------------------------------------------------
- * DWELL 7s, FADE 1.6s, and a 14s drift on the transform. Deliberately slower
- * than a stock carousel. A frame needs roughly five seconds before it stops
- * being motion and starts being a photograph, and the drift is long enough to
- * never be perceived as a zoom, only as the image being alive.
+ * DWELL 6s, FADE 1.1s on the photograph, 620ms on the copy, and a 12s drift
+ * on the transform. Still deliberately slower than a stock carousel: a frame
+ * needs roughly five seconds before it stops being motion and starts being a
+ * photograph, and the drift is long enough never to be perceived as a zoom,
+ * only as the image being alive. The real numbers and the reasoning for the
+ * nudge live on the constants below.
  *
  * ---------------------------------------------------------------------------
  * PAUSING, AND WHY HOVER IS NOT WIRED TO THE WHOLE HERO
@@ -129,9 +145,25 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * wants a frame held has the pause button, which says so.
  */
 
-const DWELL_MS = 7000;
-const FADE_MS = 1600;
-const DRIFT_MS = 14000;
+/*
+  TIMING, and all of it is deliberately at the slow end.
+
+  Nudged up a little from 7s/1.6s/14s. The rotation was correct but sat a beat
+  too long once the copy started changing with the picture: a visitor who has
+  finished reading two lines and is waiting for the next frame notices the
+  wait, where before there was nothing to finish reading. Six seconds still
+  clears the five-second mark at which a frame stops reading as motion and
+  starts reading as a photograph.
+
+  The words move faster than the picture on purpose. A 1.1s crossfade is right
+  for a photograph and far too slow for a line of type, which reads as a fault
+  rather than as elegance, so the copy takes 620ms and starts fractionally
+  later - by the time it has settled the incoming photograph is most of the way
+  in, and the two land together.
+*/
+const DWELL_MS = 6000;
+const FADE_MS = 1100;
+const DRIFT_MS = 12000;
 const REDUCED_FADE_MS = 200;
 /** Horizontal travel, in px, that counts as a swipe rather than a tap. */
 const SWIPE_PX = 48;
@@ -438,18 +470,78 @@ export function HeroCarousel() {
           ref={copyRef}
           className="max-w-[34ch] lg:max-w-[min(calc(40vw-4rem),calc(700px-10vw-3rem))]"
         >
-          <h1 className="font-display text-2xl leading-[1.15] tracking-tight text-on-accent sm:text-3xl lg:text-[2.5rem]">
-            {HERO.headline}
-          </h1>
           {/*
-            Visible at every width again. It was hidden on phones while the
-            copy sat on the photograph, where each line cost another step of
-            scrim over the picture; the stacked phone layout puts it on flat
-            wine, so it costs nothing.
+            The words, and they change with the picture.
+
+            ONE SOURCE OF TRUTH. Everything in here is read off `active`, which
+            is `HERO_SLIDES[index]`. There is no second piece of state and no
+            second timer for the copy: the dwell timer moves `index`, and the
+            label, the heading, the sentence, the gallery link's destination
+            and the photograph all re-read from it in the same render. They
+            cannot fall out of step with each other because there is nothing
+            for them to fall out of step WITH.
+
+            The transition is a remount rather than a state machine. `key` on
+            the slide id means React tears this subtree down and builds a new
+            one whenever the slide changes, and `.hero-copy` runs its entrance
+            animation on mount. That is deliberately the crudest mechanism
+            available: no enter/exit states to get stuck in, no timers to
+            cancel, and no way to end up showing slide two's headline over
+            slide three's photograph. Under prefers-reduced-motion the
+            animation is off and the swap is instant, which is still correct.
+
+            The CTAs sit OUTSIDE this block. They are the same two buttons on
+            every slide, so remounting them would drop focus for anyone
+            tabbing through the hero and restart their transitions for no
+            reason. Only the words are keyed.
           */}
-          <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-on-accent/80 sm:text-base lg:text-lg">
-            {HERO.subtext}
-          </p>
+          {/*
+            The floor goes on THIS block, not on the column around it. The
+            buttons are the column's next child, so a minimum height out there
+            pads the bottom of the whole thing and the buttons still track the
+            copy; put it here and they sit below a box that is the same height
+            on every slide.
+
+            The four values are measured rather than guessed - the tallest
+            slide at each width, plus a few pixels:
+
+                <640   140px    two-line headline, two-line sentence
+                640+   160px
+                1024+  240px    the narrowest the copy column ever gets, so
+                                the worst wrapping in the set
+                1280+  194px    the column widens again and the copy relaxes
+
+            Anything longer than the copy in lib/images.ts will grow the block
+            rather than overflow it; the reserve is a floor, not a cage.
+          */}
+          <div
+            key={active.id}
+            className="hero-copy min-h-[9rem] sm:min-h-[10.5rem] lg:min-h-[15.25rem] xl:min-h-[12.75rem]"
+          >
+            {/*
+              The eyebrow. Five slides name a hairstyle here and one names a
+              finish; see the note on `label` in lib/images.ts. `aria-hidden`
+              because the live region below already announces the slide by
+              name, and hearing it twice is noise.
+            */}
+            <p aria-hidden="true" className="label text-on-accent/60">
+              {active.label}
+            </p>
+
+            <h1 className="mt-3 font-display text-2xl leading-[1.15] tracking-tight text-on-accent sm:text-3xl lg:mt-4 lg:text-[2.5rem]">
+              {active.headline}
+            </h1>
+
+            {/*
+              Visible at every width. It was hidden on phones while the copy
+              sat on the photograph, where each line cost another step of scrim
+              over the picture; the stacked phone layout puts it on flat wine,
+              so it costs nothing.
+            */}
+            <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-on-accent/80 sm:text-base lg:text-lg">
+              {active.description}
+            </p>
+          </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center">
             <ButtonLink {...bookingTarget()} variant="onPhoto">

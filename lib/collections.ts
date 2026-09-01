@@ -163,14 +163,25 @@ const WORK = {
  * Named here rather than in lib/images.ts so the hero and the collections
  * cannot end up holding two different alt texts for the same file. See the
  * note on ordering in lib/images.ts for why these six and why in this order.
+ *
+ * WHY THE LEAD FRAME CHANGED
+ * It used to be the middle-part deep wave, chosen because Nat's neon sign is
+ * on the wall behind the client and that was the fastest way to say this is a
+ * real room. The sign is now the nav bar's logo, sitting about 60px above the
+ * top of the photograph, so a frame containing it printed the same mark twice
+ * in one eyeful - most obviously on a phone, where the picture is full width.
+ * The lead is the crimped deep wave instead: same collection, same texture,
+ * shot against a plain door with no sign in it.
  */
 export const HERO_PHOTOS = {
-  deepWave: WORK.deepWaveMiddlePart,
-  pink: WORK.colourPinkStraight,
+  /** Slide one, and the og:image. Deliberately sign-free; see above. */
+  deepWave: WORK.deepWaveCrimped,
   straight: WORK.straightGlassFinish,
+  bob: WORK.bobBurgundyCurl,
   blonde: WORK.bodyWaveBlonde,
-  bob: WORK.bobSoftLob,
-  copper: WORK.bodyWaveCopper,
+  pink: WORK.colourPinkStraight,
+  /** The finish slide. A bob, because Natural Lace cuts across the styles. */
+  lace: WORK.bobSoftLob,
 } as const;
 
 /* ==========================================================================

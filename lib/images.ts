@@ -108,22 +108,39 @@ export const HERO_FOCAL_DEFAULT: HeroFocal = "center 68%";
 
 export type HeroSlide = {
   id: string;
-  /** Short style name, announced to screen readers and shown at desktop. */
+  /**
+   * The eyebrow above the headline, and the slide's name in the live region.
+   *
+   * Five of the six name a hairstyle. The sixth names a FINISH - Natural Lace
+   * is how well the unit is attached, not a texture - which is why that slide
+   * also carries `style`: the label says what the frame is about, and `style`
+   * says what the hair in it actually is, so the two axes stay distinct
+   * instead of Natural Lace quietly becoming a sixth hairstyle.
+   */
   label: string;
+  /** The h1 while this slide is showing. One line at desktop, two on a phone. */
+  headline: string;
+  /** One sentence under the headline. Kept under 90 characters; see below. */
+  description: string;
   photo: Photo;
+  /**
+   * The hairstyle in the frame, when that differs from `label`. Only the
+   * finish slide sets it, and only the accessible name reads it.
+   */
+  style?: string;
+  /** The finish in the frame, when it is worth naming. */
+  finish?: string;
   /**
    * The collection this look belongs to, as a slug in lib/collections.ts.
    *
    * It is what the hero's secondary CTA points at, so someone who likes the
    * slide in front of them lands on more of that same style rather than on the
-   * top of the directory. Every slide must name a slug that exists; a typo is
-   * caught by the hero CTA check in the browser tests, which walks all six
-   * slides and asserts each destination returns 200.
+   * top of the directory. Every slide must name a slug that exists.
    *
-   * The six slides deliberately cover five collections rather than six.
-   * Natural Lace is a finish rather than a hairstyle, and the other five are
-   * the hairstyle categories a client actually asks for, so putting it in the
-   * rotation would mean showing one look twice under two names.
+   * Natural Lace is in the rotation now and points at its own collection,
+   * which is correct rather than duplicative: that page is a finish collection
+   * holding installs of every texture, so it is a real destination and not a
+   * second copy of the bob page.
    */
   collection: string;
   /** Overrides `HERO_FOCAL_DEFAULT`. */
@@ -131,65 +148,110 @@ export type HeroSlide = {
 };
 
 /*
-   The values below are measured, not guessed: for each file, the top of the
-   hair and the centre of the face were read off the frame, and the position
-   solved so the face lands a little above the middle of the panel with the
-   whole install still in shot. They are deliberately capped short of the
-   point where a 1920-wide panel would clip the top of the hair.
+   THE SIX, AND WHY IN THIS ORDER
+
+   Copy first: each slide carries its own label, headline and sentence, and the
+   carousel renders whichever the active index names. There is one index and it
+   drives the photograph and the words together, so they cannot drift apart.
+
+   The copy below is TEMPORARY MARKETING TEXT written to be replaced. It says
+   nothing Nat has not already demonstrated in the photograph beside it - no
+   prices, no timings, no claims about products - so it is safe to ship while
+   she writes her own.
+
+   ORDER. Slide one is the crimped deep wave because it is the only frame in
+   the deep wave set with no neon sign on the wall behind the client, and the
+   nav bar directly above the hero now carries that same sign as the logo. Two
+   Crownedbynat marks within 60px of each other read as a rendering fault
+   rather than as branding.
+
+   After that the rule is the one this rotation has always used: no two
+   adjacent slides share a colour family AND a texture, including across the
+   wrap from six back to one.
+
+       black deep wave -> black straight -> burgundy bob -> platinum body
+       wave -> candy pink straight -> black bob -> (back to deep wave)
+
+   LENGTHS. Headlines are held to roughly 40 characters and descriptions to
+   roughly 90, which is what keeps the copy block the same height on every
+   slide. The block reserves a minimum height anyway, but matching the copy is
+   what stops the CTAs shifting a few pixels as the text changes.
 */
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: "deep-wave",
-    label: "Deep wave install",
+    label: "Deep Wave Glam",
+    headline: "Texture that moves with you.",
+    description:
+      "Defined waves, seamless lace, and a finish designed to turn heads.",
     photo: HERO_PHOTOS.deepWave,
+    finish: "Melted Hairline",
     collection: "deep-wave-glam",
-    focal: "center 68%",
-  },
-  {
-    id: "pink",
-    label: "Custom colour install",
-    photo: HERO_PHOTOS.pink,
-    collection: "color-and-custom",
-    // Shot from further back, with the sign high on the wall: the client sits
-    // low in the file, so most of the overflow comes off the top.
-    focal: "center 88%",
+    // A close frame: the crown sits high at 31% of the file while the face is
+    // low at 61%, so this one is held back to keep the hair off the top edge.
+    focal: "center 62%",
   },
   {
     id: "straight",
-    label: "Sleek straight install",
+    label: "Sleek Straight",
+    headline: "Silky. Sleek. Effortlessly polished.",
+    description:
+      "Clean lines, a flawless finish, and a look that speaks for itself.",
     photo: HERO_PHOTOS.straight,
+    finish: "Natural Lace",
     collection: "sleek-straight",
     // The loosest frame in the set - almost half the file is bare wall above
     // her - so this one is pushed hardest.
     focal: "center 90%",
   },
   {
-    id: "blonde",
-    label: "Body wave install",
+    id: "bob",
+    label: "Signature Bob",
+    headline: "A statement cut, tailored to you.",
+    description: "Sharp, polished, and shaped to complement your features.",
+    photo: HERO_PHOTOS.bob,
+    finish: "Melted Hairline",
+    collection: "signature-bob",
+    focal: "center 67%",
+  },
+  {
+    id: "body-wave",
+    label: "Body Wave Glam",
+    headline: "Soft waves. Full volume. Pure glamour.",
+    description: "Luxurious movement and body, from the first look to the last.",
     photo: HERO_PHOTOS.blonde,
+    finish: "Natural Lace",
     collection: "body-wave-glam",
     // The only close frame: she already fills it, and anything higher than
     // this strands her against the top edge.
     focal: "center 43%",
   },
   {
-    id: "bob",
-    label: "Signature bob",
-    photo: HERO_PHOTOS.bob,
-    collection: "signature-bob",
-    focal: "center 73%",
+    id: "colour",
+    label: "Color & Custom",
+    headline: "Your vision, brought to life.",
+    description:
+      "Custom color and styling, made to leave your install unmistakably yours.",
+    photo: HERO_PHOTOS.pink,
+    finish: "Melted Hairline",
+    collection: "color-and-custom",
+    // Shot from further back, with the sign high on the wall: the client sits
+    // low in the file, so most of the overflow comes off the top.
+    focal: "center 88%",
   },
   {
-    id: "copper",
-    label: "Copper body wave",
-    photo: HERO_PHOTOS.copper,
-    // Colour rather than body wave: the copper is what this frame is about,
-    // and the blonde slide already carries the body-wave category.
-    collection: "color-and-custom",
-    // The mane reaches the top of the file, so the ceiling here is the hair
-    // rather than the face. Nudged up from 43% for the taller 60% panel, which
-    // was leaving the crown flush against the top edge.
-    focal: "center 38%",
+    id: "natural-lace",
+    label: "Natural Lace",
+    headline: "Made to look like it grew there.",
+    description:
+      "Customized lace and a seamless hairline, for an effortlessly natural finish.",
+    photo: HERO_PHOTOS.lace,
+    // The label is the FINISH. This says what the hair itself is, so the two
+    // axes stay separate and the slide does not read as a sixth hairstyle.
+    style: "Signature Bob",
+    finish: "Natural Lace",
+    collection: "natural-lace",
+    focal: "center 73%",
   },
 ];
 
