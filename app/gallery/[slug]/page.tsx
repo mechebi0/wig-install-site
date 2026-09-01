@@ -5,11 +5,12 @@ import { CollectionCard } from "@/components/collection-card";
 import { StyleGallery } from "@/components/style-gallery";
 import { BookingCta } from "@/components/booking-cta";
 import { Reveal } from "@/components/reveal";
+import { COLLECTIONS } from "@/lib/collections";
 import {
-  COLLECTIONS,
-  getCollection,
-  relatedCollections,
-} from "@/lib/collections";
+  collectionPhotos,
+  findCollection,
+  suggestCollections,
+} from "@/lib/gallery";
 import { COLLECTION_PAGE, STUDIO } from "@/lib/content";
 
 /**
@@ -21,6 +22,13 @@ import { COLLECTION_PAGE, STUDIO } from "@/lib/content";
  * out of the array, so the six are guaranteed to feel like one system rather
  * than six pages that happen to look similar.
  *
+ * Everything is read through lib/gallery.ts rather than out of
+ * lib/collections.ts directly, so the day the gallery moves into Supabase this
+ * page does not change. `generateStaticParams` still reads COLLECTIONS
+ * directly, because the list of slugs has to be known at BUILD time and a
+ * database read is not available then; that is the one place the seam does not
+ * reach, and it is the correct place for it not to.
+ *
  * STATIC EXPORT. `generateStaticParams` is what makes this compatible with
  * `output: "export"`: the six slugs are known at build time, so the build
  * emits six real HTML files and no dynamic route ever has to be resolved at
@@ -29,7 +37,7 @@ import { COLLECTION_PAGE, STUDIO } from "@/lib/content";
  *
  * The shape, top to bottom:
  *
- *   1. back to /styles, the name, the three-beat line, one large photograph
+ *   1. back to /gallery, the name, the three-beat line, one large photograph
  *   2. the gallery, with a lightbox
  *   3. the booking CTA
  *   4. three other collections, so the page is never a dead end
@@ -43,9 +51,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
-}: PageProps<"/styles/[slug]">): Promise<Metadata> {
+}: PageProps<"/gallery/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const collection = getCollection(slug);
+  const collection = findCollection(slug);
   if (!collection) return {};
 
   return {
@@ -64,12 +72,12 @@ export async function generateMetadata({
 
 export default async function CollectionPage({
   params,
-}: PageProps<"/styles/[slug]">) {
+}: PageProps<"/gallery/[slug]">) {
   const { slug } = await params;
-  const collection = getCollection(slug);
+  const collection = findCollection(slug);
   if (!collection) notFound();
 
-  const related = relatedCollections(collection.slug);
+  const related = suggestCollections(collection.slug);
 
   return (
     <>
@@ -94,7 +102,7 @@ export default async function CollectionPage({
 
           <div className="mt-10 lg:mt-14">
             <StyleGallery
-              photos={collection.gallery}
+              photos={collectionPhotos(collection)}
               label={`${collection.title} gallery`}
             />
           </div>

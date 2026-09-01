@@ -133,3 +133,137 @@ export type AdminStats = {
   customers: number;
   guest_bookings: number;
 };
+
+/* ===========================================================================
+   PHASE TWO: GALLERY, REVIEWS AND SETTINGS
+   ===========================================================================
+   These four tables do not exist yet. Nothing in the site reads them, and no
+   component branches on them. They are defined here, and created in
+   supabase/migrations/0002_gallery_reviews_settings.sql, so that the shape the
+   admin dashboard will eventually manage is decided ONCE and decided now,
+   while the content it mirrors is still in front of us.
+
+   Each one mirrors something that is currently a compiled-in constant:
+
+     gallery_categories  <- COLLECTIONS in lib/collections.ts
+     gallery_items       <- the WORK map in the same file
+     reviews             <- TESTIMONIALS in lib/content.ts
+     business_settings   <- LOCATIONS, and the flags beside them
+
+   The columns are deliberately a superset of what the constants carry, in the
+   two directions a real admin screen needs and a constant does not: ordering
+   (`display_order`) and visibility (`active`, `published`). Everything else is
+   the same field with the same meaning, so the day the data moves it is a
+   query swap in lib/gallery.ts rather than a redesign.
+
+   WHY NOTHING READS THEM YET. A compiled-in constant renders instantly, cannot
+   fail, and is in git. A table read from the browser after hydration is none of
+   those things. The portfolio is the whole point of this site, so it stays in
+   the bundle until there is a reason for it to move, and the reason will be
+   Nat wanting to add a photograph without a deploy. See the note at the top of
+   lib/gallery.ts.
+   ========================================================================= */
+
+/** One of the six style collections. Mirrors a StyleCollection. */
+export type GalleryCategory = {
+  id: string;
+  /** URL segment. /gallery/<slug>/ */
+  slug: string;
+  title: string;
+  /** The three-beat editorial line. "Texture. Movement. Glamour." */
+  tagline: string;
+  /** One sentence, for the card. */
+  summary: string;
+  /** Two or three sentences, for the collection page. */
+  description: string;
+  /** For the page description tag. */
+  meta_description: string;
+  /** gallery_items.id. The card image, the hero, and the share image. */
+  hero_item_id: string | null;
+  /** gallery_items.id. The second card image, shown on hover. */
+  hover_item_id: string | null;
+  active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+/**
+ * One photograph.
+ *
+ * `alt` is NOT NULL in the migration and has no default. A gallery managed
+ * through an admin screen is exactly where alt text goes missing, and a
+ * photograph with no description is unusable to anyone browsing with a screen
+ * reader. Making it a required column means the form cannot save without it.
+ */
+export type GalleryItem = {
+  id: string;
+  /** Path under public/images/work/, or a storage key once uploads exist. */
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  /** Optional short caption. Not currently rendered anywhere. */
+  caption: string | null;
+  /** When the install was done, if Nat wants to record it. */
+  taken_on: string | null;
+  active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Join row. A photograph can belong to more than one collection. */
+export type GalleryItemCategory = {
+  item_id: string;
+  category_id: string;
+  /** Ordering within this category, independent of the item's own order. */
+  display_order: number;
+};
+
+/**
+ * A client review.
+ *
+ * `published` defaults to false. A review is a public claim about the
+ * business, and the failure mode worth designing against is one going live
+ * before Nat has read it.
+ */
+export type Review = {
+  id: string;
+  /** First name or initial. Never a full name without permission. */
+  author: string;
+  body: string;
+  /** 1 to 5, or null if Nat would rather not show a score. */
+  rating: number | null;
+  /** gallery_categories.id, when the review is about a particular style. */
+  category_id: string | null;
+  published: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+/**
+ * Single-row-per-key business settings, editable from the admin dashboard.
+ *
+ * A key/value table rather than a column per setting, because the alternative
+ * is a migration every time Nat wants to change one sentence. `value` is jsonb
+ * so a setting can be a string, a flag, or a list of location ids without the
+ * shape being fixed up front.
+ *
+ * Known keys, and the constant each currently shadows:
+ *
+ *   active_location_ids   locations.id[]   which chairs are open this week
+ *   announcement_lead     string           "Now booking in"
+ *   announcement_closed   string           shown when no chair is open
+ *   booking_url           string           STUDIO.bookingUrl
+ *   policies_are_draft    boolean          policiesAreDraft
+ *   reviews_are_draft     boolean          testimonialsArePlaceholder
+ */
+export type BusinessSetting = {
+  key: string;
+  value: unknown;
+  updated_at: string;
+  /** profiles.id of the admin who last changed it. */
+  updated_by: string | null;
+};

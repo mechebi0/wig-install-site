@@ -1,5 +1,5 @@
 import { Reveal } from "@/components/reveal";
-import { INTRO, STUDIO } from "@/lib/content";
+import { INTRO } from "@/lib/content";
 
 /**
  * The brand statement, sitting directly under the hero.
@@ -19,11 +19,10 @@ export function Intro() {
       aria-labelledby="intro-heading"
       className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28"
     >
-      <Reveal>
-        <p className="label text-accent">{STUDIO.name}</p>
-      </Reveal>
-
-      <div className="mt-8 grid gap-10 border-t border-line-strong pt-10 lg:grid-cols-12 lg:gap-8 lg:pt-14">
+      {/* The eyebrow that used to sit here is gone; see the note on eyebrow
+          count in components/collection-grid.tsx. The rule stays, because it
+          is what separates this section from the hero above it. */}
+      <div className="grid gap-10 border-t border-line-strong pt-10 lg:grid-cols-12 lg:gap-8 lg:pt-14">
         <Reveal className="lg:col-span-6">
           <h2
             id="intro-heading"

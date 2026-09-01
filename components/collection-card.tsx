@@ -4,7 +4,7 @@ import { lookCount, type StyleCollection } from "@/lib/collections";
 
 /**
  * One collection, as a card. The single card component for the whole site:
- * the homepage showcase, the /styles directory and the related rail at the
+ * the homepage showcase, the /gallery directory and the related rail at the
  * foot of every collection page all render this.
  *
  * ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ import { lookCount, type StyleCollection } from "@/lib/collections";
 const ASPECT = {
   /** Homepage, three up. Taller than 4:5 so a three-column row still reads. */
   compact: "aspect-[3/4]",
-  /** /styles, two up. Wider cells, so a shallower crop keeps the row calm. */
+  /** /gallery, two up. Wider cells, so a shallower crop keeps the row calm. */
   editorial: "aspect-[4/5]",
 } as const;
 
@@ -72,7 +72,7 @@ export function CollectionCard({
 
   return (
     <a
-      href={`/styles/${collection.slug}/`}
+      href={`/gallery/${collection.slug}/`}
       className="group block focus-visible:outline-none"
     >
       <div

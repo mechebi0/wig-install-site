@@ -1,141 +1,124 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  CaretLeft,
+  CaretRight,
+  Pause,
+  Play,
+} from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { Photograph } from "@/components/photo";
-import { Wordmark } from "@/components/wordmark";
-import { bookingTarget, CTA, HERO, STUDIO } from "@/lib/content";
-import { HERO_SLIDES } from "@/lib/images";
+import { bookingTarget, CTA, HERO } from "@/lib/content";
+import { heroFocal, HERO_SLIDES } from "@/lib/images";
 
 /**
- * The homepage hero: six of Nat's installs crossfading slowly beside a brand
- * block that never moves.
+ * The homepage hero: a full-width carousel that crossfades slowly through six
+ * of Nat's installs, directly under the brand masthead.
  *
  * ---------------------------------------------------------------------------
- * THE SHAPE, AND WHY IT IS A SPLIT RATHER THAN A FULL-BLEED BANNER
+ * THE COMPOSITION PROBLEM, AND THE BLURRED BACKDROP THAT SOLVES IT
  * ---------------------------------------------------------------------------
  * Every photograph on this site is one person standing in a room, shot on a
- * phone, in portrait. That is not a defect to be worked around; it is what
- * real salon photography looks like, and it is why the site reads as a real
- * business. But it means a full-bleed 16:9 desktop banner is the one shape
- * this photography cannot take: cropping 3:4 down to 16:9 removes the lengths,
- * and the lengths are the entire subject of a wig install photograph.
+ * phone, in portrait. A full-width desktop hero is roughly 2:1. Cropping a 3:4
+ * portrait to 2:1 was tried and the result is not arguable: it cuts the face
+ * off at the mouth and removes the hair entirely, on a wig installer's
+ * website. Stretching instead of cropping distorts. Neither is shippable.
  *
- * So the frame changes with the viewport instead of the picture doing so.
- * It is ONE composition, a photograph beside a wine brand block, folded
- * between the two shapes:
+ * So each slide is built out of the SAME photograph twice:
  *
- *   below lg   stacked, brand block first. The mark, the line and the
- *              booking button sit on flat wine at the top of the frame, and
- *              the photograph runs below them, deliberately taller than the
- *              space left in the viewport so its top third shows as a peek
- *              that pulls the scroll.
+ *   backdrop   scaled up, blurred and darkened, filling the whole width. It
+ *              is not there to be looked at. It is there so the frame can be
+ *              full width and so its colour comes from this photograph rather
+ *              than from a flat panel, which is what makes the pink slide read
+ *              pink and the copper slide read copper.
+ *   subject    the same file at 46% of the width, bled to the right edge. That
+ *              is a 1.18 frame against a 0.75 file, so it crops mildly and
+ *              keeps the head and most of the lengths. Nothing like the 2:1
+ *              band a true full-bleed banner would have forced.
  *
- *   lg and up  side by side. The photograph becomes a tall panel filling the
- *              right seven columns and the brand block holds the left five.
+ * The browser fetches one file and paints it twice, so the backdrop is free.
  *
- * The brand block leads in BOTH, which is also the DOM order, so the reading
- * order a screen reader gets is the reading order everyone else gets.
+ * This is the standard treatment for portrait media in a landscape frame, and
+ * it is what makes the hero work: the picture is cropped as little as the
+ * shape allows rather than as much as it demands, nothing is stretched, and
+ * the left of the frame is soft colour, which is exactly where the copy needs
+ * to sit.
  *
- * WHY THE PHOTOGRAPH IS ALLOWED TO RUN PAST THE FOLD ON A PHONE. Fitting the
- * whole hero into one phone screen means about 250px of picture, and 250px of
- * a 3:4 portrait is a crop through someone's face with the hair cut off top
- * and bottom. On a wig installer's website that is the worst 250px available.
- * Letting it run to a real portrait crop costs nothing, because the primary
- * action is not stranded: components/mobile-book-bar.tsx puts a sticky Book
- * Your Chair bar in thumb reach from 320px of scroll onward, and the booking
- * button in this block is above the fold regardless.
- *
- * WHY THE COPY IS NOT OVER THE PICTURE ON A PHONE. It was, and two things went
- * wrong. Both are specific to this photography rather than general:
- *
- *   1. Nat's neon sign is on the wall in most of these frames, and the brand
- *      mark IS that sign. Laying the mark over the photograph put two
- *      Crownedbynat scripts on the screen at once, one of them an echo of the
- *      other, and it read as a rendering fault rather than as branding.
- *   2. These are bright, warm, high-key phone photographs, and a wash heavy
- *      enough to float five lines of copy over one turns the picture to mud.
- *      The veil and the photograph were fighting over the same pixels.
- *
- * Stacking gives the mark clean wine to sit on, gives the type a contrast
- * floor no slide can change, and gives the photograph back its whole frame.
- * One image layer still serves both shapes: it is an in-flow flex item on a
- * phone and an absolutely positioned panel at lg, so nothing is rendered twice
- * and no photograph is downloaded twice.
+ * Below `lg` none of it applies. A phone viewport is already portrait, so the
+ * photograph covers the frame and the backdrop layer is not rendered at all.
  *
  * ---------------------------------------------------------------------------
  * THE COPY DOES NOT CHANGE WITH THE SLIDE
  * ---------------------------------------------------------------------------
  * Text that swaps every seven seconds cannot be read at a glance and cannot be
  * relied on by anyone who looks away. The photograph is the only thing that
- * moves. The brand, the proposition and the CTA are fixed, and the only
- * per-slide text is the small style label above the dots.
+ * moves. The only per-slide text is the small style name beside the controls.
+ *
+ * There is no h1 here: the brand masthead directly above owns it. Two h1s on
+ * one page, one repeating the other, is worse than none.
  *
  * ---------------------------------------------------------------------------
  * TIMING
  * ---------------------------------------------------------------------------
- * DWELL 7s, FADE 1.8s, and a 12s drift on the transform. Deliberately slower
+ * DWELL 7s, FADE 1.6s, and a 14s drift on the transform. Deliberately slower
  * than a stock carousel. A frame needs roughly five seconds before it stops
  * being motion and starts being a photograph, and the drift is long enough to
  * never be perceived as a zoom, only as the image being alive.
  *
  * ---------------------------------------------------------------------------
- * STOPPING IT, AND THE TRADE THAT WAS MADE
+ * PAUSING, WHICH IS NOT OPTIONAL
  * ---------------------------------------------------------------------------
- * There is no play/pause button; that is a deliberate decision to keep the
- * hero clean, and it costs something, so the cost is written down rather than
- * hidden. WCAG 2.2.2 asks for a mechanism to pause, stop or hide anything that
- * moves automatically for more than five seconds, and a labelled control is
- * the obvious way to provide one. What stands in its place:
+ * WCAG 2.2.2 requires a mechanism to pause, stop or hide anything that moves
+ * automatically for more than five seconds. An earlier version of this hero
+ * argued its way out of a visible control; it should not have. The control is
+ * one 44px button, it is the difference between meeting a Level A criterion
+ * and not, and the hero is not measurably worse for having it.
  *
- *   - touching any dot stops the rotation for good, so a visitor who wants it
- *     to hold still has a way to make it hold still
- *   - rotation pauses while keyboard focus is anywhere inside the hero, so it
- *     never moves under someone reading it with a keyboard
- *   - under prefers-reduced-motion it never starts at all, and the dots are
- *     full manual control
- *   - it stops when scrolled past or when the tab is in the background
+ * Five things stop the rotation, and they are deliberately different:
  *
- * Hover deliberately does NOT pause. The hero is most of the viewport, so at
- * desktop the pointer rests on it almost all the time, and pausing on hover
- * would mean the carousel effectively never advanced.
+ *   pause button   an explicit, persistent, labelled toggle. Announces its own
+ *                  state, and stays paused until pressed again.
+ *   hover          pauses while the pointer is over the hero, resumes on exit.
+ *                  Cheap for a mouse user who wants to look at one frame.
+ *                  Wired to native pointerenter/pointerleave; see the note on
+ *                  that effect for why React's delegated version is wrong here.
+ *   focus          pauses while KEYBOARD focus is anywhere inside, so it never
+ *                  moves under someone reading it with a keyboard. Deliberately
+ *                  gated on :focus-visible: a mouse click leaves DOM focus on
+ *                  the button it pressed, and without the gate pressing Play
+ *                  with a mouse would hand autoplay back and then immediately
+ *                  block it again with the focus its own click created.
+ *   touch / swipe  a drag pauses for good. On a touch screen there is no
+ *                  "leave", so resuming after a deliberate swipe would be the
+ *                  carousel overriding the person using it.
+ *   arrows / dots  same. Taking manual control stops the rotation for good,
+ *                  and the play button is how it is handed back.
  *
- * ---------------------------------------------------------------------------
- * SIZING LIVES IN HeroStage
- * ---------------------------------------------------------------------------
- * This takes `flex-1` inside components/hero-stage.tsx, because the location
- * strip sits directly above and the two share one viewport between them.
+ * It also stops when scrolled out of view or the tab is backgrounded, and
+ * under prefers-reduced-motion it never starts at all and the crossfade
+ * collapses to a near-instant swap.
  */
 
 const DWELL_MS = 7000;
-const FADE_MS = 1800;
-const DRIFT_MS = 12000;
+const FADE_MS = 1600;
+const DRIFT_MS = 14000;
 const REDUCED_FADE_MS = 200;
+/** Horizontal travel, in px, that counts as a swipe rather than a tap. */
+const SWIPE_PX = 48;
 
-/**
- * The photograph: an in-flow flex item below the brand block on a phone, and
- * an absolutely positioned right-hand panel from `lg` (seven of twelve
- * columns).
- *
- * `min-h-[60svh]` with `flex-1` is a floor, not a height. It grows to take
- * whatever the brand block leaves on a tall phone, and holds 60svh on a short
- * one, which keeps the frame taller than it is wide at every phone width and
- * so keeps the crop portrait. At `lg` both are dropped and the panel is sized
- * by `inset-0` instead.
- */
-const PANEL =
-  "relative min-h-[60svh] w-full flex-1 lg:absolute lg:inset-0 lg:left-[41.6667%] lg:min-h-0 lg:w-auto lg:flex-none";
-
-/** What the image actually occupies, for the browser to size the srcSet from. */
-const HERO_SIZES = "(min-width: 1024px) 60vw, 100vw";
+const HERO_SIZES = "(min-width: 1024px) 46vw, 100vw";
 
 export function HeroCarousel() {
   const count = HERO_SLIDES.length;
   const sectionRef = useRef<HTMLElement>(null);
 
   const [index, setIndex] = useState(0);
-  /** Flipped for good the first time a visitor drives the carousel. */
+  /** The explicit toggle. Sticky until pressed again. */
+  const [paused, setPaused] = useState(false);
+  /** Flipped the first time the visitor drives it by hand. */
   const [stopped, setStopped] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [inView, setInView] = useState(true);
@@ -161,10 +144,38 @@ export function HeroCarousel() {
     if (!node) return;
     const observer = new IntersectionObserver(
       ([entry]) => setInView(entry.isIntersecting),
-      { threshold: 0.15 },
+      { threshold: 0.2 },
     );
     observer.observe(node);
     return () => observer.disconnect();
+  }, []);
+
+  /*
+    Hover, on a NATIVE listener rather than React's onMouseEnter/onMouseLeave,
+    and this is load bearing rather than a style preference.
+
+    React delegates mouse enter and leave from `mouseover`/`mouseout` at the
+    root. Pressing the pause button swaps the glyph inside it, which unmounts
+    the node the pointer is currently over; the synthetic leave for the move
+    that follows never arrives, `hovered` sticks at true, and the carousel that
+    was just asked to play sits still until something else re-renders it. It is
+    a genuine bug, not a test artefact: press play, move the mouse away, and
+    nothing happens.
+
+    `pointerleave` is fired by the browser on this element from geometry, so it
+    does not care what the subtree did in the meantime.
+  */
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+    const enter = () => setHovered(true);
+    const leave = () => setHovered(false);
+    node.addEventListener("pointerenter", enter);
+    node.addEventListener("pointerleave", leave);
+    return () => {
+      node.removeEventListener("pointerenter", enter);
+      node.removeEventListener("pointerleave", leave);
+    };
   }, []);
 
   useEffect(() => {
@@ -175,7 +186,13 @@ export function HeroCarousel() {
   }, []);
 
   const rotating =
-    !stopped && !focusWithin && !reduced && inView && pageVisible;
+    !paused &&
+    !stopped &&
+    !hovered &&
+    !focusWithin &&
+    !reduced &&
+    inView &&
+    pageVisible;
 
   useEffect(() => {
     if (!rotating) return;
@@ -186,7 +203,6 @@ export function HeroCarousel() {
     return () => window.clearTimeout(timer);
   }, [rotating, index, count]);
 
-  /** Manual navigation stops rotation for good; it never fights the visitor. */
   const goTo = useCallback(
     (target: number) => {
       setStopped(true);
@@ -195,7 +211,7 @@ export function HeroCarousel() {
     [count],
   );
 
-  const onControlKeyDown = (event: React.KeyboardEvent) => {
+  const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "ArrowRight") {
       event.preventDefault();
       goTo(index + 1);
@@ -206,25 +222,72 @@ export function HeroCarousel() {
     }
   };
 
-  const lead = HERO_SLIDES[0];
+  /*
+    Swipe. Pointer events rather than touch events, so a pen works too, and
+    `touch-pan-y` on the section keeps vertical scrolling with the page rather
+    than being swallowed here.
+  */
+  const dragFrom = useRef<number | null>(null);
+  const onPointerDown = (event: React.PointerEvent) => {
+    if (event.pointerType === "mouse") return;
+    dragFrom.current = event.clientX;
+  };
+  const onPointerUp = (event: React.PointerEvent) => {
+    const from = dragFrom.current;
+    dragFrom.current = null;
+    if (from === null) return;
+    const dx = event.clientX - from;
+    if (Math.abs(dx) < SWIPE_PX) return;
+    goTo(dx < 0 ? index + 1 : index - 1);
+  };
+
   const active = HERO_SLIDES[index];
+  const lead = HERO_SLIDES[0];
+  /* The focal point differs between the two hero shapes, and object-position
+     cannot be expressed as a Tailwind breakpoint variant when its value is
+     per-slide data. So the breakpoint is read once here rather than being
+     duplicated into six inline styles. It starts false so the server render
+     and the first client render agree; the phone value is the safe one to be
+     wrong with for a frame, because the phone frame crops least. */
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setWide(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  /** True while the carousel would move on its own if nothing blocked it. */
+  const autoplayOn = !paused && !stopped;
 
   return (
     <section
       ref={sectionRef}
       aria-roledescription="carousel"
       aria-label={`${HERO.brand} installs`}
-      onFocus={() => setFocusWithin(true)}
+      onKeyDown={onKeyDown}
+      onFocus={(e) => {
+        /* Keyboard focus only. See the note above: a pointer click focuses the
+           button it pressed, and treating that as "someone is reading this
+           with a keyboard" makes the Play button look broken. */
+        if (e.target instanceof HTMLElement && e.target.matches(":focus-visible")) {
+          setFocusWithin(true);
+        }
+      }}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setFocusWithin(false);
       }}
-      className="on-photo relative isolate flex flex-1 flex-col overflow-hidden bg-ink lg:justify-center"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => {
+        dragFrom.current = null;
+      }}
+      className="on-photo relative isolate flex h-[62svh] min-h-[430px] touch-pan-y flex-col justify-end overflow-hidden bg-ink lg:h-[62svh] lg:min-h-[480px] lg:max-h-[680px] lg:justify-center"
     >
       {/*
-        The LCP element. Preloaded from here rather than from the root layout,
-        so /styles and /book no longer pay to fetch a hero they never render.
-        imageSrcSet/imageSizes rather than a bare href, or the browser preloads
-        one width and then the <img> asks for a different one.
+        The largest image on the page after the mark. imageSrcSet/imageSizes
+        rather than a bare href, or the browser preloads one width and the
+        <img> then asks for another.
       */}
       <link
         rel="preload"
@@ -235,92 +298,130 @@ export function HeroCarousel() {
         fetchPriority="high"
       />
 
-      {/* Copy and controls, layer 2. */}
-      <div className="relative z-[2] mx-auto w-full max-w-[1400px] shrink-0 px-5 pb-6 pt-6 sm:px-8 sm:pb-9 sm:pt-8 lg:pb-0 lg:pt-0">
-        <div className="lg:grid lg:grid-cols-12 lg:items-center">
-          <div className="min-w-0 lg:col-span-5 lg:pr-10">
-            <p className="label text-on-accent/70">{HERO.kicker}</p>
+      {HERO_SLIDES.map((slide, i) => {
+        const isActive = i === index;
+        const mounted = i === 0 || warm || isActive;
 
-            <h1 className="mt-4 flex flex-col items-start lg:mt-6">
-              {STUDIO.logo ? (
-                /*
-                  Nat's own neon studio sign, carrying the brand name as the
-                  accessible name of the heading. It is a fixed-size brand
-                  asset rather than content photography, so it is a plain <img>
-                  with explicit dimensions: next/image would add a wrapper and,
-                  under `unoptimized`, no optimisation.
-                */
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={STUDIO.logo}
-                  alt={HERO.brand}
-                  width={STUDIO.logoWidth}
-                  height={STUDIO.logoHeight}
-                  fetchPriority="high"
-                  className="h-auto w-[12rem] max-w-full sm:w-[18rem] lg:w-[23rem]"
+        return (
+          <div
+            key={slide.id}
+            /* Exactly one slide is exposed to assistive technology at a time,
+               so a screen reader meets one image with real alt text rather
+               than six competing descriptions of the same hero. */
+            aria-hidden={!isActive}
+            className={`absolute inset-0 z-0 ${isActive ? "opacity-100" : "opacity-0"}`}
+            style={{
+              transitionProperty: "opacity",
+              transitionDuration: `${reduced ? REDUCED_FADE_MS : FADE_MS}ms`,
+              transitionTimingFunction: "ease-in-out",
+            }}
+          >
+            {mounted ? (
+              <>
+                {/* Backdrop. Desktop only, and never announced: it is the same
+                    picture as the one beside it. */}
+                <Photograph
+                  photo={slide.photo}
+                  sizes="60vw"
+                  decorative
+                  className="absolute inset-0 hidden h-full w-full scale-110 object-cover blur-2xl brightness-[0.55] saturate-[1.6] lg:block"
                 />
-              ) : (
-                <Wordmark className="text-5xl text-on-accent lg:text-6xl" />
-              )}
 
-              <span className="mt-3 max-w-[17ch] font-display text-xl leading-snug tracking-tight text-on-accent/90 sm:mt-6 sm:text-3xl lg:text-[2rem]">
-                {HERO.line}
-              </span>
-            </h1>
+                {/* The subject. Full bleed on a phone; uncropped and right of
+                    centre from lg, where `h-full w-auto` keeps its native 3:4
+                    and the frame reveals more or less blur beside it. */}
+                <Photograph
+                  photo={slide.photo}
+                  sizes={HERO_SIZES}
+                  priority={i === 0}
+                  className="absolute inset-0 h-full w-full object-cover lg:left-auto lg:right-0 lg:w-[46%]"
+                  style={{
+                    /* Per-slide, and measured off the file rather than
+                       guessed: see the note on HeroFocal in lib/images.ts.
+                       Both frames crop, and they crop by different amounts,
+                       so each has its own value. */
+                    objectPosition: heroFocal(slide)[wide ? "wide" : "narrow"],
+                    ...(reduced
+                      ? null
+                      : {
+                          transitionProperty: "transform",
+                          transitionDuration: `${DRIFT_MS}ms`,
+                          transitionTimingFunction: "linear",
+                          transform: isActive ? "scale(1)" : "scale(1.05)",
+                        }),
+                  }}
+                />
+              </>
+            ) : null}
+          </div>
+        );
+      })}
 
-            {/*
-              Hidden on the narrowest phones, and not because it does not
-              matter. It is almost the first paragraph of the Intro section
-              immediately below, so on a 390px screen it would be read twice
-              inside one scroll while pushing the booking button under the
-              fold. Everything from `sm` up has the room for both.
-            */}
-            <p className="mt-5 hidden max-w-[44ch] text-base leading-relaxed text-on-accent/80 sm:block lg:text-lg">
-              {HERO.subtext}
+      {/* Contrast floor. Bottom-up on a phone, where the copy sits over the
+          photograph; left-to-right at lg, where it sits over the blur. */}
+      <div
+        aria-hidden="true"
+        className="hero-veil pointer-events-none absolute inset-0 z-[1]"
+      />
+
+      {/*
+        Copy and controls, layer 2, in ONE column.
+
+        The controls started at the bottom right of the frame, which is over
+        the photograph, and on the pink and platinum slides a near-white glyph
+        on bright hair was illegible. Everything the visitor has to read or
+        press therefore lives in the same left column as the copy, over the
+        blurred backdrop, where the contrast floor is set by the veil rather
+        than by whichever slide happens to be showing.
+      */}
+      <div className="relative z-[2] mx-auto w-full max-w-[1400px] px-5 pb-6 sm:px-8 lg:pb-0">
+        <div className="max-w-[34ch] lg:max-w-[46%]">
+          <p className="font-display text-2xl leading-[1.15] tracking-tight text-on-accent sm:text-3xl lg:text-[2.5rem]">
+            {HERO.headline}
+          </p>
+          {/*
+            Hidden on the narrowest phones. There the copy sits directly on the
+            photograph, and every line of it has to be paid for in scrim: three
+            lines of body text need the veil pushed dark enough to flatten the
+            picture underneath. The headline and the masthead line above it
+            already say what this is, and the Intro section immediately below
+            carries the same sentence in full.
+          */}
+          <p className="mt-4 hidden max-w-[42ch] text-sm leading-relaxed text-on-accent/80 sm:block sm:text-base lg:text-lg">
+            {HERO.subtext}
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center">
+            <ButtonLink {...bookingTarget()} variant="onPhoto">
+              {CTA.book}
+            </ButtonLink>
+            <ButtonLink href="/gallery/" variant="quiet">
+              {CTA.gallery}
+            </ButtonLink>
+          </div>
+
+          <div className="mt-7 flex items-center justify-between gap-3 border-t border-on-accent/15 pt-4 lg:mt-9">
+            <p
+              aria-hidden="true"
+              className="min-w-0 truncate font-display text-sm italic text-on-accent/60"
+            >
+              {active.label}
             </p>
 
-            {/*
-              One filled pill and, below sm, one text link rather than a second
-              pill. Two full-width pills stacked on a phone cost 64px of the
-              fold and read as two actions of equal weight, and this site has
-              exactly one primary action. From `sm` up there is room for the
-              pair side by side and the outline variant comes back.
-            */}
-            <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center">
-              <ButtonLink {...bookingTarget()} variant="onPhoto">
-                {CTA.book}
-              </ButtonLink>
-              <a
-                href="/styles/"
-                className="inline-flex min-h-11 items-center justify-center px-2 text-sm text-on-accent/80 underline decoration-on-accent/30 underline-offset-4 transition-colors hover:text-on-accent hover:decoration-on-accent sm:hidden"
-              >
-                {CTA.styles}
-              </a>
-              <div className="hidden sm:block">
-                <ButtonLink href="/styles/" variant="quiet">
-                  {CTA.styles}
-                </ButtonLink>
-              </div>
-            </div>
+            <div className="-mr-2 flex shrink-0 items-center gap-1">
+              <Control
+                onClick={() => goTo(index - 1)}
+                label="Previous install"
+                icon={<CaretLeft size={17} weight="bold" />}
+              />
 
-            {/*
-              The controls sit under the copy on the wine rather than over the
-              photograph, so their contrast is fixed rather than decided by
-              whichever slide happens to be showing.
-
-              Left/right arrows are a shortcut on top of working keyboard
-              access, never a replacement for it: every dot is a real button.
-            */}
-            <div
-              onKeyDown={onControlKeyDown}
-              className="mt-5 flex items-center gap-4 sm:mt-9 lg:mt-12"
-            >
               {/*
-                Six 44px targets need 264px, which fits a 320px phone once
-                nothing else shares the line. The spacing between the dots comes
-                from the targets themselves, so there is no flex gap on top.
-              */}
-              <div className="-mx-1 flex shrink-0 items-center">
+            Six 44px dot targets need 264px. At the narrowest phone width they
+            would share a row with three icon buttons and the style name, so
+            below `sm` they collapse to a count. Shrinking the targets instead
+            would put every one of them under the 44px minimum.
+          */}
+              <div className="-mx-1 hidden items-center sm:flex">
                 {HERO_SLIDES.map((slide, i) => (
                   <button
                     key={slide.id}
@@ -340,76 +441,50 @@ export function HeroCarousel() {
                   </button>
                 ))}
               </div>
-
-              {/*
-                The one piece of text that changes with the slide. Announced
-                through the live region below rather than being read twice.
-              */}
               <p
                 aria-hidden="true"
-                className="hidden min-w-0 truncate font-display text-sm italic text-on-accent/60 sm:block"
+                className="tabular px-2 font-display text-sm text-on-accent/70 sm:hidden"
               >
-                {active.label}
+                {index + 1} / {count}
               </p>
+
+              <Control
+                onClick={() => goTo(index + 1)}
+                label="Next install"
+                icon={<CaretRight size={17} weight="bold" />}
+              />
+
+              {/*
+            WCAG 2.2.2. `aria-pressed` rather than a changing accessible name,
+            so the control keeps one name and announces its state; the glyph
+            follows the same state for sighted visitors.
+
+            Once the visitor has driven the carousel by hand, `stopped` is set,
+            and this button is what hands autoplay back, which is why it clears
+            both flags rather than only its own.
+          */}
+              <Control
+                onClick={() => {
+                  if (autoplayOn) {
+                    setPaused(true);
+                  } else {
+                    setPaused(false);
+                    setStopped(false);
+                  }
+                }}
+                label={autoplayOn ? "Pause the carousel" : "Play the carousel"}
+                pressed={!autoplayOn}
+                icon={
+                  autoplayOn ? (
+                    <Pause size={16} weight="fill" />
+                  ) : (
+                    <Play size={16} weight="fill" />
+                  )
+                }
+              />
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Photography, layer 0. Top of the frame on a phone, panel at lg. */}
-      <div className={`${PANEL} z-0`}>
-        {HERO_SLIDES.map((slide, i) => {
-          const isActive = i === index;
-          const mounted = i === 0 || warm || isActive;
-
-          return (
-            <div
-              key={slide.id}
-              /*
-                Exactly one slide is exposed to assistive technology at a time,
-                so a screen reader meets one image with real alt text rather
-                than six competing descriptions of the same hero.
-              */
-              aria-hidden={!isActive}
-              className={`absolute inset-0 ${isActive ? "opacity-100" : "opacity-0"}`}
-              style={
-                reduced
-                  ? {
-                      transitionProperty: "opacity",
-                      transitionDuration: `${REDUCED_FADE_MS}ms`,
-                    }
-                  : {
-                      transitionProperty: "opacity, transform",
-                      transitionDuration: `${FADE_MS}ms, ${DRIFT_MS}ms`,
-                      transitionTimingFunction: "ease-in-out, linear",
-                      transform: isActive ? "scale(1)" : "scale(1.06)",
-                    }
-              }
-            >
-              {mounted ? (
-                <Photograph
-                  photo={slide.photo}
-                  sizes={HERO_SIZES}
-                  priority={i === 0}
-                  className="h-full w-full object-cover object-[center_22%]"
-                />
-              ) : null}
-            </div>
-          );
-        })}
-
-        {/*
-          Layer 1, and it lives INSIDE the photograph's box so it tracks that
-          box through both layouts. No copy sits on the picture in either one,
-          so this is not a contrast floor, it is the seam: on a phone it fades
-          the foot of the frame into the wine block below, and at lg it
-          feathers the left edge into the brand field. Both ends also keep the
-          sticky nav off a bright frame edge as a slide changes under it.
-        */}
-        <div
-          aria-hidden="true"
-          className="hero-veil pointer-events-none absolute inset-0 z-[1]"
-        />
       </div>
 
       {/*
@@ -425,5 +500,29 @@ export function HeroCarousel() {
         {`Slide ${index + 1} of ${count}: ${active.label}`}
       </p>
     </section>
+  );
+}
+
+function Control({
+  onClick,
+  label,
+  icon,
+  pressed,
+}: {
+  onClick: () => void;
+  label: string;
+  icon: React.ReactNode;
+  pressed?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={pressed}
+      className="tap inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-on-accent/25 text-on-accent/80 transition-colors duration-200 hover:border-on-accent/60 hover:bg-on-accent/12 hover:text-on-accent"
+    >
+      {icon}
+    </button>
   );
 }

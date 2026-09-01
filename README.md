@@ -27,13 +27,13 @@ own page.
 | Route                      | What is on it                                                     |
 | -------------------------- | ----------------------------------------------------------------- |
 | `/`                        | Hero carousel, brand statement, six collections, teasers, CTA      |
-| `/styles`                  | The six collections as large editorial cards                       |
-| `/styles/deep-wave-glam`   | Collection hero, gallery with lightbox, CTA, related collections   |
-| `/styles/sleek-straight`   | as above                                                          |
-| `/styles/signature-bob`    | as above                                                          |
-| `/styles/body-wave-glam`   | as above                                                          |
-| `/styles/color-and-custom` | as above                                                          |
-| `/styles/natural-lace`     | as above                                                          |
+| `/gallery`                  | The six collections as large editorial cards                       |
+| `/gallery/deep-wave-glam`   | Collection hero, gallery with lightbox, CTA, related collections   |
+| `/gallery/sleek-straight`   | as above                                                          |
+| `/gallery/signature-bob`    | as above                                                          |
+| `/gallery/body-wave-glam`   | as above                                                          |
+| `/gallery/color-and-custom` | as above                                                          |
+| `/gallery/natural-lace`     | as above                                                          |
 | `/book`                    | Every service and price, studio details, the booking flow          |
 | `/before-you-book`         | The appointment step by step, and the FAQ                          |
 | `/reviews`                 | Client quotes                                                      |
@@ -41,12 +41,13 @@ own page.
 | `/login` `/signup` `/account` | Customer accounts and appointments                              |
 | `/admin`                   | Nat's dashboard. Deliberately absent from all public navigation    |
 
-The six collection pages are generated from one file, `app/styles/[slug]/page.tsx`,
+The six collection pages are generated from one file, `app/gallery/[slug]/page.tsx`,
 via `generateStaticParams`, so the build emits six real HTML files and the six
 pages cannot drift apart.
 
-`/work` was the single page that carried the whole portfolio before the split.
-`public/_redirects` sends it to `/styles/` with a 301 so old links keep working.
+Two earlier URLs are still linked from elsewhere: `/work` (the single page that
+carried the whole portfolio) and `/styles` (the collections, before the rename).
+`public/_redirects` 301s both to `/gallery/`.
 
 ## Deployment
 
@@ -69,8 +70,8 @@ breaks the deployment.
 ### Why navigation uses plain `<a>` and not `next/link`
 
 Under `output: "export"`, Next 16.3.3 writes each route's RSC payload to
-`out/styles/__next.styles/__PAGE__.txt` but requests it at
-`/styles/__next.styles.__PAGE__.txt`. Those never match, so with `next/link`
+`out/gallery/__next.gallery/__PAGE__.txt` but requests it at
+`/gallery/__next.gallery.__PAGE__.txt`. Those never match, so with `next/link`
 every page load fired a prefetch that 404'd, and every client-side navigation
 fell back to a full page load anyway — the same navigation, plus a console full
 of 404s on every page. The fix would be a post-build renaming step, which would
@@ -83,7 +84,7 @@ override and switch the nav, the footer and `ButtonLink` back to `next/link`.
 
 ### `lib/collections.ts` — the six style collections
 
-The single source of truth for the whole `/styles` branch: every card, every
+The single source of truth for the whole `/gallery` branch: every card, every
 gallery, every collection page and all six sets of page metadata are generated
 from the `COLLECTIONS` array. Each entry has a slug, a title, a three-beat
 tagline, a summary, a description, a meta description, a hero photograph, a
@@ -112,6 +113,16 @@ alt text, then list it in whichever collections it belongs to.
 - `PAGES`, `HOME`, `HERO`, `COLLECTION_PAGE` — page and section copy.
 - `OWNER`, `QUESTIONS`, `TESTIMONIALS`, `PROCESS`, `ASSURANCES`.
 
+### `lib/gallery.ts` — the read path
+
+Every component that shows a collection reads it through here, not out of
+`lib/collections.ts` directly. Today these functions return the compiled-in
+constants; when Nat has a Supabase project and an admin screen, they return
+rows and no component changes. See the note at the top of that file for why the
+gallery is still in the bundle (short version: a static export has no server
+render to fetch during, so a database-backed gallery would ship six pages of
+empty grids).
+
 ### `lib/images.ts` — the hero rotation and the two non-portfolio slots
 
 The hero slides reference photographs out of `lib/collections.ts`, so a picture
@@ -137,21 +148,58 @@ hero and in the footer.
 
 ## The hero carousel
 
-No play button. That is a deliberate design decision with a cost worth knowing
-about: WCAG 2.2.2 asks for a mechanism to pause, stop or hide anything that
-moves automatically for more than five seconds, and a labelled control is the
-obvious way to provide one. In its place:
+Full width, six slides, 7s each with a 1.6s crossfade. It autoplays: there is
+no play button to press to start it.
 
-- touching any dot stops the rotation permanently
-- rotation pauses while keyboard focus is anywhere inside the hero
-- under `prefers-reduced-motion` it never starts, and the dots are full manual
-  control
-- it stops when scrolled past or when the tab is in the background
+**The composition.** Every photograph here is a 3:4 portrait, and a full-width
+desktop hero is roughly 2:1. Cropping one to the other was tried and it cuts the
+face off at the mouth and removes the hair. So each slide paints the same file
+twice: once scaled up, blurred and darkened to fill the width, and once at 46%
+of the width, bled to the right edge, cropped only mildly. The copy sits on the
+blurred half. The browser fetches one file, so the backdrop is free.
 
-Hover deliberately does not pause: the hero is most of the viewport, so at
-desktop the pointer rests on it almost all the time. If stricter conformance is
-wanted later, restoring a discreet pause control beside the dots is a small
-change in `components/hero-carousel.tsx`.
+**Stopping it**, per WCAG 2.2.2, which requires a mechanism to pause anything
+that moves automatically for more than five seconds:
+
+- an explicit pause/play button, labelled, with `aria-pressed`
+- hover pauses while the pointer is over the hero, and resumes on exit
+- keyboard focus inside the hero pauses it, gated on `:focus-visible` so a
+  mouse click does not leave it stuck
+- a swipe, an arrow or a dot stops it for good; the play button hands it back
+- it stops when scrolled past or the tab is backgrounded
+- under `prefers-reduced-motion` it never starts and the crossfade collapses
+
+Hover is wired to native `pointerenter`/`pointerleave` rather than React's
+delegated `onMouseEnter`/`onMouseLeave`. Pressing pause swaps the glyph inside
+the button, which unmounts the node the pointer is over, and the synthetic
+leave for the next move never arrives: hover sticks on and the carousel that
+was just asked to play sits still. The native events are computed from geometry
+and do not care what the subtree did.
+
+## Admin and customer accounts: what exists, what is pending
+
+**Built and working today.** Customer signup, login, password reset, the
+account dashboard, guest booking, the five-step booking flow, and the admin
+dashboard with locations, appointments, customers and services. All of it is
+real code against a real schema, and all of it degrades honestly when there is
+no Supabase project: the nav hides the account control, `/login` and `/admin`
+say plainly that the booking system is not connected, and `/book` falls back to
+an email request form. **The production build does not need any Supabase
+environment variable.**
+
+**Schema ready, not yet wired.** `supabase/migrations/0002_gallery_reviews_settings.sql`
+adds `gallery_items`, `gallery_categories`, `gallery_item_categories`,
+`reviews` and `business_settings`, with row level security and an admin-only
+write policy on each. Row types are in `lib/supabase/types.ts`. Nothing reads
+them yet; they exist so the admin screens Nat eventually gets (manage gallery
+photos, categories, featured images, ordering, reviews, and which town is open)
+have a decided shape to be built against.
+
+**Authorization is in the database, not the frontend.** Admin rights come from
+`profiles.role` checked by `is_admin()` inside Postgres. The admin email
+appearing anywhere in client code grants nothing: anyone can read the bundle and
+call the API, so a check in the browser is decoration. Granting Nat admin is one
+UPDATE, documented in `supabase/README.md`.
 
 ## Things still needed from Nat
 

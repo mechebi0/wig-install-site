@@ -1,4 +1,5 @@
-import { HeroStage } from "@/components/hero-stage";
+import { BrandMasthead } from "@/components/brand-masthead";
+import { HeroCarousel } from "@/components/hero-carousel";
 import { Intro } from "@/components/intro";
 import {
   ClosingTeasers,
@@ -12,13 +13,14 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * The homepage is a premium introduction and a visual directory. It is not a
  * table of contents, and it is not the site.
  *
- * Five blocks, and every one of them is either the brand or a way forward:
+ * Six blocks, and every one of them is either the brand or a way forward:
  *
- *   Hero          the live location strip, then the crossfading carousel with
- *                 Nat's neon mark and the booking CTA. Sized as one viewport
- *                 by HeroStage.
+ *   Masthead      the live location strip, then Nat's neon mark centred, with
+ *                 the one line that says what this is and where.
+ *   Hero          the full-width crossfading carousel: the proposition, the
+ *                 two actions, and six of her installs.
  *   Intro         a short typographic brand statement, Nat named as installer
- *   Collections   all six, as cards, then out to /styles
+ *   Collections   all six, as cards, then out to /gallery
  *   Teasers       Meet Nat and the reviews side by side, four lines each,
  *                 then out to /meet-nat and /reviews
  *   Closing CTA   the wine band, booking again
@@ -28,7 +30,7 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * the testimonials. Each of those needs a paragraph or a grid to be worth
  * anything, and each of them has a page:
  *
- *   /styles           the six collections, and a page each below that
+ *   /gallery           the six collections, and a page each below that
  *   /book             every service, the studio details, the booking flow
  *   /before-you-book  the appointment step by step, and the full FAQ
  *   /reviews          the client quotes
@@ -88,7 +90,7 @@ const localBusiness = {
     itemListElement: COLLECTIONS_IN_ORDER.map((collection) => ({
       "@type": "OfferCatalog",
       name: collection.title,
-      url: `/styles/${collection.slug}/`,
+      url: `/gallery/${collection.slug}/`,
     })),
   },
   mainEntityOfPage: {
@@ -108,7 +110,8 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
       />
-      <HeroStage />
+      <BrandMasthead />
+      <HeroCarousel />
       <Intro />
       <CollectionShowcase />
       <ClosingTeasers />

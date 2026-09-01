@@ -40,6 +40,7 @@ export function Photograph({
    * never trigger is noise, not information.
    */
   decorative = false,
+  style,
 }: {
   photo: Photo;
   sizes: string;
@@ -47,6 +48,12 @@ export function Photograph({
   priority?: boolean;
   large?: boolean;
   decorative?: boolean;
+  /**
+   * Inline style, for the one case a utility class cannot cover: the hero's
+   * slow drift, whose 14s duration is a constant shared with the JavaScript
+   * that schedules the slide change and so has to be read from the same place.
+   */
+  style?: React.CSSProperties;
 }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -62,6 +69,7 @@ export function Photograph({
       fetchPriority={priority ? "high" : "auto"}
       decoding={priority ? "sync" : "async"}
       className={className}
+      style={style}
     />
   );
 }

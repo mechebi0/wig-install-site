@@ -150,7 +150,7 @@ export const CTA = {
    * same action reads as a second action.
    */
   book: "Book Your Chair",
-  styles: "Explore the styles",
+  gallery: "View the gallery",
   collection: "View collection",
 } as const;
 
@@ -174,7 +174,7 @@ export const usesOnPageBooking = STUDIO.bookingUrl.trim() === "";
  * work, find out what the appointment involves, check other people's word for
  * it, then meet the person doing it.
  *
- * Styles leads because the work is what sells a wig install.
+ * Gallery leads because the work is what sells a wig install.
  *
  * The booking CTA is deliberately NOT in this list. It is the site's single
  * primary action and it renders as a filled pill beside the links, so putting
@@ -185,7 +185,7 @@ export const usesOnPageBooking = STUDIO.bookingUrl.trim() === "";
  * dashboard by bookmarking /admin.
  */
 export const NAV_LINKS = [
-  { label: "Styles", href: "/styles/" },
+  { label: "Gallery", href: "/gallery/" },
   { label: "Before you book", href: "/before-you-book/" },
   { label: "Reviews", href: "/reviews/" },
   { label: "Meet Nat", href: "/meet-nat/" },
@@ -196,8 +196,8 @@ export const NAV_LINKS = [
  * and the source for each page title tag.
  */
 export const PAGES = {
-  styles: {
-    kicker: "Styles",
+  gallery: {
+    kicker: "Gallery",
     title: "Explore the collection.",
     lede: "Six ways to wear a Crowned by Nat install, each one a room full of finished work. Find the one you keep coming back to and bring it to your consult.",
   },
@@ -234,7 +234,7 @@ export const HOME = {
     kicker: "The collection",
     heading: "Explore the Crowned by Nat collection.",
     body: "Six ways to wear an install. Open the one you keep coming back to.",
-    link: "See every style",
+    link: "View the gallery",
   },
   meetNat: {
     kicker: "Meet Nat",
@@ -263,12 +263,28 @@ export const HOME = {
  * visitor sees and the name is what has to land. The line under it carries the
  * actual proposition, so the h1 is not a bare business name.
  */
+/**
+ * The top of the homepage, split across two components.
+ *
+ * BrandMasthead gets `brand` (as the mark's accessible name) and `line`.
+ * HeroCarousel gets `headline` and `subtext`.
+ *
+ * Nothing is said twice. The mark carries the name, so the carousel underneath
+ * it does not repeat it; the masthead line says what and where, so the
+ * carousel headline is free to be the proposition rather than an introduction.
+ *
+ * `subtext` is held under twenty words on purpose. It sits over photography
+ * above the fold, and a hero paragraph that runs to four lines on a phone
+ * pushes the booking button off the screen.
+ */
 export const HERO = {
-  kicker: "Lace wig installs",
   brand: STUDIO.name,
-  line: "Fitted, cut and finished by hand.",
+  /** Under the mark. Says what this is and where, in one line. */
+  line: `Lace wig installs in ${LOCATIONS[0].name} and ${LOCATIONS[1].name}, ${LOCATIONS[1].region}.`,
+  /** Over the photography. The proposition. */
+  headline: "Fitted, cut and finished by hand.",
   subtext:
-    "Nat does every install herself, from the braid down to the last cut. One chair, one client, one appointment.",
+    "Nat does every install herself, from the braid down to the last cut.",
 } as const;
 
 /**
@@ -293,6 +309,15 @@ export const INTRO = {
   signature: "Nat, founder and installer",
 } as const;
 
+/**
+ * The three assurances.
+ *
+ * The third one used to be a "ten day lace promise", guaranteeing a free
+ * re-lay if the lace lifted inside ten days. Nat never agreed to that. A
+ * guarantee is the one kind of placeholder a customer can act on and hold the
+ * business to, so it is gone rather than flagged. What is here now describes
+ * how the appointment is run, which is true and is Nat's to confirm.
+ */
 export const ASSURANCES = [
   {
     icon: "hand",
@@ -301,13 +326,13 @@ export const ASSURANCES = [
   },
   {
     icon: "heart",
-    title: "Sensitive scalps welcome",
-    body: "Alopecia, postpartum, and treatment clients are booked with extra time.",
+    title: "One client at a time",
+    body: "Your appointment is the only one in the room, so nothing is rushed to fit another in.",
   },
   {
     icon: "arrows",
-    title: "Ten day lace promise",
-    body: "If the lace lifts inside ten days, laying it again is free.",
+    title: "Cut on the head",
+    body: "The hairline and the baseline are cut to your face, on you, never off the stand.",
   },
 ] as const;
 
@@ -317,7 +342,7 @@ export const ASSURANCES = [
  * lib/collections.ts beside the photographs they describe.
  */
 export const COLLECTION_PAGE = {
-  back: "All styles",
+  back: "All six collections",
   gallery: "Explore the collection",
   galleryHint: "Select any photograph to see it larger.",
   related: "More from the collection",
@@ -401,21 +426,38 @@ export const PROCESS = [
 /**
  * ABOUT NAT.
  *
- * The shape of this section is final; the words are a professional stand-in
- * written to be replaced. Four questions get you the real version: how long
- * she has been installing, where she trained, who her chair is for, and what
- * she will not compromise on. Credentials below are unverified stand-ins.
+ * ---------------------------------------------------------------------------
+ * WHAT WAS REMOVED FROM THIS BLOCK, AND WHY
+ * ---------------------------------------------------------------------------
+ * An earlier draft had Nat licensed as a cosmetologist, trained in medical wig
+ * fitting, and drawn into the work by someone close to her going through
+ * treatment. All of it was invented. None of it came from Nat.
+ *
+ * Invented biography is bad; invented CREDENTIALS are a different category.
+ * "Licensed cosmetologist" is a regulated claim about a licence a person
+ * either holds or does not, and publishing it on her behalf exposes her rather
+ * than us. So the credentials list now holds only things that are true because
+ * of how the business is structured, and the paragraphs describe the service
+ * rather than her history.
+ *
+ * The shape is final and the layout takes her real words with no change. Four
+ * questions get the real version: how long she has been installing, where she
+ * trained, who her chair is for, and what she will not compromise on.
  */
 export const OWNER = {
   heading: "One pair of hands, start to finish.",
   paragraphs: [
-    "Nat has been installing lace for years, first out of a shared suite and now out of a private studio where one client is in the room at a time. She has never taken on a second stylist, and she does not intend to.",
-    "She trained in medical wig fitting after watching someone close to her go through treatment and struggle to find anyone who would take the time. A steady share of the chair is now alopecia, postpartum, and treatment clients.",
+    "Nat works one chair, one client at a time. She customizes the unit, lays the lace, and cuts the hairline to your face in the same appointment, so nothing is handed off half finished and nobody else picks up where she left off.",
+    "That means fewer appointments in the week and a wait for a Saturday. It also means the person who answers your message is the person doing your hair, and that she is still there when you look in the mirror at the end.",
   ],
+  /**
+   * True by construction, not claimed on her behalf. Add real qualifications
+   * here once Nat has confirmed exactly what they are and how she words them.
+   */
   credentials: [
-    "Licensed cosmetologist",
-    "Trained in medical wig fitting",
     "Every install performed by Nat",
+    "One client in the room at a time",
+    "Consultation before every first install",
   ],
 } as const;
 

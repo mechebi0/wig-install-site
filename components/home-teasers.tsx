@@ -11,7 +11,7 @@ import { HOME, INTRO, testimonialsArePlaceholder } from "@/lib/content";
  * and none of them is allowed to grow past the size of a doorway. Editing them
  * side by side is what stops that happening one section at a time.
  *
- *   CollectionShowcase   six cards, out to /styles
+ *   CollectionShowcase   six cards, out to /gallery
  *   ClosingTeasers       Meet Nat and the reviews, side by side, four lines
  *                        each, out to /meet-nat and /reviews
  */
@@ -64,7 +64,7 @@ export function CollectionShowcase() {
           </Reveal>
 
           <Reveal index={1} className="shrink-0">
-            <TextLink href="/styles/">{HOME.collections.link}</TextLink>
+            <TextLink href="/gallery/">{HOME.collections.link}</TextLink>
           </Reveal>
         </div>
 
@@ -133,8 +133,11 @@ export function ClosingTeasers() {
           rule would be pointing at nothing.
         */}
         <Reveal index={1} className="lg:border-l lg:border-line lg:pl-20">
-          <p className="label text-accent">{HOME.reviews.kicker}</p>
-          <h2 className="mt-5 max-w-[15ch] font-display text-3xl leading-[1.06] tracking-tight text-ink md:text-4xl">
+          {/* No eyebrow on this column. The homepage is allowed two across the
+              whole page (see the note in components/collection-grid.tsx), the
+              collection showcase has one, and "In her clients' words." needs
+              no label above it to say what it is. */}
+          <h2 className="max-w-[15ch] font-display text-3xl leading-[1.06] tracking-tight text-ink md:text-4xl">
             {HOME.reviews.heading}
           </h2>
           <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">

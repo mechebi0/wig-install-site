@@ -176,49 +176,60 @@
   }
 
   /*
-    THE HERO SEAM.
+    THE HERO VEIL.
 
-    Scoped to the photograph's own box in both hero layouts, and it is a seam
-    rather than a contrast floor: no copy sits on the picture at any width, so
-    nothing here is holding text legible. See the note in
-    components/hero-carousel.tsx for why the copy moved off the photograph.
+    Scoped to the carousel, and it does two different jobs at two widths
+    because the copy sits somewhere different at each.
 
-    BELOW lg the picture sits directly BELOW the wine brand block, so the wash
-    runs top-down and hands one surface to the other. It is deliberately short
-    and light, gone by 13%: the top edge of this photograph is the part a
-    visitor sees first, at the fold, and a heavy wash there makes the picture
-    look like more wine rather than like something worth scrolling to.
+    BELOW lg the photograph covers the frame and the copy sits over its lower
+    half, so this is a contrast floor and it has to be a deep one. Half of this
+    set is high key: a pale curtain, a cream wall, platinum hair. The wash
+    therefore holds above 0.85 through the whole band the copy occupies, which
+    puts near-white text over 9:1 on the lightest slide in the set, and only
+    releases above it so the top of the frame stays a photograph. That is also
+    why the hero subtext is hidden at this width: every extra line would push
+    the dark band further up the picture.
 
-    AT lg AND UP the picture sits to the RIGHT of the brand block, so the same
-    job rotates: a feather down the left edge, over in sixteen percent, plus a
-    short top wash so the sticky nav never lands on a bright frame edge as a
-    slide changes underneath it. (On a phone the nav sits over the wine block
-    instead, so no top wash is needed there.)
+    AT lg AND UP the copy has moved left, over the blurred backdrop rather than
+    over the subject, so the wash turns ninety degrees with it: heavy at the
+    left edge, gone by 62%, which is roughly where the uncropped portrait
+    begins. The subject is never washed over.
 
     Everything is tinted to --scrim, the wine ink, so the photograph reads as a
-    duotone rather than as a grey veil.
+    duotone rather than as a grey veil. The whole point of computing these
+    rather than eyeballing them is that the image behind them changes every
+    seven seconds: the text cannot be tuned per slide, so the floor is set here.
   */
   .hero-veil {
     background-image: linear-gradient(
-      to bottom,
-      rgb(var(--scrim) / 0.62) 0%,
-      rgb(var(--scrim) / 0.22) 5%,
-      transparent 13%
-    );
+        to top,
+        rgb(var(--scrim) / 0.93) 0%,
+        rgb(var(--scrim) / 0.87) 26%,
+        rgb(var(--scrim) / 0.62) 48%,
+        rgb(var(--scrim) / 0.22) 72%,
+        transparent 100%
+      ),
+      linear-gradient(
+        to bottom,
+        rgb(var(--scrim) / 0.38) 0%,
+        rgb(var(--scrim) / 0.1) 20%,
+        transparent 38%
+      );
   }
 
   @media (min-width: 1024px) {
     .hero-veil {
       background-image: linear-gradient(
           to right,
-          rgb(var(--scrim) / 0.92) 0%,
-          rgb(var(--scrim) / 0.34) 6%,
-          transparent 16%
+          rgb(var(--scrim) / 0.82) 0%,
+          rgb(var(--scrim) / 0.62) 28%,
+          rgb(var(--scrim) / 0.2) 48%,
+          transparent 62%
         ),
         linear-gradient(
           to bottom,
-          rgb(var(--scrim) / 0.22) 0%,
-          transparent 24%
+          rgb(var(--scrim) / 0.3) 0%,
+          transparent 22%
         );
     }
   }
@@ -254,6 +265,36 @@
           rgb(var(--scrim) / 0.22) 0%,
           transparent 24%
         );
+    }
+  }
+
+  /*
+    The hero photograph's focal point, driven per slide.
+
+    Every hero file is 3:4 portrait and the panel it fills never is, so
+    `object-cover` always has vertical overflow and something must choose which
+    slice survives. That choice belongs to the photograph, not to this
+    stylesheet: lib/images.ts measures each frame and hands the answer down as
+    a custom property, which is why the value here is a variable rather than a
+    number. A new slide changes one line of data and nothing else.
+
+    Two breakpoints, because the panel changes shape at `lg` rather than just
+    changing size: below it the panel is full width and close to the shape of
+    the file, so there is little overflow to spend and a value can be pushed
+    hard; above it the panel is the right-hand seven columns of a stage that
+    stops growing at 880px tall, so it keeps getting more landscape as the
+    screen widens and the same value crops harder.
+
+    The fallbacks match HERO_FOCAL_DEFAULT and exist so a slide that supplies
+    neither still renders a sane crop rather than falling back to `50% 50%`.
+  */
+  .hero-focal {
+    object-position: var(--hero-focal-narrow, center 75%);
+  }
+
+  @media (min-width: 1024px) {
+    .hero-focal {
+      object-position: var(--hero-focal-wide, center 68%);
     }
   }
 

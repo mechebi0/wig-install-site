@@ -1,6 +1,6 @@
 /**
  * THE SIX STYLE COLLECTIONS - the single source of truth for the whole
- * /styles branch of the site.
+ * /gallery branch of the site.
  *
  * Every collection card, every collection page, every gallery, the homepage
  * showcase, the related-collection rail and all six sets of page metadata are
@@ -174,7 +174,7 @@ export const HERO_PHOTOS = {
 } as const;
 
 export type StyleCollection = {
-  /** URL segment. /styles/<slug>/ */
+  /** URL segment. /gallery/<slug>/ */
   slug: string;
   /** Display name. Also the <title> stem and the card heading. */
   title: string;

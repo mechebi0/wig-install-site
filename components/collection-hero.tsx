@@ -24,7 +24,7 @@ import { lookCount, type StyleCollection } from "@/lib/collections";
  * ---------------------------------------------------------------------------
  * THE BREADCRUMB
  * ---------------------------------------------------------------------------
- * One link, back to /styles, rather than a Home / Styles / Deep Wave Glam
+ * One link, back to /gallery, rather than a Home / Styles / Deep Wave Glam
  * chain. A three-level chain on a two-level site is decoration: the third
  * crumb is the page you are already on, and the first is the wordmark in the
  * nav directly above it. What is actually useful here is one obvious way back
@@ -41,7 +41,7 @@ export function CollectionHero({
         <div className="on-photo min-w-0 lg:col-span-6 lg:pr-6">
           <Reveal>
             <a
-              href="/styles/"
+              href="/gallery/"
               className="inline-flex min-h-11 items-center gap-2 text-sm text-on-accent/70 transition-colors hover:text-on-accent"
             >
               <ArrowLeft size={15} weight="regular" aria-hidden="true" />

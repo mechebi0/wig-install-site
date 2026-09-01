@@ -1,6 +1,7 @@
 import { CollectionCard } from "@/components/collection-card";
 import { Reveal } from "@/components/reveal";
-import { COLLECTIONS_IN_ORDER, type StyleCollection } from "@/lib/collections";
+import type { StyleCollection } from "@/lib/collections";
+import { listCollections } from "@/lib/gallery";
 
 /**
  * The six collections, as a grid. Two layouts, one component.
@@ -8,7 +9,7 @@ import { COLLECTIONS_IN_ORDER, type StyleCollection } from "@/lib/collections";
  * ---------------------------------------------------------------------------
  * WHY TWO LAYOUTS RATHER THAN ONE GRID USED TWICE
  * ---------------------------------------------------------------------------
- * The homepage and /styles are answering different questions, so they cannot
+ * The homepage and /gallery are answering different questions, so they cannot
  * be the same grid at two widths.
  *
  *   compact    the homepage. This is a DIRECTORY. Its job is to fit all six
@@ -16,7 +17,7 @@ import { COLLECTIONS_IN_ORDER, type StyleCollection } from "@/lib/collections";
  *              stays short, and to get the visitor out to a collection page.
  *              Three up at desktop, one line of copy each.
  *
- *   editorial  /styles. This is the DESTINATION. There is nothing below it
+ *   editorial  /gallery. This is the DESTINATION. There is nothing below it
  *              competing for the scroll, so the cells get large, the copy runs
  *              to a full paragraph, and two up is the right density.
  *
@@ -33,7 +34,7 @@ import { COLLECTIONS_IN_ORDER, type StyleCollection } from "@/lib/collections";
  * on a phone a staggered single column is just inconsistent gaps.
  */
 export function CollectionGrid({
-  collections = COLLECTIONS_IN_ORDER,
+  collections = listCollections(),
   variant = "compact",
 }: {
   collections?: StyleCollection[];

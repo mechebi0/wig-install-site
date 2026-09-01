@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function StylesPage() {
   return (
     <>
-      <PageHeader {...PAGES.styles} />
+      <PageHeader {...PAGES.gallery} />
 
       <section aria-label="Style collections" className="bg-bg">
         <div className="mx-auto max-w-[1400px] px-5 py-16 sm:px-8 lg:py-24">
