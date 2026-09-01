@@ -420,7 +420,28 @@ export function HeroCarousel() {
             <ButtonLink {...bookingTarget()} variant="onPhoto">
               {CTA.book}
             </ButtonLink>
-            <ButtonLink href="/gallery/" variant="quiet">
+            {/*
+              Points at the collection the slide is showing rather than at the
+              top of the directory: someone who likes what is in front of them
+              should land on more of that same style.
+
+              A destination that changes every seven seconds would normally be
+              a trap, and it is not one here only because of how this carousel
+              pauses. A pointer moving toward the button enters the hero and
+              stops the rotation before it arrives, and moving focus to it does
+              the same, so by the time it can be activated the slide it points
+              at is the slide being looked at.
+
+              The visible label stays fixed for the same reason the rest of the
+              copy does. The accessible name is the part that changes, because
+              a screen reader user gets nothing from "View the gallery" read
+              out six times with six different destinations behind it.
+            */}
+            <ButtonLink
+              href={`/gallery/${active.collection}/`}
+              variant="quiet"
+              aria-label={`${CTA.gallery}: ${active.label}`}
+            >
               {CTA.gallery}
             </ButtonLink>
           </div>

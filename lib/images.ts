@@ -111,6 +111,21 @@ export type HeroSlide = {
   /** Short style name, announced to screen readers and shown at desktop. */
   label: string;
   photo: Photo;
+  /**
+   * The collection this look belongs to, as a slug in lib/collections.ts.
+   *
+   * It is what the hero's secondary CTA points at, so someone who likes the
+   * slide in front of them lands on more of that same style rather than on the
+   * top of the directory. Every slide must name a slug that exists; a typo is
+   * caught by the hero CTA check in the browser tests, which walks all six
+   * slides and asserts each destination returns 200.
+   *
+   * The six slides deliberately cover five collections rather than six.
+   * Natural Lace is a finish rather than a hairstyle, and the other five are
+   * the hairstyle categories a client actually asks for, so putting it in the
+   * rotation would mean showing one look twice under two names.
+   */
+  collection: string;
   /** Overrides `HERO_FOCAL_DEFAULT`. */
   focal?: HeroFocal;
 };
@@ -127,12 +142,14 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: "deep-wave",
     label: "Deep wave install",
     photo: HERO_PHOTOS.deepWave,
+    collection: "deep-wave-glam",
     focal: "center 68%",
   },
   {
     id: "pink",
     label: "Custom colour install",
     photo: HERO_PHOTOS.pink,
+    collection: "color-and-custom",
     // Shot from further back, with the sign high on the wall: the client sits
     // low in the file, so most of the overflow comes off the top.
     focal: "center 88%",
@@ -141,6 +158,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: "straight",
     label: "Sleek straight install",
     photo: HERO_PHOTOS.straight,
+    collection: "sleek-straight",
     // The loosest frame in the set - almost half the file is bare wall above
     // her - so this one is pushed hardest.
     focal: "center 90%",
@@ -149,6 +167,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: "blonde",
     label: "Body wave install",
     photo: HERO_PHOTOS.blonde,
+    collection: "body-wave-glam",
     // The only close frame: she already fills it, and anything higher than
     // this strands her against the top edge.
     focal: "center 43%",
@@ -157,12 +176,16 @@ export const HERO_SLIDES: HeroSlide[] = [
     id: "bob",
     label: "Signature bob",
     photo: HERO_PHOTOS.bob,
+    collection: "signature-bob",
     focal: "center 73%",
   },
   {
     id: "copper",
     label: "Copper body wave",
     photo: HERO_PHOTOS.copper,
+    // Colour rather than body wave: the copper is what this frame is about,
+    // and the blonde slide already carries the body-wave category.
+    collection: "color-and-custom",
     // The mane reaches the top of the file, so the ceiling here is the hair
     // rather than the face. Nudged up from 43% for the taller 60% panel, which
     // was leaving the crown flush against the top edge.
