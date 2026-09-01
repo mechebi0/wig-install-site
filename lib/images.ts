@@ -37,7 +37,7 @@ const img = (file: string) => `/images/${file}`;
 /* ==========================================================================
    HOMEPAGE HERO CAROUSEL
    ==========================================================================
-   Six of Nat's installs, crossfading behind a fixed brand block.
+   Seven of Nat's installs, crossfading behind a fixed brand block.
 
    WHY THERE IS ONLY ONE CROP PER SLIDE
 
@@ -52,10 +52,9 @@ const img = (file: string) => `/images/${file}`;
    THE ORDER
 
    No two adjacent slides share a texture or a colour family, so the rotation
-   always reads as a change:
-
-       deep wave black -> pink straight -> black straight -> platinum body
-       wave -> black lob -> copper body wave
+   always reads as a change, with one deliberate exception at the lead; see
+   "THE SEVEN, AND WHY IN THIS ORDER" below, next to the array itself, for the
+   current order and the reasoning.
 
    Slide one is the LCP element and carries the neon studio sign in frame,
    which is the fastest way to establish that this is a real place.
@@ -148,7 +147,7 @@ export type HeroSlide = {
 };
 
 /*
-   THE SIX, AND WHY IN THIS ORDER
+   THE SEVEN, AND WHY IN THIS ORDER
 
    Copy first: each slide carries its own label, headline and sentence, and the
    carousel renders whichever the active index names. There is one index and it
@@ -159,18 +158,23 @@ export type HeroSlide = {
    prices, no timings, no claims about products - so it is safe to ship while
    she writes her own.
 
-   ORDER. Slide one is the crimped deep wave because it is the only frame in
-   the deep wave set with no neon sign on the wall behind the client, and the
-   nav bar directly above the hero now carries that same sign as the logo. Two
-   Crownedbynat marks within 60px of each other read as a rendering fault
-   rather than as branding.
+   ORDER. Slide one used to be the crimped deep wave, kept because it is the
+   only frame in the deep wave set with no neon sign on the wall behind the
+   client, matching the same sign the nav bar now carries as its logo. The new
+   lead was supplied directly, sign and all, as the frame the homepage should
+   open on, so that tradeoff is accepted here rather than solved again. The
+   crimped deep wave keeps its place immediately after it rather than being
+   reordered elsewhere in the six, which costs the rule below its one
+   exception: two adjacent slides now share both a texture and a label,
+   "Deep Wave Glam" twice in a row.
 
    After that the rule is the one this rotation has always used: no two
    adjacent slides share a colour family AND a texture, including across the
-   wrap from six back to one.
+   wrap from seven back to one.
 
-       black deep wave -> black straight -> burgundy bob -> platinum body
-       wave -> candy pink straight -> black bob -> (back to deep wave)
+       black deep wave (swirl, sign in frame) -> black deep wave (crimped) ->
+       black straight -> burgundy bob -> platinum body wave -> candy pink
+       straight -> black bob -> (back to swirl)
 
    LENGTHS. Headlines are held to roughly 40 characters and descriptions to
    roughly 90, which is what keeps the copy block the same height on every
@@ -178,6 +182,19 @@ export type HeroSlide = {
    what stops the CTAs shifting a few pixels as the text changes.
 */
 export const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "deep-wave-swirl",
+    label: "Deep Wave Glam",
+    headline: "A hairline that melts into skin.",
+    description:
+      "Swirled baby hairs, a clean centre part, and lace you cannot find.",
+    photo: HERO_PHOTOS.deepWaveSwirl,
+    finish: "Melted Hairline",
+    collection: "deep-wave-glam",
+    // A moderately close frame: the crown sits at roughly 33% of the file and
+    // the face around 55%, close to the crimped deep wave's own numbers.
+    focal: "center 55%",
+  },
   {
     id: "deep-wave",
     label: "Deep Wave Glam",

@@ -70,7 +70,9 @@ export const metadata: Metadata = {
     siteName: STUDIO.name,
     /* Nat's own work, so a shared link opens on a real install rather than on
        a logo. Same file the homepage hero loads first, so it is already warm. */
-    images: [{ url: HERO_PHOTOS.deepWave.large, alt: HERO_PHOTOS.deepWave.alt }],
+    images: [
+      { url: HERO_PHOTOS.deepWaveSwirl.large, alt: HERO_PHOTOS.deepWaveSwirl.alt },
+    ],
   },
 };
 

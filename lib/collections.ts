@@ -103,6 +103,10 @@ const WORK = {
     "deep-wave-long-layers",
     "A long deep-wave install cut into soft layers, the texture falling forward over both shoulders",
   ),
+  deepWaveFrontSwirl: photo(
+    "deep-wave-front-swirl",
+    "A long deep-wave install in natural black, centre parted, with the baby hairs swirled along a melted hairline",
+  ),
 
   straightCentrePart: photo(
     "straight-centre-part",
@@ -158,23 +162,30 @@ const WORK = {
 } as const;
 
 /**
- * The six photographs the homepage hero rotates through.
+ * The seven photographs the homepage hero rotates through.
  *
  * Named here rather than in lib/images.ts so the hero and the collections
  * cannot end up holding two different alt texts for the same file. See the
- * note on ordering in lib/images.ts for why these six and why in this order.
+ * note on ordering in lib/images.ts for why these seven and why in this order.
  *
- * WHY THE LEAD FRAME CHANGED
+ * WHY THE LEAD FRAME CHANGED, TWICE
  * It used to be the middle-part deep wave, chosen because Nat's neon sign is
  * on the wall behind the client and that was the fastest way to say this is a
  * real room. The sign is now the nav bar's logo, sitting about 60px above the
  * top of the photograph, so a frame containing it printed the same mark twice
  * in one eyeful - most obviously on a phone, where the picture is full width.
- * The lead is the crimped deep wave instead: same collection, same texture,
- * shot against a plain door with no sign in it.
+ * The lead became the crimped deep wave instead: same collection, same
+ * texture, shot against a plain door with no sign in it. That frame is still
+ * in the rotation, unmoved, immediately after the lead.
+ *
+ * `frontSwirl` leads now, sign back in frame. It was supplied directly as the
+ * photograph the homepage should open on, so the double-mark tradeoff above
+ * is accepted rather than solved a second time. See the note beside
+ * HERO_SLIDES in lib/images.ts for what that costs the ordering rule.
  */
 export const HERO_PHOTOS = {
-  /** Slide one, and the og:image. Deliberately sign-free; see above. */
+  /** Slide one, and the og:image. Sign in frame; see above. */
+  deepWaveSwirl: WORK.deepWaveFrontSwirl,
   deepWave: WORK.deepWaveCrimped,
   straight: WORK.straightGlassFinish,
   bob: WORK.bobBurgundyCurl,
