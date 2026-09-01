@@ -1,6 +1,5 @@
 import { LocationStrip } from "@/components/location-strip";
 import { HeroCarousel } from "@/components/hero-carousel";
-import { Intro } from "@/components/intro";
 import {
   ClosingTeasers,
   CollectionShowcase,
@@ -15,13 +14,12 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * The homepage is a premium introduction and a visual directory. It is not a
  * table of contents, and it is not the site.
  *
- * Eight blocks, and every one of them is either the brand or a way forward:
+ * Seven blocks, and every one of them is either the brand or a way forward:
  *
  *   Strip         one slim band saying where Nat is currently booking. The
  *                 mark itself is in the nav bar directly above it.
  *   Hero          the full-width crossfading carousel: the proposition, the
  *                 two actions, and six of her installs.
- *   Intro         a short typographic brand statement, Nat named as installer
  *   Services      the three appointments by name, no prices, out to /book
  *   Collections   all six, as cards, then out to /gallery
  *   Featured      six recent installs, none of them a hero slide, each out to
@@ -127,7 +125,6 @@ export default function Home() {
       */}
       <LocationStrip />
       <HeroCarousel />
-      <Intro />
       <ServiceSummary />
       <CollectionShowcase />
       <FeaturedInstalls />
