@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
+import {
+  CaretLeft,
+  CaretRight,
+  Pause,
+  Play,
+} from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { Photograph } from "@/components/photo";
 import { bookingTarget, CTA, HERO } from "@/lib/content";
@@ -72,17 +77,34 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * never be perceived as a zoom, only as the image being alive.
  *
  * ---------------------------------------------------------------------------
- * PAUSING, WITHOUT A PLAY BUTTON
+ * PAUSING, AND WHY HOVER IS NOT WIRED TO THE WHOLE HERO
  * ---------------------------------------------------------------------------
- * The hero is required to run on its own, with no play/pause toggle on it, so
- * the pause mechanism WCAG 2.2.2 asks for has to come from the interactions a
- * visitor already performs rather than from a dedicated control. Four things
- * hold it still, and they cover the input methods separately:
+ * WCAG 2.2.2 wants a mechanism to pause anything that moves on its own for
+ * more than five seconds. That mechanism is the labelled pause/play button in
+ * the control row. It is the primary one, it announces its own state, and it
+ * is the only one that is discoverable without guessing.
  *
- *   hover          pauses while the pointer is over the hero and resumes when
- *                  it leaves. Wired to native pointerenter/pointerleave; see
- *                  the note on that effect for why React's delegated version
- *                  is wrong here.
+ * Hover used to be wired to the whole section, and that was a bug rather than
+ * a feature. This hero is full width and 80svh tall, so on a desktop the
+ * pointer is resting somewhere inside it almost all of the time: the carousel
+ * that was supposed to advance on its own simply never advanced. Hover is now
+ * scoped to the COPY COLUMN, which is the one region a visitor is either
+ * reading or reaching across, and which holds both CTAs and every control.
+ * Over the photograph, which is most of the hero, nothing is held.
+ *
+ * That scoping is also what keeps the secondary CTA honest. It points at the
+ * collection the current slide is showing, so its destination must not change
+ * between a visitor deciding to click and clicking: entering the copy column
+ * stops the rotation before the pointer can reach the button.
+ *
+ * The rest, in order of how likely they are to be the thing that stops it:
+ *
+ *   pause button   explicit, labelled, aria-pressed, sticky until pressed
+ *                  again. Restored after being dropped in an earlier pass.
+ *   copy hover     holds while the pointer is inside the copy column. Read off
+ *                  the DOM with `:hover` when the dwell timer fires, not
+ *                  tracked in state; see the note on that effect for why every
+ *                  event-based version of this ended up stuck on.
  *   focus          pauses while KEYBOARD focus is anywhere inside, so it never
  *                  moves under someone reading it with a keyboard. Gated on
  *                  :focus-visible, or a mouse click on an arrow would leave
@@ -95,13 +117,11 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * which is not accessibility, just not burning a phone battery on a carousel
  * nobody is looking at.
  *
- * WHAT THE ARROWS AND DOTS DO NOW. They move the carousel and restart the
- * dwell; they do NOT latch it off. An earlier version stopped rotation for
- * good the first time a visitor drove it by hand, which was defensible while a
- * play button existed to hand autoplay back. With that button gone the same
- * behaviour is a trap: one tap on a dot and the hero is frozen for the rest of
- * the session with no way to restart it. Hover and focus already give anyone
- * who wants a frame held still a way to hold it.
+ * WHAT THE ARROWS AND DOTS DO. They move the carousel and restart the dwell;
+ * they do NOT latch it off. Stopping rotation for good on the first tap of a
+ * dot is a trap even with a play button present, because nothing tells the
+ * visitor that the dot they pressed is what turned autoplay off. Anyone who
+ * wants a frame held has the pause button, which says so.
  */
 
 const DWELL_MS = 7000;
@@ -110,15 +130,20 @@ const DRIFT_MS = 14000;
 const REDUCED_FADE_MS = 200;
 /** Horizontal travel, in px, that counts as a swipe rather than a tap. */
 const SWIPE_PX = 48;
+/** How often the dwell timer re-asks whether the pointer is still on the copy. */
+const HOVER_RECHECK_MS = 400;
 
 const HERO_SIZES = "(min-width: 1024px) 60vw, 100vw";
 
 export function HeroCarousel() {
   const count = HERO_SLIDES.length;
   const sectionRef = useRef<HTMLElement>(null);
+  /** The copy column. Hover is scoped to this, not to the whole hero. */
+  const copyRef = useRef<HTMLDivElement>(null);
 
   const [index, setIndex] = useState(0);
-  const [hovered, setHovered] = useState(false);
+  /** The explicit toggle. Sticky until pressed again. */
+  const [paused, setPaused] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [inView, setInView] = useState(true);
@@ -150,34 +175,6 @@ export function HeroCarousel() {
     return () => observer.disconnect();
   }, []);
 
-  /*
-    Hover, on a NATIVE listener rather than React's onMouseEnter/onMouseLeave,
-    and this is load bearing rather than a style preference.
-
-    React delegates mouse enter and leave from `mouseover`/`mouseout` at the
-    root. Pressing the pause button swaps the glyph inside it, which unmounts
-    the node the pointer is currently over; the synthetic leave for the move
-    that follows never arrives, `hovered` sticks at true, and the carousel that
-    was just asked to play sits still until something else re-renders it. It is
-    a genuine bug, not a test artefact: press play, move the mouse away, and
-    nothing happens.
-
-    `pointerleave` is fired by the browser on this element from geometry, so it
-    does not care what the subtree did in the meantime.
-  */
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-    const enter = () => setHovered(true);
-    const leave = () => setHovered(false);
-    node.addEventListener("pointerenter", enter);
-    node.addEventListener("pointerleave", leave);
-    return () => {
-      node.removeEventListener("pointerenter", enter);
-      node.removeEventListener("pointerleave", leave);
-    };
-  }, []);
-
   useEffect(() => {
     const onVisibility = () => setPageVisible(!document.hidden);
     onVisibility();
@@ -185,15 +182,45 @@ export function HeroCarousel() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
-  const rotating =
-    !hovered && !focusWithin && !reduced && inView && pageVisible;
+  const rotating = !paused && !focusWithin && !reduced && inView && pageVisible;
 
+  /*
+    The dwell timer, and the hover pause, in one place.
+
+    Hover is read off the DOM with `:hover` at the moment the timer fires,
+    rather than tracked in React state from pointerenter/pointerleave. Twice
+    now the state version has stuck at true and frozen the carousel for good:
+    pressing a control swaps the glyph inside it, which unmounts the node the
+    pointer is over, and the leave event for the move that follows never
+    arrives. `:hover` cannot drift, because it is the browser's own answer to
+    the same question, recomputed every frame.
+
+    `(hover: hover)` gates it to devices that actually have a pointer. iOS
+    keeps `:hover` latched on the last thing tapped until something else is
+    tapped, so without the gate one tap in the copy column would stop the
+    carousel for the rest of the visit.
+
+    When the pointer IS inside the copy column the timer re-arms briefly
+    instead of advancing, so the slide holds for as long as the pointer stays
+    and resumes on its own the moment it leaves. No event required.
+  */
   useEffect(() => {
     if (!rotating) return;
-    const timer = window.setTimeout(
-      () => setIndex((current) => (current + 1) % count),
-      DWELL_MS,
-    );
+
+    const canHover =
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover)").matches;
+
+    let timer = 0;
+    const tick = () => {
+      if (canHover && copyRef.current?.matches(":hover")) {
+        timer = window.setTimeout(tick, HOVER_RECHECK_MS);
+        return;
+      }
+      setIndex((current) => (current + 1) % count);
+    };
+
+    timer = window.setTimeout(tick, DWELL_MS);
     return () => window.clearTimeout(timer);
   }, [rotating, index, count]);
 
@@ -402,7 +429,10 @@ export function HeroCarousel() {
         40px gap at 1024, 1280, 1440 and 1920.
       */}
       <div className="relative z-[2] mx-auto w-full max-w-[1400px] px-5 pb-8 pt-7 sm:px-8 lg:pb-0 lg:pt-0">
-        <div className="max-w-[34ch] lg:max-w-[min(calc(40vw-4rem),calc(700px-10vw-3rem))]">
+        <div
+          ref={copyRef}
+          className="max-w-[34ch] lg:max-w-[min(calc(40vw-4rem),calc(700px-10vw-3rem))]"
+        >
           <p className="font-display text-2xl leading-[1.15] tracking-tight text-on-accent sm:text-3xl lg:text-[2.5rem]">
             {HERO.headline}
           </p>
@@ -499,6 +529,28 @@ export function HeroCarousel() {
                 label="Next install"
                 icon={<CaretRight size={17} weight="bold" />}
               />
+
+              {/*
+                WCAG 2.2.2. `aria-pressed` rather than a changing accessible
+                name, so the control keeps one name and announces its state;
+                the glyph follows the same state for sighted visitors.
+
+                It is deliberately last in the row. The arrows and dots are
+                what most people reach for, and a pause button between them
+                would put a third thing in the middle of a two-thing gesture.
+              */}
+              <Control
+                onClick={() => setPaused((was) => !was)}
+                label={paused ? "Play the carousel" : "Pause the carousel"}
+                pressed={paused}
+                icon={
+                  paused ? (
+                    <Play size={16} weight="fill" />
+                  ) : (
+                    <Pause size={16} weight="fill" />
+                  )
+                }
+              />
             </div>
           </div>
         </div>
@@ -524,16 +576,20 @@ function Control({
   onClick,
   label,
   icon,
+  pressed,
 }: {
   onClick: () => void;
   label: string;
   icon: React.ReactNode;
+  /** Only the pause toggle sets this. Omitted, the button is not a toggle. */
+  pressed?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
+      aria-pressed={pressed}
       className="tap inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-on-accent/25 text-on-accent/80 transition-colors duration-200 hover:border-on-accent/60 hover:bg-on-accent/12 hover:text-on-accent"
     >
       {icon}
