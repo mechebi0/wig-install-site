@@ -70,8 +70,8 @@ export function CollectionHero({
 
             {/*
               The three-beat line. Playfair italic against the roman heading
-              above it, which is the same masthead device the announcement
-              strip uses, so the two read as one voice.
+              above it, the brand's masthead device, so the two read as one
+              voice.
             */}
             <p className="mt-5 font-display text-xl italic text-on-accent/75 lg:text-2xl">
               {collection.tagline}

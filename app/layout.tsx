@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Geist } from "next/font/google";
 import "./globals.css";
+import { AnnouncementMarquee } from "@/components/announcement-marquee";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBookBar } from "@/components/mobile-book-bar";
@@ -82,10 +83,16 @@ export const viewport: Viewport = {
 };
 
 /**
- * The nav, the footer and the mobile booking bar live here rather than in each
- * page. They are identical on every route, and putting them in the layout
- * means a client side page change swaps only the middle of the document: the
- * nav never repaints, so moving between pages does not flash.
+ * The announcement stripe, the nav, the footer and the mobile booking bar live
+ * here rather than in each page. They are identical on every route, and
+ * putting them in the layout means a client side page change swaps only the
+ * middle of the document: the nav never repaints, so moving between pages does
+ * not flash.
+ *
+ * The stripe comes first, above the nav, and it is in normal flow rather than
+ * sticky: it says its piece at the top of the page and scrolls away, and the
+ * nav takes the top edge from there. A second sticky band would cost every
+ * page 36px of viewport for the life of the visit.
  *
  * The hero image preload used to live in this head. It moved into
  * HeroCarousel, because only the homepage renders a hero and every other page
@@ -113,6 +120,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <AnnouncementMarquee />
         <SiteNav />
         <main id="main">{children}</main>
         <SiteFooter />

@@ -13,7 +13,7 @@ import type { Location } from "@/lib/supabase/types";
  * WHAT THIS SWITCH ACTUALLY DOES, AND WHAT IT DELIBERATELY DOES NOT
  * ---------------------------------------------------------------------------
  * Flipping one of these changes three things at once, live, with no redeploy:
- * the announcement strip above the homepage hero, which locations the booking
+ * the announcement stripe at the top of every page, which locations the booking
  * flow offers, and which locations the database will accept a booking for.
  * The last of those is the real one; the first two are the database's answer
  * being displayed.
@@ -31,7 +31,7 @@ import type { Location } from "@/lib/supabase/types";
  * Towson, Laurel, both, or neither. Nothing here prevents switching both off,
  * and it should not: "closed while I move studios" is a real thing a business
  * does. The site handles it honestly rather than falling back to a stale city
- * name, so the strip says the chair is between studios and the booking page
+ * name, so the stripe says the chair is between studios and the booking page
  * offers a phone number instead of a form.
  *
  * The warning below appears when the last one is switched off, because it is a

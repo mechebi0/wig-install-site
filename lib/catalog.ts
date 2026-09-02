@@ -196,7 +196,7 @@ export function formatLocationList(
 }
 
 /* ==========================================================================
-   THE ANNOUNCEMENT STRIP, AND WHY IT GETS ITS OWN HOOK
+   THE ANNOUNCEMENT STRIPE, AND WHY IT GETS ITS OWN HOOK
    ==========================================================================
 
    useActiveLocations above deliberately has NO fallback. A stale location is
@@ -205,10 +205,11 @@ export function formatLocationList(
    stand-in there would be a row with no primary key behind it that the booking
    flow would happily offer and the database would then reject.
 
-   The strip above the hero is not one of those callers. It books nothing. Its
-   whole job is to say where Nat is currently taking appointments, and today
-   the honest answer to that is known (Towson and Laurel, both confirmed) while
-   the database that will eventually own the answer is not connected yet.
+   The announcement stripe above the nav bar is not one of those callers. It
+   books nothing. Its whole job is to say where Nat is currently taking
+   appointments, and today the honest answer to that is known (Towson and
+   Laurel, both confirmed) while the database that will eventually own the
+   answer is not connected yet.
 
    So the two are split rather than compromised:
 
@@ -219,12 +220,12 @@ export function formatLocationList(
 
    `live` says which of the two you are looking at, exactly as it does on
    services. The moment a Supabase project is configured, the database becomes
-   the authority for this strip too and the constant stops being read.
+   the authority for the stripe too and the constant stops being read.
 */
 
 export type AnnouncedLocation = Pick<Location, "name" | "state">;
 
-/** The confirmed towns, in the shape the strip renders. Announcement only. */
+/** The confirmed towns, in the shape the stripe renders. Announcement only. */
 export const ANNOUNCED_LOCATIONS: AnnouncedLocation[] = LOCATIONS.map(
   (location) => ({ name: location.name, state: location.region }),
 );

@@ -40,10 +40,10 @@ export function BrandPlate({
       className={`relative isolate flex h-full w-full flex-col items-center justify-center overflow-hidden bg-ink px-8 text-center ${className}`}
     >
       {/*
-        The same rose bloom the announcement strip uses, so the light appears
-        to come from behind the mark rather than the mark sitting on a flat
-        field. It is the one gradient on the site and it earns its place by
-        being what makes a neon sign read as lit.
+        A rose bloom behind the mark, so the light appears to come from behind
+        it rather than the mark sitting on a flat field. It is the one gradient
+        on the site and it earns its place by being what makes a neon sign read
+        as lit.
       */}
       <div
         aria-hidden="true"

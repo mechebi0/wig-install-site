@@ -254,7 +254,7 @@ export type Review = {
  * Known keys, and the constant each currently shadows:
  *
  *   active_location_ids   locations.id[]   which chairs are open this week
- *   announcement_lead     string           "Now booking in"
+ *   announcement_lead     string           "Now booking"
  *   announcement_closed   string           shown when no chair is open
  *   booking_url           string           STUDIO.bookingUrl
  *   policies_are_draft    boolean          policiesAreDraft

@@ -104,12 +104,15 @@ alt text, then list it in whichever collections it belongs to.
   nothing at all where there is no real value, so the site can never advertise a
   phone number nobody owns. Fill one in and it appears everywhere at once.
 - `LOCATIONS` — Towson and Laurel. The compiled-in fallback for the announcement
-  strip while there is no Supabase project; see `lib/catalog.ts`.
+  stripe at the top of every page while there is no Supabase project; see
+  `lib/catalog.ts`.
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a
   hand-off panel automatically.
 - `SERVICES` — names, prices, durations. Still stand-ins.
+- `ANNOUNCEMENT` — the words in the stripe at the top of every page; see
+  "The announcement stripe" below.
 - `PAGES`, `HOME`, `HERO`, `COLLECTION_PAGE` — page and section copy.
 - `OWNER`, `QUESTIONS`, `TESTIMONIALS`, `PROCESS`, `ASSURANCES`.
 
@@ -145,6 +148,32 @@ glow composites over any dark field.
 It therefore belongs on **wine or darker surfaces only**. The nav and the mobile
 menu use the typographic wordmark instead, and the mark itself appears on the
 hero and in the footer.
+
+## The announcement stripe
+
+The thin rose band above the nav bar on every page, running
+NOW BOOKING ✦ TOWSON, MD ✦ LAUREL, MD ✦ LACE WIG INSTALLS ✦ CROWNED BY NAT ✦
+BOOK YOUR CHAIR as tracked capitals on a slow, seamless loop. It lives in
+`components/announcement-marquee.tsx` and is rendered from `app/layout.tsx`.
+
+- The words come from `ANNOUNCEMENT`, `STUDIO.name` and `CTA.book` in
+  `lib/content.ts`. The towns come from `useAnnouncedLocations` in
+  `lib/catalog.ts`, so once Supabase is connected the stripe follows the
+  location switches in the admin dashboard and says the chair is between
+  studios when none is open. It never falls back to a town name.
+- The loop is CSS only. The line is rendered six times inside one track and the
+  track slides by exactly one copy before restarting, so the restart frame is
+  identical to the frame before it. Nothing is measured in JavaScript, and the
+  band is `overflow-hidden`, so it never widens the page.
+- Stopping it, per WCAG 2.2.2: hover pauses it on devices with a pointer, a
+  pause/play button at the right end of the band is visually hidden until it
+  takes keyboard focus (the same device as the skip link), and under
+  `prefers-reduced-motion` the track is not shown at all and a one-sentence
+  static version takes its place. That sentence is also what screen readers
+  get; the moving copies are `aria-hidden`.
+- It replaced the wine "Now booking in" band that used to sit between the nav
+  and the homepage hero, which would otherwise have said the same towns twice
+  within 130px of each other.
 
 ## The hero carousel
 

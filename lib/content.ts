@@ -66,7 +66,7 @@ const CONTACT = {
  * fallback for the state the site is actually in today: no Supabase project,
  * so no rows to read, but two towns that are confirmed and worth announcing.
  *
- * Keep the order deliberate. It is the order the announcement strip reads them
+ * Keep the order deliberate. It is the order the announcement stripe reads them
  * out in.
  */
 export const LOCATIONS = [
@@ -318,8 +318,9 @@ export const HOME = {
  * HeroCarousel gets `headline` and `subtext`.
  *
  * Nothing is said twice. The mark carries the name, so the carousel underneath
- * it does not repeat it; the announcement strip says where, so the carousel
- * headline is free to be the proposition rather than an introduction.
+ * it does not repeat it; the announcement stripe above the nav says where, so
+ * the carousel headline is free to be the proposition rather than an
+ * introduction.
  *
  * `subtext` is held under twenty words on purpose. It sits over photography
  * above the fold, and a hero paragraph that runs to four lines on a phone
@@ -330,8 +331,8 @@ export const HERO = {
   /*
     `line` used to live here: "Lace wig installs in Towson and Laurel, MD.",
     printed under the mark on the old wine masthead. Both went when the mark
-    moved into the nav bar. It said what the announcement strip immediately
-    below it already says - the two towns - and the nav's own logo says the
+    moved into the nav bar. It said what the announcement stripe at the top of
+    the page already says - the two towns - and the nav's own logo says the
     rest, so it was a third statement of the same fact in one eyeful.
   */
   /** Over the photography. The proposition, and the page's h1. */
@@ -341,16 +342,24 @@ export const HERO = {
 } as const;
 
 /**
- * The announcement strip, above the hero.
+ * The announcement stripe: the thin rose band above the nav bar on every page,
+ * running these as tracked capitals on a slow loop. See
+ * components/announcement-marquee.tsx for the type note, the loop, and how it
+ * is paused.
  *
- * `lead` is Playfair italic and `places` is tracked Playfair caps; see the type
- * note in components/location-strip.tsx for why it is set that way rather than
- * in the site's `.label` style.
+ * The brand name and the booking verb are not repeated here. The stripe reads
+ * STUDIO.name and CTA.book directly, so it can never disagree with the nav.
  */
 export const ANNOUNCEMENT = {
-  lead: "Now booking in",
-  /** Shown when every chair is closed. Never falls back to a town name. */
-  closed: "The chair is between studios just now. New dates announced soon.",
+  /** Opens the loop when a chair is open. Each open town follows as a segment. */
+  lead: "Now booking",
+  /** What the studio does, in three words. Runs in every state. */
+  service: "Lace wig installs",
+  /**
+   * Runs in place of the lead and the towns when every chair is closed, as two
+   * segments. Never falls back to a town name.
+   */
+  closed: ["The chair is between studios just now", "New dates announced soon"],
 } as const;
 
 export const INTRO = {

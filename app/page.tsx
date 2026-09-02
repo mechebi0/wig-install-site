@@ -1,4 +1,3 @@
-import { LocationStrip } from "@/components/location-strip";
 import { HeroCarousel } from "@/components/hero-carousel";
 import {
   ClosingTeasers,
@@ -14,12 +13,12 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * The homepage is a premium introduction and a visual directory. It is not a
  * table of contents, and it is not the site.
  *
- * Seven blocks, and every one of them is either the brand or a way forward:
+ * Six blocks, and every one of them is either the brand or a way forward:
  *
- *   Strip         one slim band saying where Nat is currently booking. The
- *                 mark itself is in the nav bar directly above it.
  *   Hero          the full-width crossfading carousel: the proposition, the
- *                 two actions, and six of her installs.
+ *                 two actions, and six of her installs. Where Nat is booking
+ *                 is not said here: the announcement stripe above the nav bar
+ *                 carries the towns on every page (see app/layout.tsx).
  *   Collections   all six, as cards, then out to /gallery. It leads because
  *                 the work is what a first-time visitor came to see.
  *   Services      the three appointments by name, no prices, out to /book
@@ -115,16 +114,13 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }}
       />
       {/*
-        The announcement strip on its own. It used to be the top of a wine
-        masthead that also carried the neon mark and a strapline; the mark now
-        lives in the nav bar, and printing it twice within 100px of itself read
-        as a rendering fault rather than as branding. The strapline went with
-        it because it repeated what the nav and the hero already say.
-
-        What is left is one slim band of availability, and the carousel starts
-        directly under it.
+        The carousel starts directly under the nav bar. The wine band that used
+        to sit here saying "Now booking in Towson & Laurel, MD" moved up into
+        the announcement stripe above the nav (see
+        components/announcement-marquee.tsx), which says the same towns on
+        every page; keeping both would have opened the homepage with the same
+        fact twice inside 130px.
       */}
-      <LocationStrip />
       <HeroCarousel />
       <CollectionShowcase />
       <ServiceSummary />
