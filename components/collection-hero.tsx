@@ -1,7 +1,8 @@
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
+import { ButtonLink } from "@/components/button";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
-import { COLLECTION_PAGE } from "@/lib/content";
+import { COLLECTION_PAGE, CTA, bookingTarget } from "@/lib/content";
 import {
   focalFor,
   lookCount,
@@ -82,7 +83,59 @@ export function CollectionHero({
             <p className="mt-7 max-w-[52ch] text-base leading-relaxed text-on-accent/80 lg:text-lg">
               {collection.description}
             </p>
-            <p className="label mt-8 text-on-accent/55">
+
+            {/*
+              The ask, placed at the end of the pitch and before the gallery.
+
+              WHY HERE. The page already closed on a booking band, and it still
+              does; this is not a replacement for it. But the band is below the
+              gallery, which means the moment a visitor is most likely to
+              decide - having just read what this collection is - was the one
+              moment the page had nothing to offer her but scrolling. The
+              description is the argument, so the button goes directly under
+              it, and the look count that follows is the invitation to keep
+              looking if she is not ready yet. Above the fold on desktop, above
+              the photograph on mobile, and no image is covered on either.
+
+              WHY THE HERO PILL. `onPhoto` is the same near-white pill the
+              homepage hero uses and the same one the band at the foot of this
+              page uses. That is deliberate: the primary booking action gets
+              one appearance on the whole site, so it is recognised rather than
+              re-read. It also happens to be the only variant that survives
+              this background - a wine fill on the wine hero stops reading as a
+              button, which is the note in components/button.tsx. Contrast is
+              5.58:1, and the focus ring flips to white here from the
+              `.on-photo :focus-visible` rule in globals.css.
+
+              WHY NOT LOUDER. The pill sits at the size the hero CTA sits at
+              and no larger, three type sizes under the h1. It should be the
+              first thing you can act on, not the first thing you see; the
+              photograph and the name keep that job.
+
+              The label comes from `dimension` so Natural Lace reads "Book This
+              Finish" and agrees with its own eyebrow. The collection name is
+              appended for screen readers, because "Book This Style" is
+              identical on all six pages and "This" only means something to
+              someone who can see which page she is on. Visible text stays a
+              subset of the accessible name, per WCAG 2.5.3.
+
+              Full width below `sm` because at phone width a centred pill in a
+              column of left-aligned text reads as an orphan, and a full-width
+              bar cannot overflow or crowd the look count under it.
+            */}
+            <div className="mt-9">
+              <ButtonLink
+                {...bookingTarget(collection.slug)}
+                variant="onPhoto"
+                className="w-full sm:w-auto"
+              >
+                <CalendarCheck size={16} weight="regular" aria-hidden="true" />
+                {CTA.bookCollection[collection.dimension]}
+                <span className="sr-only">: {collection.title}</span>
+              </ButtonLink>
+            </div>
+
+            <p className="label mt-9 text-on-accent/55">
               {lookCount(collection)} in this collection
             </p>
           </Reveal>
