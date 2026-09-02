@@ -255,7 +255,16 @@ export const HOME = {
     kicker: "The collection",
     heading: "Explore the Crowned by Nat collection.",
     body: "Six ways to wear an install. Open the one you keep coming back to.",
-    link: "View the gallery",
+    /*
+      NOT CTA.gallery, and this is the one place on the site that departs from
+      it. This block now sits directly under the hero, whose secondary button
+      is CTA.gallery: two links reading "View the gallery" within a screen of
+      each other look like the same control printed twice rather than one
+      route offered once, and on a phone they land close enough to be read in
+      a single glance. Saying what is actually behind the link tells a visitor
+      something the hero button did not.
+    */
+    link: "See all six collections",
   },
   meetNat: {
     kicker: "Meet Nat",
