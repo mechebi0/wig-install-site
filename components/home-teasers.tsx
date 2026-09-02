@@ -16,8 +16,8 @@ import {
  * and none of them is allowed to grow past the size of a doorway. Editing them
  * side by side is what stops that happening one section at a time.
  *
- *   ServiceSummary       the three services by name, out to /book
  *   CollectionShowcase   six cards, out to /gallery
+ *   ServiceSummary       the three services by name, out to /book
  *   ClosingTeasers       Meet Nat and the reviews, side by side, four lines
  *                        each, out to /meet-nat and /reviews
  */

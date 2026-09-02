@@ -20,8 +20,9 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *                 mark itself is in the nav bar directly above it.
  *   Hero          the full-width crossfading carousel: the proposition, the
  *                 two actions, and six of her installs.
+ *   Collections   all six, as cards, then out to /gallery. It leads because
+ *                 the work is what a first-time visitor came to see.
  *   Services      the three appointments by name, no prices, out to /book
- *   Collections   all six, as cards, then out to /gallery
  *   Featured      six recent installs, none of them a hero slide, each out to
  *                 the collection it belongs to
  *   Teasers       Meet Nat and the reviews side by side, four lines each,
@@ -125,8 +126,8 @@ export default function Home() {
       */}
       <LocationStrip />
       <HeroCarousel />
-      <ServiceSummary />
       <CollectionShowcase />
+      <ServiceSummary />
       <FeaturedInstalls />
       <ClosingTeasers />
       <BookingCta />
