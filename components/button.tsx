@@ -34,6 +34,27 @@ export const buttonStyles = {
   onPhoto: `${base} bg-on-accent px-8 py-4 text-accent shadow-lifted hover:bg-white`,
   /** Hero secondary. Outline only, so it never competes with the pill. */
   quiet: `${base} border border-on-accent/55 px-8 py-4 text-on-accent hover:border-on-accent hover:bg-on-accent/12`,
+  /**
+   * The booking action on a collection card. Outline only, and the quietest
+   * button on the site by some distance.
+   *
+   * It has to be, because it appears six times in one grid. A filled wine pill
+   * on every card would put six of the site's loudest object directly under six
+   * photographs and the photography would stop being the thing you look at,
+   * which inverts the whole point of the collection section. So the fill is
+   * dropped, the border starts at 35% wine rather than a hard line, and the
+   * hover is where it earns its keep: the border comes up to full accent and
+   * the faintest wine wash (7%) fills in behind the label.
+   *
+   * Contrast: #b01050 on --bg #fdf8fa = 5.5:1, PASS at AA. The hover wash is
+   * 7% of the accent over the same paper, which moves the background by about
+   * one percent of luminance, so the pass holds in both states. Focus is the
+   * global 2px accent ring from globals.css, deliberately not overridden.
+   *
+   * Padding is tighter than `secondary` but `base` still guarantees the 44px
+   * minimum height, so it stays a comfortable touch target on a phone.
+   */
+  card: `${base} border border-[var(--accent-ring)] px-5 py-2.5 text-accent hover:border-accent hover:bg-accent-soft`,
 } as const;
 
 type ButtonLinkProps = ComponentPropsWithoutRef<"a"> & {

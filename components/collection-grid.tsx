@@ -36,9 +36,21 @@ import { listCollections } from "@/lib/gallery";
 export function CollectionGrid({
   collections = listCollections(),
   variant = "compact",
+  booking = true,
 }: {
   collections?: StyleCollection[];
   variant?: "compact" | "editorial";
+  /**
+   * Give every card its own Book button. On by default, because both places
+   * that render this grid (the homepage showcase and /gallery) are the
+   * visitor choosing a style, and the moment they have chosen one is the
+   * moment to let them book it rather than making them find the CTA at the
+   * foot of the page and then say which style they wanted from memory.
+   *
+   * The slug rides along on the link, so the choice survives the click. See
+   * bookingTarget() in lib/content.ts.
+   */
+  booking?: boolean;
 }) {
   const editorial = variant === "editorial";
 
@@ -69,6 +81,7 @@ export function CollectionGrid({
             collection={collection}
             variant={variant}
             index={index}
+            booking={booking}
           />
         </Reveal>
       ))}

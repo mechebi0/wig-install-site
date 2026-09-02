@@ -130,8 +130,26 @@ export const STUDIO = {
    *                  the on-page form section hides itself automatically.
    *
    * Nothing else needs editing; see bookingTarget() below.
+   *
+   * Nat has no Acuity account yet, so the fallback is the empty string and the
+   * site ships pointing at /book. The env var is read first purely so that the
+   * switch can be flipped from the Cloudflare Pages dashboard without a code
+   * change: set NEXT_PUBLIC_ACUITY_BOOKING_URL to her real scheduler link and
+   * redeploy. It is NOT required for the build.
+   *
+   * This is read at BUILD time, not in the browser, so a deploy is what makes a
+   * change to it take effect (Cloudflare: Deployments -> Retry deployment).
+   * Both states were checked against a real production build: unset, all six
+   * card buttons render "/book/?style=..."; set, they render the scheduler URL
+   * with the style appended. Turbopack leaves this as a lookup against its own
+   * bundled process shim rather than inlining a literal, which is why the `??`
+   * matters. Without it an unset var reaches the markup as the string
+   * "undefined".
+   *
+   * No account, no credentials and no API integration are implied by this line:
+   * it is a string, and the only thing that reads it is the href builder below.
    */
-  bookingUrl: "",
+  bookingUrl: process.env.NEXT_PUBLIC_ACUITY_BOOKING_URL ?? "",
 
   /** Towns rather than a street, because a street was never supplied. */
   city: LOCATIONS.map((l) => l.name).join(" and "),
@@ -171,20 +189,85 @@ export const CTA = {
    * same action reads as a second action.
    */
   book: "Book Your Chair",
+  /**
+   * The same verb, shortened, and ONLY for the button on a collection card.
+   * Six cards in a grid cannot each carry "Book Your Chair" without the row
+   * turning into a wall of repeated CTA, and at card width the full label
+   * wraps. It is still the same first word, so the action is still learned
+   * once. The collection name is appended for screen readers at the call site,
+   * which keeps the accessible name ("Book Deep Wave Glam") a superset of the
+   * visible one and satisfies WCAG 2.5.3 Label in Name.
+   */
+  bookStyle: "Book",
+  /**
+   * The booking action on a collection PAGE, keyed by the same `dimension`
+   * field that draws the eyebrow above the title.
+   *
+   * Five collections are hairstyles and Natural Lace is a standard of finish.
+   * The page has already said which of the two you are looking at, two lines
+   * above this button, so a button that then reads "Book This Style" on the
+   * finish page contradicts its own eyebrow. One lookup keeps the two agreeing
+   * across all six pages from one field, rather than six hand-written labels
+   * and a note to remember the odd one out.
+   *
+   * Longer than `bookStyle` because this button stands alone in a column
+   * rather than repeating six times in a grid, so it can afford the words. And
+   * "This" is what earns them: it says the button books the collection you are
+   * reading about, not a generic appointment.
+   */
+  bookCollection: {
+    style: "Book This Style",
+    finish: "Book This Finish",
+  },
   gallery: "View the gallery",
   collection: "View collection",
 } as const;
 
 /**
+ * Adds `?style=<slug>` to a booking href, keeping any query string the
+ * destination already carries. Acuity links routinely arrive with one attached
+ * (`...?owner=12345678`), so appending blindly with "?" would corrupt them.
+ */
+function withStyle(href: string, style?: string) {
+  if (!style) return href;
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}style=${encodeURIComponent(style)}`;
+}
+
+/**
  * Resolves where a booking CTA points, from the single STUDIO.bookingUrl
  * switch. Every booking CTA on the site spreads these props, so the real
  * booking link is a one-line change rather than a hunt through markup.
+ *
+ * Pass a collection slug to carry the style the visitor was looking at when
+ * they decided to book:
+ *
+ *   bookingTarget()                   -> /book/
+ *   bookingTarget("deep-wave-glam")   -> /book/?style=deep-wave-glam
+ *
+ * The argument is optional and every existing call site is unchanged.
+ *
+ * WHY THE PARAMETER IS CARRIED BUT NOT YET CONSUMED
+ * /book asks which SERVICE you want (the install, the reinstall, the colour
+ * add-on). A collection is a hairstyle, which is a different axis, so there is
+ * no honest way to preselect a service from a style slug and pretending
+ * otherwise would put the wrong appointment in the form. The parameter rides
+ * along so the intent survives the click and is there to be read the moment
+ * either the booking form grows a style field or Acuity is pointed at. Nothing
+ * on /book reads it today and nothing breaks from its presence: under
+ * `output: "export"` a query string is ignored by the static route, and the
+ * page never touches useSearchParams (which would need a Suspense boundary and
+ * fails the export build; see the note in lib/auth/redirect.ts).
  */
-export function bookingTarget() {
+export function bookingTarget(style?: string) {
   const external = STUDIO.bookingUrl.trim();
   return external
-    ? { href: external, target: "_blank" as const, rel: "noopener noreferrer" }
-    : { href: "/book/" };
+    ? {
+        href: withStyle(external, style),
+        target: "_blank" as const,
+        rel: "noopener noreferrer",
+      }
+    : { href: withStyle("/book/", style) };
 }
 
 /** True while booking runs through the form on /book rather than an external tool. */
