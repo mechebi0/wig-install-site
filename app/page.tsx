@@ -5,7 +5,6 @@ import {
   ServiceSummary,
 } from "@/components/home-teasers";
 import { FeaturedInstalls } from "@/components/featured-installs";
-import { BookingCta } from "@/components/booking-cta";
 import { COLLECTIONS_IN_ORDER } from "@/lib/collections";
 import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
 
@@ -13,7 +12,7 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * The homepage is a premium introduction and a visual directory. It is not a
  * table of contents, and it is not the site.
  *
- * Six blocks, and every one of them is either the brand or a way forward:
+ * Five blocks, and every one of them is either the brand or a way forward:
  *
  *   Hero          the full-width crossfading carousel: the proposition, the
  *                 two actions, and six of her installs. Where Nat is booking
@@ -25,8 +24,14 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *   Featured      six recent installs, none of them a hero slide, each out to
  *                 the collection it belongs to
  *   Teasers       Meet Nat and the reviews side by side, four lines each,
- *                 then out to /meet-nat and /reviews
- *   Closing CTA   the wine band, booking again
+ *                 then out to /meet-nat and /reviews. The page closes here.
+ *
+ * The wine BookingCta band that used to close this page has been removed. The
+ * homepage already asks for the booking twice above the fold — the hero button
+ * and the persistent nav button — and a third ask below the teasers was the
+ * page repeating itself on the way out. It stays in use on the inner pages
+ * (see components/booking-cta.tsx), which have no such button in view by the
+ * time you reach their foot.
  *
  * WHAT IS DELIBERATELY NOT HERE
  * The complete gallery for any style, the price list, the FAQ, Nat's story and
@@ -126,7 +131,6 @@ export default function Home() {
       <ServiceSummary />
       <FeaturedInstalls />
       <ClosingTeasers />
-      <BookingCta />
     </>
   );
 }

@@ -163,9 +163,9 @@ export function CollectionShowcase() {
  *
  * Two short text blocks stacked as two full-width sections is a page paying
  * twice for the same silence. Side by side they read as one considered
- * closing note, they cost a screen less of scroll, and the quiet between the
- * six photographs above and the wine CTA below is the rhythm the page wanted
- * anyway.
+ * closing note, they cost a screen less of scroll, and the quiet after the six
+ * photographs above is the rhythm the page wanted anyway. This is now the last
+ * band on the homepage, and it closes straight into the footer.
  *
  * The moment either has real content, it earns its own section back.
  */

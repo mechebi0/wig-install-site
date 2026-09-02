@@ -3,8 +3,10 @@ import { Reveal } from "@/components/reveal";
 import { CTA, HOME, REACH, REACH_SECONDARY, bookingTarget } from "@/lib/content";
 
 /**
- * The closing CTA. Used at the foot of the homepage and of the inner pages
- * that are not themselves the booking page.
+ * The closing CTA. Used at the foot of the inner pages that are not themselves
+ * the booking page. The homepage no longer carries it: its hero button and the
+ * nav button already make the ask, and a third one on the way out was the page
+ * repeating itself.
  *
  * This is the one deep field on an otherwise light site, and that is the whole
  * job: after a page of blush paper the wine band reads as a full stop, and the
