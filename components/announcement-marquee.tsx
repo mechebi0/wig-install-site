@@ -66,15 +66,21 @@ import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
  * WCAG 2.2.2 wants a way to pause anything that moves on its own for more than
  * five seconds, and the brief wants no visible control. Both are met:
  *
- *   hover       pauses, on devices that have a hover (globals.css), so a tap
- *               on a phone does not leave it stuck
  *   the button  a real pause/play toggle at the right end of the band, hidden
  *               until it takes keyboard focus, the same device as the skip
  *               link above it. Sighted mouse users never see it; keyboard and
  *               screen reader users get an explicit control. Once pressed it
  *               stays visible, so a sighted keyboard user can see the state.
+ *               This is the ONLY thing that stops the loop.
  *   reduced     under prefers-reduced-motion the track is not shown at all and
  *   motion      the sentence below takes its place, still and centred.
+ *
+ * HOVER DOES NOT PAUSE IT. The pointer crosses the top of the page on its way
+ * to the nav all day, and a band this thin freezing under every one of those
+ * passes reads as a rendering fault rather than as a courtesy. The line runs
+ * underneath the cursor. There is no pointer handler on this component and no
+ * `:hover` rule on the track in globals.css; the pause button is the mechanism
+ * WCAG asks for, and it is enough on its own.
  *
  * ---------------------------------------------------------------------------
  * WHAT THE SCREEN READER GETS

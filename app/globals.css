@@ -348,12 +348,19 @@
     1,130px at desktop), slow enough to read a segment as it passes and fast
     enough that the band is visibly alive.
 
-    Stopping it, per WCAG 2.2.2: a hover pauses it (only on devices that have
-    a hover, so a tap on a phone does not leave it stuck), the visually hidden
-    pause button in the band pauses it through `.is-paused`, and under
-    prefers-reduced-motion it never runs at all. In that last case the track is
-    removed and the one-sentence version the screen reader was already getting
-    is shown in its place, so the stripe still says everything, just still.
+    HOVER DOES NOT STOP IT, and that is deliberate rather than an omission.
+    A ribbon that halts under the cursor reads as a fault on a band this thin:
+    the pointer crosses the top of the page on the way to the nav constantly,
+    and every one of those passes would freeze the brand's first impression
+    for as long as the mouse rested there. It runs underneath the cursor.
+
+    Stopping it is therefore the pause button's job alone: the control in the
+    band, visually hidden until it takes keyboard focus, toggles `.is-paused`
+    here. That is what satisfies WCAG 2.2.2, which asks for a mechanism, not
+    for a hover. Under prefers-reduced-motion the animation never runs at all:
+    the track is removed and the one-sentence version the screen reader was
+    already getting is shown in its place, so the stripe still says
+    everything, just still.
   */
   .marquee-track {
     --marquee-duration: 24s;
@@ -379,12 +386,6 @@
     }
     to {
       transform: translate3d(calc(-100% / var(--marquee-copies, 6)), 0, 0);
-    }
-  }
-
-  @media (hover: hover) {
-    .marquee:hover .marquee-track {
-      animation-play-state: paused;
     }
   }
 

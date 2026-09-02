@@ -165,9 +165,12 @@ BOOK YOUR CHAIR as tracked capitals on a slow, seamless loop. It lives in
   track slides by exactly one copy before restarting, so the restart frame is
   identical to the frame before it. Nothing is measured in JavaScript, and the
   band is `overflow-hidden`, so it never widens the page.
-- Stopping it, per WCAG 2.2.2: hover pauses it on devices with a pointer, a
-  pause/play button at the right end of the band is visually hidden until it
-  takes keyboard focus (the same device as the skip link), and under
+- **Hover does not pause it.** The line keeps running underneath the cursor,
+  by design: the pointer crosses the top of the page constantly on its way to
+  the nav, and a band this thin freezing on every pass reads as a fault.
+- Stopping it, per WCAG 2.2.2: a pause/play button at the right end of the
+  band, visually hidden until it takes keyboard focus (the same device as the
+  skip link), is the only control that halts the loop. Under
   `prefers-reduced-motion` the track is not shown at all and a one-sentence
   static version takes its place. That sentence is also what screen readers
   get; the moving copies are `aria-hidden`.
