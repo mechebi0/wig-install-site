@@ -39,14 +39,41 @@ import { LOCATIONS, NAV_LINKS, REACH, STUDIO } from "@/lib/content";
  * source and it only exists on a dark field. See the note on STUDIO.logo.
  *
  * Extra bottom padding on small screens clears the sticky booking bar.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY IT IS THIS SHORT, AND WHERE THE HEIGHT HAD GONE
+ * ---------------------------------------------------------------------------
+ * This band was 545px on a 1440 desktop and 879px on a 390 phone, which is
+ * taller than the phone's own viewport: you scrolled a full screen of footer.
+ * Measured rather than guessed, the height was in two places.
+ *
+ * The Pages list was 291px of it. Six links, each pinned to a 44px minimum by
+ * the touch-target rule the rest of the site follows, stacked in one column.
+ * 44px is the right floor for a CTA you are meant to hit with a thumb; it is
+ * the wrong floor for a column of text links nobody navigates a beauty site by.
+ * They are now 36px, which still clears the 24px WCAG 2.5.8 AA minimum with
+ * room to spare, and the list runs two columns instead of six rows. The same
+ * six links, in a third of the height, and it reads as an editorial index
+ * rather than a stack.
+ *
+ * The rest was air: 80px of top padding, a 48px grid gap, and 88px between the
+ * last column and the copyright rule. All trimmed, none of it to zero. The
+ * brief was compact luxury, not compression, so the type sizes, the colours,
+ * the mark and every link are exactly as they were.
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
     <footer className="on-photo border-t border-line bg-ink">
-      <div className="mx-auto max-w-[1400px] px-5 pb-28 pt-16 sm:px-8 lg:pb-16 lg:pt-20">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
+      {/*
+        pb-24 rather than pb-28: the sticky booking bar is ~73px tall, so 96px
+        still clears it with room. It stays generous because that bar sits on
+        top of whatever is under it and the copyright is the one line that must
+        never end up behind it.
+      */}
+      <div className="mx-auto max-w-[1400px] px-5 pb-24 pt-12 sm:px-8 lg:pb-12 lg:pt-16">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-5">
             {STUDIO.logo ? (
               /*
@@ -67,7 +94,7 @@ export function SiteFooter() {
               <Wordmark className="text-2xl text-on-accent" />
             )}
 
-            <p className="mt-6 text-sm leading-relaxed text-on-accent/65">
+            <p className="mt-5 text-sm leading-relaxed text-on-accent/65">
               {STUDIO.street ? (
                 <>
                   {STUDIO.street}
@@ -82,9 +109,25 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <nav aria-label="Footer" className="lg:col-span-3">
+          {/*
+            5 / 4 / 3 rather than 5 / 3 / 4. Contact is one email address, so a
+            four-column allocation left roughly 240px of empty wine to the right
+            of it and the band read as left-weighted. The width moves to the
+            Pages list, which is the column that now actually needs it for its
+            two sub-columns, and the row ends closer to the content.
+          */}
+          <nav aria-label="Footer" className="lg:col-span-4">
             <h2 className="label text-on-accent">Pages</h2>
-            <ul className="mt-4 flex flex-col">
+            {/*
+              Two columns at every width. Six links in one column was 264px of
+              footer on a phone; in two it is 108px, and the narrowest cell this
+              ever gets (a 390px screen, so roughly 163px a column) still fits
+              "Before you book" at text-sm without wrapping.
+
+              Row-major fill, so the visual order and the DOM order are the same
+              order and the tab order does not zigzag.
+            */}
+            <ul className="mt-4 grid grid-cols-2 gap-x-6">
               <li>
                 <FooterLink href="/">Home</FooterLink>
               </li>
@@ -99,7 +142,7 @@ export function SiteFooter() {
             </ul>
           </nav>
 
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-3">
             {isSupabaseConfigured ? (
               <>
                 <h2 className="label text-on-accent">Your account</h2>
@@ -115,7 +158,7 @@ export function SiteFooter() {
             ) : null}
 
             <h2
-              className={`label text-on-accent ${isSupabaseConfigured ? "mt-8" : ""}`}
+              className={`label text-on-accent ${isSupabaseConfigured ? "mt-6" : ""}`}
             >
               Contact
             </h2>
@@ -139,7 +182,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <p className="mt-14 border-t border-on-accent/15 pt-8 text-sm text-on-accent/55">
+        <p className="mt-10 border-t border-on-accent/15 pt-6 text-sm text-on-accent/55">
           &copy; {year} {STUDIO.name}. Every install performed by {STUDIO.owner}.
         </p>
       </div>
@@ -157,7 +200,7 @@ function FooterLink({
   return (
     <a
       href={href}
-      className="flex min-h-11 items-center gap-2 text-sm text-on-accent/65 transition-colors hover:text-on-accent"
+      className="flex min-h-9 items-center gap-2 text-sm text-on-accent/65 transition-colors hover:text-on-accent"
     >
       {children}
     </a>
