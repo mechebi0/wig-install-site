@@ -27,8 +27,8 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *                 then out to /meet-nat and /reviews. The page closes here.
  *
  * The wine BookingCta band that used to close this page has been removed. The
- * homepage already asks for the booking twice above the fold — the hero button
- * and the persistent nav button — and a third ask below the teasers was the
+ * homepage already asks for the booking twice above the fold (the hero button
+ * and the persistent nav button), and a third ask below the teasers was the
  * page repeating itself on the way out. It stays in use on the inner pages
  * (see components/booking-cta.tsx), which have no such button in view by the
  * time you reach their foot.
