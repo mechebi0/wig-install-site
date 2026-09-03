@@ -504,8 +504,8 @@ export const ASSURANCES = [
   },
   {
     icon: "arrows",
-    title: "Cut on the head",
-    body: "The hairline and the baseline are cut to your face, on you, never off the stand.",
+    title: "Personalized to You",
+    body: "Every install is shaped around you, from the fit and placement to the final cut and style. Nat takes the time to make sure your crown feels like your own.",
   },
 ] as const;
 
