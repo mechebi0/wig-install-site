@@ -86,8 +86,8 @@ import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
  * WHAT THE SCREEN READER GETS
  * ---------------------------------------------------------------------------
  * Six copies of a moving line would be read six times. The whole track is
- * aria-hidden and one plain sentence stands in for it: "Now booking in Towson
- * & Laurel, MD. Lace wig installs at Crowned by Nat." It is the same element
+ * aria-hidden and one plain sentence stands in for it: "Now booking in Towson,
+ * MD. Lace wig installs at Crowned by Nat." It is the same element
  * that becomes visible under reduced motion, so the two audiences that do not
  * see the motion get exactly the same words.
  *

@@ -12,8 +12,8 @@
  * ---------------------------------------------------------------------------
  * Confirmed, and safe to present as fact:
  *
- *      Crowned by Nat. Installs performed by Nat. Chairs in Towson, MD and
- *      Laurel, MD. The neon mark in public/brand is her own studio sign.
+ *      Crowned by Nat. Installs performed by Nat. One chair, in Towson, MD.
+ *      The neon mark in public/brand is her own studio sign.
  *
  * NOT supplied yet, and therefore deliberately EMPTY rather than invented. An
  * empty string here is not an oversight: every component reads these through
@@ -64,15 +64,23 @@ const CONTACT = {
  * The database in supabase/migrations owns this once a project is connected,
  * and lib/catalog.ts reads it from there. This constant is the compiled-in
  * fallback for the state the site is actually in today: no Supabase project,
- * so no rows to read, but two towns that are confirmed and worth announcing.
+ * so no rows to read, but one town that is confirmed and worth announcing.
+ *
+ * THIS IS THE ONLY PLACE A SERVICE LOCATION IS WRITTEN DOWN. The announcement
+ * stripe, the footer, the "Where" row on /book, the page metadata and the
+ * LocalBusiness structured data all derive from this array, so adding a town
+ * back is one line here and nothing else. Do not re-type a town name into copy;
+ * that is how the site ends up advertising a chair that is not open.
+ *
+ * Laurel, MD was removed on 2026-09-02. Nat installs in Towson only. The row
+ * still exists in the locations table (seeded inactive; see
+ * supabase/migrations) so she can switch it back on from the admin dashboard
+ * without a deploy, and everything below reads active rows first.
  *
  * Keep the order deliberate. It is the order the announcement stripe reads them
- * out in.
+ * out in when there is more than one.
  */
-export const LOCATIONS = [
-  { name: "Towson", region: "MD" },
-  { name: "Laurel", region: "MD" },
-] as const;
+export const LOCATIONS = [{ name: "Towson", region: "MD" }] as const;
 
 export const STUDIO = {
   /** Confirmed brand name. Used verbatim everywhere it appears. */
@@ -157,6 +165,22 @@ export const STUDIO = {
 
   ...CONTACT,
 } as const;
+
+/**
+ * "Towson, MD". The service area written the way a search engine and a person
+ * looking for a local install both expect to read it, and the only string the
+ * page metadata uses for location.
+ *
+ * `STUDIO.city` on its own is the town names with no state ("Towson"), which
+ * is right inside a sentence that already established Maryland and wrong in a
+ * page title, where it reads as a half-finished address. This adds the state
+ * once, here, rather than at four call sites in app/layout.tsx.
+ *
+ * Derived from LOCATIONS like everything else, so it follows a change of town
+ * automatically. Two towns in the same state give "Towson and Laurel, MD",
+ * which is still the correct phrasing rather than a directory listing.
+ */
+export const SERVICE_AREA = `${STUDIO.city}, ${STUDIO.regionCode}`;
 
 /**
  * "call 410 555 0134" or "email crownedbynattt@gmail.com", as one fragment.
@@ -385,7 +409,7 @@ export const HOME = {
   },
   closing: {
     heading: "Your chair is waiting.",
-    body: "One client at a time, in Towson and in Laurel. Send a request and Nat comes back to you with two or three slots.",
+    body: "One client at a time, in Towson, MD. Send a request and Nat comes back to you with two or three slots.",
   },
 } as const;
 
@@ -412,11 +436,15 @@ export const HOME = {
 export const HERO = {
   brand: STUDIO.name,
   /*
-    `line` used to live here: "Lace wig installs in Towson and Laurel, MD.",
-    printed under the mark on the old wine masthead. Both went when the mark
-    moved into the nav bar. It said what the announcement stripe at the top of
-    the page already says - the two towns - and the nav's own logo says the
-    rest, so it was a third statement of the same fact in one eyeful.
+    `line` used to live here, printed under the mark on the old wine masthead.
+    Both went when the mark moved into the nav bar. It said what the
+    announcement stripe at the top of the page already says - where Nat is
+    booking - and the nav's own logo says the rest, so it was a third statement
+    of the same fact in one eyeful.
+
+    If it ever comes back, build it from LOCATIONS rather than typing the town
+    in. The old one was a hardcoded string and it is exactly the kind of line
+    that gets left behind when the service area changes.
   */
   /** Over the photography. The proposition, and the page's h1. */
   headline: "Fitted, cut and finished by hand.",
@@ -714,7 +742,7 @@ export const policiesAreDraft = true;
 export const QUESTIONS = [
   {
     q: "Where does the appointment happen?",
-    a: "Nat takes appointments in Towson, MD and in Laurel, MD. Which chair is open depends on the week, so the location is confirmed when your appointment is, and the strip at the top of the site always shows where she is currently booking.",
+    a: "Nat takes appointments in Towson, MD. The full address comes with your confirmation, and the strip at the top of the site always shows where she is currently booking.",
   },
   {
     q: "Who actually does my install?",

@@ -120,11 +120,10 @@ export default function Home() {
       />
       {/*
         The carousel starts directly under the nav bar. The wine band that used
-        to sit here saying "Now booking in Towson & Laurel, MD" moved up into
-        the announcement stripe above the nav (see
-        components/announcement-marquee.tsx), which says the same towns on
-        every page; keeping both would have opened the homepage with the same
-        fact twice inside 130px.
+        to sit here saying where Nat is booking moved up into the announcement
+        stripe above the nav (see components/announcement-marquee.tsx), which
+        says the same town on every page; keeping both would have opened the
+        homepage with the same fact twice inside 130px.
       */}
       <HeroCarousel />
       <CollectionShowcase />

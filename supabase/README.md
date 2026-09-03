@@ -54,7 +54,7 @@ to run it twice nothing breaks.
 | Object | What it is |
 | --- | --- |
 | `profiles` | One row per account. Holds the `role` (`customer` / `admin`). |
-| `locations` | Towson and Laurel, each with an `active` switch. |
+| `locations` | Towson (active) and Laurel (inactive since 2026-09-02), each with an `active` switch. Only active rows are readable by `anon`, so an inactive town is not advertised and cannot be booked. |
 | `services` | The four services, seeded from the website copy. |
 | `appointments` | Guest and customer bookings in one table. |
 | RLS policies | The actual security. See §7. |

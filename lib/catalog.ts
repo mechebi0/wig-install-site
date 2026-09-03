@@ -207,9 +207,9 @@ export function formatLocationList(
 
    The announcement stripe above the nav bar is not one of those callers. It
    books nothing. Its whole job is to say where Nat is currently taking
-   appointments, and today the honest answer to that is known (Towson and
-   Laurel, both confirmed) while the database that will eventually own the
-   answer is not connected yet.
+   appointments, and today the honest answer to that is known (Towson, and
+   only Towson) while the database that will eventually own the answer is not
+   connected yet.
 
    So the two are split rather than compromised:
 

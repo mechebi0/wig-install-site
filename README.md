@@ -1,7 +1,7 @@
 # Crowned by Nat
 
 Marketing and booking site for **Crowned by Nat**, a one-chair lace wig install
-studio working out of Towson, MD and Laurel, MD. Every install is performed
+studio working out of Towson, MD. Every install is performed
 personally by Nat.
 
 Next.js (App Router) + TypeScript + Tailwind CSS v4, exported as a fully static
@@ -103,9 +103,13 @@ alt text, then list it in whichever collections it belongs to.
   empty on purpose**: every component reads these through helpers and renders
   nothing at all where there is no real value, so the site can never advertise a
   phone number nobody owns. Fill one in and it appears everywhere at once.
-- `LOCATIONS` — Towson and Laurel. The compiled-in fallback for the announcement
-  stripe at the top of every page while there is no Supabase project; see
-  `lib/catalog.ts`.
+- `LOCATIONS` — Towson, MD. The single source of truth for the service area:
+  the announcement stripe, the footer, the "Where" row on `/book`, the page
+  metadata and the LocalBusiness structured data all derive from it, so adding
+  or removing a town is one line. It is the compiled-in fallback used while
+  there is no Supabase project; see `lib/catalog.ts`. Laurel, MD was dropped on
+  2026-09-02 and survives only as an inactive row in the `locations` table, so
+  Nat can switch it back on from the admin dashboard without a deploy.
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a

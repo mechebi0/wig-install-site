@@ -5,7 +5,7 @@ import { AnnouncementMarquee } from "@/components/announcement-marquee";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBookBar } from "@/components/mobile-book-bar";
-import { STUDIO } from "@/lib/content";
+import { SERVICE_AREA, STUDIO } from "@/lib/content";
 import { HERO_PHOTOS } from "@/lib/collections";
 
 /*
@@ -61,11 +61,17 @@ export const metadata: Metadata = {
     `title` in its own metadata, so the brand name can never be forgotten on a
     page and never has to be typed twice.
   */
+  /*
+    SERVICE_AREA rather than STUDIO.city on its own. `city` is the town names
+    joined ("Towson"), which read as an incomplete address in a search result;
+    a local search needs the state on it. Both halves still come from LOCATIONS
+    in lib/content.ts, so a change of town is still a one-line change there.
+  */
   title: {
-    default: `${STUDIO.name} | Lace wig installs in ${STUDIO.city}`,
+    default: `${STUDIO.name} | Lace wig installs in ${SERVICE_AREA}`,
     template: `%s | ${STUDIO.name}`,
   },
-  description: `Lace frontal and closure wig installs in ${STUDIO.city}, performed personally by ${STUDIO.owner}. Six style collections, custom-tinted lace, bleached knots, and a hairline cut to your face.`,
+  description: `Lace frontal and closure wig installs in ${SERVICE_AREA}, performed personally by ${STUDIO.owner}. Six style collections, custom-tinted lace, bleached knots, and a hairline cut to your face.`,
   applicationName: STUDIO.name,
   keywords: [
     "wig install",
@@ -78,10 +84,10 @@ export const metadata: Metadata = {
     "wig customization",
     "medical wig fitting",
     STUDIO.name,
-    STUDIO.city,
+    SERVICE_AREA,
   ],
   openGraph: {
-    title: `${STUDIO.name} | Lace wig installs in ${STUDIO.city}`,
+    title: `${STUDIO.name} | Lace wig installs in ${SERVICE_AREA}`,
     description: `Every install performed personally by ${STUDIO.owner}. One chair, one client, two hours.`,
     type: "website",
     locale: "en_US",

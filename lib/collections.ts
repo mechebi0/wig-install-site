@@ -611,7 +611,7 @@ const COLLECTION_META: CollectionMeta[] = [
     description:
       "Deep wave is the one people bring a screenshot in for. Long lengths, a wave pattern that holds its definition from the root down, and enough weight through the ends to move when you do. Density is set before the lace goes down, so the shape is still there in week three.",
     metaDescription:
-      "Long deep-wave lace installs by Crowned by Nat. Defined texture, glamorous volume, and a hairline cut to your face, in Towson and Laurel, MD.",
+      "Long deep-wave lace installs by Crowned by Nat. Defined texture, glamorous volume, and a hairline cut to your face, in Towson, MD.",
     hero: WORK.deepWaveMiddlePart,
     hoverImage: WORK.deepWaveCrimped,
     order: 1,
@@ -626,7 +626,7 @@ const COLLECTION_META: CollectionMeta[] = [
     description:
       "Straight hides nothing. Every lift at the parting and every uneven end is visible from across a room, which is what makes this collection the honest test of an install. Middle part or deep side part, pressed to a glass finish, cut to a baseline that stays level.",
     metaDescription:
-      "Sleek straight lace installs by Crowned by Nat. Clean centre and side partings, a pressed glass finish, and a level baseline, in Towson and Laurel, MD.",
+      "Sleek straight lace installs by Crowned by Nat. Clean centre and side partings, a pressed glass finish, and a level baseline, in Towson, MD.",
     hero: WORK.straightGlassFinish,
     hoverImage: WORK.straightSideSwoop,
     order: 2,
@@ -641,7 +641,7 @@ const COLLECTION_META: CollectionMeta[] = [
     description:
       "Short units live or die on the perimeter, and a bob cannot be rescued by length the way long hair can. These are cut on the head rather than off the stand, so the baseline sits where your jaw actually is and the shape holds when you turn your head.",
     metaDescription:
-      "Bob and lob lace installs by Crowned by Nat. Blunt baselines, soft curved ends, and a perimeter cut on the head, in Towson and Laurel, MD.",
+      "Bob and lob lace installs by Crowned by Nat. Blunt baselines, soft curved ends, and a perimeter cut on the head, in Towson, MD.",
     hero: WORK.bobSoftLob,
     hoverImage: WORK.bobBluntSidePart,
     order: 3,
@@ -656,7 +656,7 @@ const COLLECTION_META: CollectionMeta[] = [
     description:
       "Body wave is the softer register: a wider wave, more shine off the surface, and volume that reads as fullness rather than texture. It takes light better than any other pattern, which is why it is the one that photographs best in almost any room.",
     metaDescription:
-      "Body-wave lace installs by Crowned by Nat. Soft volume, wide glossy waves, and elegant movement, in Towson and Laurel, MD.",
+      "Body-wave lace installs by Crowned by Nat. Soft volume, wide glossy waves, and elegant movement, in Towson, MD.",
     hero: WORK.bodyWaveBlonde,
     hoverImage: WORK.bodyWaveCopper,
     order: 4,
@@ -671,7 +671,7 @@ const COLLECTION_META: CollectionMeta[] = [
     description:
       "Colour inspiration from the chair: platinum, copper, burgundy and candy pink, all of it worked on the unit rather than on your own hair. Bring a reference to your consult and Nat will tell you straight what the unit you have can and cannot be taken to.",
     metaDescription:
-      "Colour and custom wig inspiration from Crowned by Nat. Blonde, copper, burgundy, and pink lace installs, in Towson and Laurel, MD.",
+      "Colour and custom wig inspiration from Crowned by Nat. Blonde, copper, burgundy, and pink lace installs, in Towson, MD.",
     hero: WORK.colourPinkStraight,
     hoverImage: WORK.bodyWaveCopper,
     order: 5,
@@ -686,7 +686,7 @@ const COLLECTION_META: CollectionMeta[] = [
     description:
       "The quiet collection, and the one the others get judged against. Lace tinted to your skin, knots bleached down, the parting flat to the scalp, and the edges laid to follow your own hairline. Nothing here is trying to be noticed.",
     metaDescription:
-      "Natural-looking lace installs by Crowned by Nat. Tinted lace, bleached knots, and a seamless hairline, in Towson and Laurel, MD.",
+      "Natural-looking lace installs by Crowned by Nat. Tinted lace, bleached knots, and a seamless hairline, in Towson, MD.",
     hero: WORK.deepWaveMeltedPart,
     hoverImage: WORK.straightGlassFinish,
     order: 6,
