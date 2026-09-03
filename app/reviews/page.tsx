@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { Testimonials } from "@/components/testimonials";
-import { BookingCta } from "@/components/booking-cta";
 import { PAGES } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -24,7 +23,6 @@ export default function ReviewsPage() {
     <>
       <PageHeader {...PAGES.reviews} />
       <Testimonials />
-      <BookingCta />
     </>
   );
 }
