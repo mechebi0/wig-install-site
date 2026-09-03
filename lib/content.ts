@@ -373,22 +373,6 @@ export const HOME = {
     */
     link: "See all six collections",
   },
-  meetNat: {
-    kicker: "Meet Nat",
-    heading: "The hands behind the crown.",
-    body: "One stylist, one chair, one client in the room. Nat customizes the unit, lays the lace and cuts the hairline to your face in the same appointment.",
-    link: "Meet Nat",
-  },
-  reviews: {
-    kicker: "The Crowned experience",
-    heading: "In her clients' words.",
-    /** Rendered only while testimonialsArePlaceholder is false. */
-    body: "Three weeks in, which is when an install has to prove itself.",
-    /** Rendered instead while the quotes on /reviews are still stand-ins. */
-    bodyPending:
-      "Nat's clients say it better than a homepage can. Real reviews are being collected now and go up here as they land.",
-    link: "Read the reviews",
-  },
   /**
    * The service summary. Names and one line each, and deliberately NO prices:
    * every figure in SERVICES is still a placeholder awaiting Nat, and a number

@@ -1,6 +1,5 @@
 import { HeroCarousel } from "@/components/hero-carousel";
 import {
-  ClosingTeasers,
   CollectionShowcase,
   ServiceSummary,
 } from "@/components/home-teasers";
@@ -12,7 +11,7 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  * The homepage is a premium introduction and a visual directory. It is not a
  * table of contents, and it is not the site.
  *
- * Five blocks, and every one of them is either the brand or a way forward:
+ * Four blocks, and every one of them is either the brand or a way forward:
  *
  *   Hero          the full-width crossfading carousel: the proposition, the
  *                 two actions, and six of her installs. Where Nat is booking
@@ -22,16 +21,17 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *                 the work is what a first-time visitor came to see.
  *   Services      the three appointments by name, no prices, out to /book
  *   Featured      six recent installs, none of them a hero slide, each out to
- *                 the collection it belongs to
- *   Teasers       Meet Nat and the reviews side by side, four lines each,
- *                 then out to /meet-nat and /reviews. The page closes here.
+ *                 the collection it belongs to. The page closes here.
  *
- * The wine BookingCta band that used to close this page has been removed. The
- * homepage already asks for the booking twice above the fold (the hero button
- * and the persistent nav button), and a third ask below the teasers was the
- * page repeating itself on the way out. It stays in use on the inner pages
- * (see components/booking-cta.tsx), which have no such button in view by the
- * time you reach their foot.
+ * The wine BookingCta band that used to close this page has been removed, and
+ * so has the Meet Nat / reviews teaser band that used to follow Featured (see
+ * components/home-teasers.tsx). The homepage already asks for the booking
+ * twice above the fold (the hero button and the persistent nav button), and
+ * both Meet Nat and the reviews already have their own doorway in the nav, so
+ * a second ask and a second introduction on the way out repeated the page
+ * rather than adding to it. BookingCta stays in use on the inner pages (see
+ * components/booking-cta.tsx), which have no such button in view by the time
+ * you reach their foot.
  *
  * WHAT IS DELIBERATELY NOT HERE
  * The complete gallery for any style, the price list, the FAQ, Nat's story and
@@ -129,7 +129,6 @@ export default function Home() {
       <CollectionShowcase />
       <ServiceSummary />
       <FeaturedInstalls />
-      <ClosingTeasers />
     </>
   );
 }
