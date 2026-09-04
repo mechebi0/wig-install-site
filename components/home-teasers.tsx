@@ -55,7 +55,7 @@ export function ServiceSummary() {
       aria-labelledby="services-heading"
       className="border-t border-line bg-bg"
     >
-      <div className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28">
+      <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <Reveal className="min-w-0">
             <p className="label text-accent">{HOME.services.kicker}</p>
@@ -106,7 +106,7 @@ export function CollectionShowcase() {
       aria-labelledby="collections-heading"
       className="border-t border-line bg-bg"
     >
-      <div className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28">
+      <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <Reveal className="min-w-0">
             <p className="label text-accent">{HOME.collections.kicker}</p>

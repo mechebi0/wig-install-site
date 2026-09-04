@@ -33,6 +33,22 @@
                                     card, and it is the only exception.
 */
 
+/*
+  SECTION RHYTHM, and why it has a phone step of its own.
+
+  Every band on the site is padded `py-14 sm:py-20 lg:py-28`: 56px on a
+  phone, 80px from 640, 112px from 1024. Only the first number is new. The
+  bands used to open at 80px and hold it all the way down, which is 160px of
+  empty paper between any two of them on a 390px screen - about 40% of the
+  viewport spent on nothing, on the device with the least of it to spend.
+
+  The desktop and tablet steps are deliberately untouched. The generous band
+  is the luxury one and it stays exactly as approved; what changes is that a
+  phone now gets a spacing scale proportional to its own screen rather than a
+  desktop measurement passed down unaltered, which is the difference between
+  a mobile composition and a shrunken desktop one.
+*/
+
 :root {
   color-scheme: light;
 
@@ -116,6 +132,15 @@
     font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /*
+      The other half of `viewportFit: "cover"` in app/layout.tsx. With the
+      layout allowed under the notch, the notch has to be paid back or a
+      landscape phone puts the first characters of every line behind it.
+      Both insets are 0 in portrait and on everything without a cutout, so
+      this is inert until it is needed.
+    */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   /* One focus treatment, never removed (Pro Max priority 1). */
@@ -326,6 +351,58 @@
   .tap {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /*
+    THE MOBILE MENU SHEET, and why its transition is written out by hand.
+
+    The sheet stays in the document and is hidden with `visibility` rather
+    than being unmounted, so one declaration can animate it both in and out
+    (see components/site-nav.tsx for why it is not mounted on open). The
+    catch is that `visibility` is a DISCRETE property: put it in a plain
+    300ms transition and the browser flips it at the halfway mark, in both
+    directions. That is wrong at both ends, and it is not a subtlety:
+
+      opening   the panel is still `hidden` for the first 150ms, so it does
+                not fade in, it appears at half opacity partway through. It
+                also cannot take focus during that window - a hidden element
+                is not focusable - so the focus move that is supposed to put
+                the keyboard inside the sheet silently did nothing.
+      closing   it would vanish at 150ms and the remaining fade would play
+                on an invisible box.
+
+    So visibility gets its own 0s transition and is timed by DELAY instead:
+    no delay opening, so it is visible on the first frame and focusable
+    immediately, and a delay equal to the fade when closing, so it survives
+    until the fade has finished. Opacity and transform are what actually
+    animate, and both are compositor properties, so the phone runs this
+    without touching layout.
+  */
+  .sheet {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-0.375rem);
+    transition:
+      opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s linear 300ms;
+  }
+
+  .sheet[data-open="true"] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s linear 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheet,
+    .sheet[data-open="true"] {
+      transition: none;
+    }
   }
 
   /*

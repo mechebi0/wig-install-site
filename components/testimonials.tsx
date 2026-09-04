@@ -24,7 +24,7 @@ export function Testimonials() {
     */
     <section
       aria-label="Client reviews"
-      className="py-16 lg:py-20"
+      className="py-12 sm:py-16 lg:py-20"
     >
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
         <Reveal>

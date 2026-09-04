@@ -103,6 +103,21 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // Page is light locked by design; see the palette note in globals.css.
   themeColor: "#fdf8fa",
+  /*
+    Required for `env(safe-area-inset-*)` to report anything but zero.
+
+    The mobile booking bar pads itself off the iOS home indicator with
+    `env(safe-area-inset-bottom)` (see components/mobile-book-bar.tsx), and
+    without `viewport-fit: cover` that value resolves to 0 on every device:
+    the bar was sitting under the indicator on exactly the phones it was
+    written for. Declaring it here is what makes that padding real.
+
+    It also lets the layout run under the notch, so globals.css pays the
+    horizontal insets back on the body. Both are 0 in portrait, which is
+    where nearly all of this traffic is, so this changes nothing there and
+    only starts mattering in landscape on a notched handset.
+  */
+  viewportFit: "cover",
 };
 
 /**

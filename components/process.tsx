@@ -14,7 +14,7 @@ export function Process() {
   return (
     <section
       aria-labelledby="process-heading"
-      className="bg-surface-2/60 py-20 lg:py-28"
+      className="bg-surface-2/60 py-14 sm:py-20 lg:py-28"
     >
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8">
         <Reveal>

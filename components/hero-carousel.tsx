@@ -185,8 +185,25 @@ export function HeroCarousel() {
   const [reduced, setReduced] = useState(false);
   const [inView, setInView] = useState(true);
   const [pageVisible, setPageVisible] = useState(true);
-  /** The other five slides stay out of the DOM until the first has landed. */
-  const [warm, setWarm] = useState(false);
+  /**
+   * How much of the rotation is in the DOM, in three stages.
+   *
+   * It used to be a boolean: the lead slide alone, then all seven at 900ms.
+   * On a desktop connection that is invisible, and on a phone it is six extra
+   * photographs pulled in a burst while the page is still settling, five of
+   * which will not be looked at for the better part of a minute and none of
+   * which will be looked at at all by the visitor who scrolls straight past.
+   *
+   *   lead   the LCP frame on its own
+   *   near   plus the slide either side of the active one, which is every
+   *          frame the carousel can reach next by any means available on a
+   *          phone - the dwell timer, both arrows, and a swipe in either
+   *          direction. The crossfade therefore always has its incoming
+   *          frame already in the document, so staging costs it nothing.
+   *   all    the remainder, which only the dots can jump to directly, and
+   *          only from `sm` up where the dots are rendered at all.
+   */
+  const [warm, setWarm] = useState<"lead" | "near" | "all">("lead");
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -197,9 +214,26 @@ export function HeroCarousel() {
   }, []);
 
   useEffect(() => {
-    const id = window.setTimeout(() => setWarm(true), 900);
+    const id = window.setTimeout(
+      () => setWarm((stage) => (stage === "lead" ? "near" : stage)),
+      900,
+    );
     return () => window.clearTimeout(id);
   }, []);
+
+  /*
+    The rest, one dwell later, and only while the hero is actually on screen.
+
+    Gating on `inView` is the point of the second stage rather than an
+    afterthought: a visitor who flicks past the hero inside six seconds never
+    reaches the first slide change, so the four frames they have not seen are
+    four downloads that would have bought nothing. Scrolling back re-arms it.
+  */
+  useEffect(() => {
+    if (!inView) return;
+    const id = window.setTimeout(() => setWarm("all"), DWELL_MS);
+    return () => window.clearTimeout(id);
+  }, [inView]);
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -263,6 +297,16 @@ export function HeroCarousel() {
 
   const goTo = useCallback(
     (target: number) => {
+      /*
+        Any manual move brings the whole rotation in, ahead of its timer.
+
+        Staging exists to keep frames nobody has asked for off a phone's
+        connection while the page is still loading. Touching an arrow, a dot
+        or a swipe is the visitor asking, so the reason to hold the rest back
+        has gone: from here they may jump anywhere in the set, and the dots
+        can reach a slide the "near" window does not cover.
+      */
+      setWarm("all");
       setIndex(((target % count) + count) % count);
     },
     [count],
@@ -359,7 +403,13 @@ export function HeroCarousel() {
       <div className="relative aspect-[4/5] max-h-[62svh] min-h-[300px] w-full shrink-0 sm:aspect-[4/3] lg:absolute lg:inset-0 lg:aspect-auto lg:max-h-none lg:min-h-0 lg:w-auto lg:flex-none">
         {HERO_SLIDES.map((slide, i) => {
           const isActive = i === index;
-          const mounted = i === 0 || warm || isActive;
+          const adjacent =
+            i === (index + 1) % count || i === (index - 1 + count) % count;
+          const mounted =
+            i === 0 ||
+            isActive ||
+            warm === "all" ||
+            (warm === "near" && adjacent);
 
           return (
             <div

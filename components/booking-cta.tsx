@@ -30,7 +30,7 @@ export function BookingCta({
       aria-labelledby="closing-heading"
       className="on-photo bg-ink"
     >
-      <div className="mx-auto flex max-w-[1400px] flex-col items-start gap-8 px-5 py-20 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:py-28">
+      <div className="mx-auto flex max-w-[1400px] flex-col items-start gap-8 px-5 py-14 sm:px-8 sm:py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28">
         <Reveal>
           <h2
             id="closing-heading"

@@ -48,7 +48,7 @@ export function Services() {
     <section
       id="services"
       aria-labelledby="services-heading"
-      className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
+      className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-14 sm:px-8 sm:py-20 lg:py-28"
     >
       <Reveal>
         <h2

@@ -77,7 +77,7 @@ function BookingSection() {
       aria-labelledby="booking-heading"
       className="border-t border-line bg-surface-2/40"
     >
-      <div className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28">
+      <div className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
         <Reveal>
           <h2
             id="booking-heading"

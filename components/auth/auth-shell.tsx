@@ -61,11 +61,27 @@ export function AuthShell({
     <div className="grid min-h-[calc(100svh-4rem)] lg:min-h-[calc(100svh-72px)] lg:grid-cols-2">
       {/* ---------- photography, desktop only ---------- */}
       <div className="on-photo relative isolate hidden overflow-hidden bg-ink lg:block">
+        {/*
+          NOT `priority`, and that is what makes the "desktop only" above
+          true rather than merely intended.
+
+          `hidden lg:block` is display:none, not absence: the <img> is still
+          in the document on a phone, and an EAGER one is fetched there
+          regardless of having no box to paint into. This panel was therefore
+          pulling the 1600w file at high priority on every phone that opened
+          a login, signup or password screen, for a photograph none of them
+          can see. A lazy image with no layout box never starts, so the byte
+          cost on mobile is now actually zero.
+
+          Desktop loses nothing measurable. This sits in the opening viewport,
+          and an in-viewport lazy image is fetched on the first layout pass
+          anyway; all that is given up is the high-priority hint, on a utility
+          screen whose real content is a form the browser has already painted.
+        */}
         <Photograph
           photo={PANEL_PHOTO}
           sizes="50vw"
           large
-          priority
           className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
         />
         {/*

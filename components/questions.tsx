@@ -14,7 +14,7 @@ export function Questions() {
     <section
       id="questions"
       aria-labelledby="questions-heading"
-      className="scroll-mt-24 bg-surface-2/60 py-20 lg:py-28"
+      className="scroll-mt-24 bg-surface-2/60 py-14 sm:py-20 lg:py-28"
     >
       <div className="mx-auto grid max-w-[1400px] gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-4">

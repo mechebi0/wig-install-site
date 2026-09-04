@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { List, UserCircle, X } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
 import { useAuthState } from "@/lib/auth/session";
@@ -132,19 +132,85 @@ export function SiteNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /*
+    The sheet, and the control that opened it. Both are needed for the focus
+    contract below: focus goes into the sheet when it opens and comes back to
+    the button when it closes without going anywhere.
+  */
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  /** Closes the sheet AND hands focus back, for the two dismissals that stay
+      on the page. Navigation does not use it: focus belongs on the new page. */
+  const dismiss = () => {
+    setOpenedAt(null);
+    menuButtonRef.current?.focus();
+  };
+
   useEffect(() => {
     if (!open) return;
 
+    const sheet = sheetRef.current;
+    const focusables = () =>
+      Array.from(
+        sheet?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ??
+          [],
+      ).filter((el) => el.offsetParent !== null);
+
+    /* The sheet covers the viewport, so opening it and leaving focus on the
+       bar underneath would put the next Tab somewhere invisible. */
+    focusables()[0]?.focus();
+
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenedAt(null);
+      if (event.key === "Escape") {
+        setOpenedAt(null);
+        menuButtonRef.current?.focus();
+        return;
+      }
+
+      /*
+        Tab wraps inside the sheet. Everything else on the page is behind an
+        opaque full-screen panel, so letting focus walk out of it is letting
+        it walk somewhere that cannot be seen.
+      */
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (items.length === 0) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || !sheet?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
 
-    const previousOverflow = document.body.style.overflow;
+    /*
+      The lock goes on BOTH elements, and the html one is the half that
+      actually does the work here.
+
+      app/layout.tsx puts `h-full` on <html> and `min-h-full` on <body>,
+      which makes the root element the viewport's scrolling box. Locking
+      body alone therefore left the page behind the sheet perfectly
+      scrollable - measured, not assumed: a scroll issued with the menu open
+      moved the page 500px underneath it. Body is still locked as well, for
+      the case where a future layout change hands the scroll back to it.
+    */
+    const root = document.documentElement;
+    const previousRootOverflow = root.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    root.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      root.style.overflow = previousRootOverflow;
+      document.body.style.overflow = previousBodyOverflow;
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -263,10 +329,12 @@ export function SiteNav() {
               </a>
             </div>
             <button
+              ref={menuButtonRef}
               type="button"
               onClick={() => setOpenedAt(pathname)}
               aria-label="Open menu"
               aria-expanded={open}
+              aria-haspopup="dialog"
               className="tap -mr-2 inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2 lg:hidden"
             >
               <List size={24} weight="regular" />
@@ -275,82 +343,119 @@ export function SiteNav() {
         </nav>
       </header>
 
-      {open ? (
-        <div className="fixed inset-0 z-20 flex flex-col bg-bg lg:hidden">
-          <div className="flex h-16 shrink-0 items-center justify-between px-5 sm:px-8">
-            <Wordmark className="text-xl text-ink" />
-            <button
-              type="button"
-              onClick={() => setOpenedAt(null)}
-              aria-label="Close menu"
-              className="tap -mr-2 inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2"
-            >
-              <X size={24} weight="regular" />
-            </button>
-          </div>
+      {/*
+        ALWAYS RENDERED, and hidden with visibility rather than by being
+        absent. A sheet that is mounted on open can be animated in but has
+        nothing left to animate out of: React removes the node on the same
+        frame the class would have changed, so the close was instant however
+        the open was dressed. Kept in the tree, one transition covers both
+        directions and there is no exit timer to leave the menu half-open if
+        it is interrupted.
 
-          <ul className="flex flex-col px-5 pt-4 sm:px-8">
-            <li>
+        `inert` is what keeps that honest while it is shut: no tab stop, no
+        pointer target, and nothing announced, which is the whole reason the
+        node could not simply be left visible. `invisible` follows the same
+        state and is what the transition ends on, so the panel is not sitting
+        in front of the page at zero opacity swallowing taps.
+
+        `overscroll-contain` stops a flick inside the sheet from chaining to
+        the page underneath once the list has hit its end, which is the mobile
+        half of the scroll lock the effect above does with body overflow.
+      */}
+      <div
+        ref={sheetRef}
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        inert={!open}
+        data-open={open}
+        className="sheet fixed inset-0 z-20 flex flex-col overflow-y-auto overscroll-contain bg-bg lg:hidden"
+        /* The sheet runs edge to edge, so it owes the notch and the home
+           indicator the insets the padded page body pays elsewhere. */
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between px-5 sm:px-8">
+          <Wordmark className="text-xl text-ink" />
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Close menu"
+            className="tap -mr-2 inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2"
+          >
+            <X size={24} weight="regular" />
+          </button>
+        </div>
+
+        <ul className="flex flex-col px-5 pt-4 sm:px-8">
+          <li>
+            <a
+              href="/"
+              aria-current={isCurrent("/") ? "page" : undefined}
+              className={`flex min-h-14 items-center border-b border-line font-display text-2xl tracking-tight ${
+                isCurrent("/") ? "text-accent" : "text-ink"
+              }`}
+            >
+              Home
+            </a>
+          </li>
+          {NAV_LINKS.map((link) => (
+            <li key={link.href}>
               <a
-                href="/"
-                aria-current={isCurrent("/") ? "page" : undefined}
+                href={link.href}
+                aria-current={isCurrent(link.href) ? "page" : undefined}
                 className={`flex min-h-14 items-center border-b border-line font-display text-2xl tracking-tight ${
-                  isCurrent("/") ? "text-accent" : "text-ink"
+                  isCurrent(link.href) ? "text-accent" : "text-ink"
                 }`}
               >
-                Home
+                {link.label}
               </a>
             </li>
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  aria-current={isCurrent(link.href) ? "page" : undefined}
-                  className={`flex min-h-14 items-center border-b border-line font-display text-2xl tracking-tight ${
-                    isCurrent(link.href) ? "text-accent" : "text-ink"
-                  }`}
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
+          ))}
 
-            {auth === "signed-in" || auth === "signed-out" ? (
-              <li>
-                <a
-                  href={auth === "signed-in" ? "/account/" : "/login/"}
-                  aria-current={
-                    isCurrent(auth === "signed-in" ? "/account/" : "/login/")
-                      ? "page"
-                      : undefined
-                  }
-                  className="flex min-h-14 items-center gap-2 border-b border-line font-display text-2xl tracking-tight text-ink"
-                >
-                  <UserCircle size={22} weight="regular" aria-hidden="true" />
-                  {auth === "signed-in" ? "My appointments" : "Log in"}
-                </a>
-              </li>
-            ) : null}
-          </ul>
+          {auth === "signed-in" || auth === "signed-out" ? (
+            <li>
+              <a
+                href={auth === "signed-in" ? "/account/" : "/login/"}
+                aria-current={
+                  isCurrent(auth === "signed-in" ? "/account/" : "/login/")
+                    ? "page"
+                    : undefined
+                }
+                className="flex min-h-14 items-center gap-2 border-b border-line font-display text-2xl tracking-tight text-ink"
+              >
+                <UserCircle size={22} weight="regular" aria-hidden="true" />
+                {auth === "signed-in" ? "My appointments" : "Log in"}
+              </a>
+            </li>
+          ) : null}
+        </ul>
 
-          {/* Bottom of the sheet, so it lands under the thumb. */}
-          <div className="mt-auto px-5 pb-10 pt-8 sm:px-8">
-            <a
-              {...bookingTarget()}
-              onClick={() => setOpenedAt(null)}
-              className={`${buttonStyles.primary} w-full`}
-            >
-              {CTA.book}
-            </a>
-            <a
-              href={REACH.href}
-              className="mt-3 flex min-h-11 items-center justify-center text-sm text-muted"
-            >
-              {REACH_SECONDARY}
-            </a>
-          </div>
+        {/*
+          Bottom of the sheet, so it lands under the thumb. `mt-auto` pushes
+          it there on a tall phone; on a short one (a handset in landscape,
+          where this list is taller than the viewport) the sheet scrolls and
+          this simply follows the last link instead of being pinned off screen.
+        */}
+        <div className="mt-auto px-5 pb-10 pt-8 sm:px-8">
+          <a
+            {...bookingTarget()}
+            onClick={() => setOpenedAt(null)}
+            className={`${buttonStyles.primary} w-full`}
+          >
+            {CTA.book}
+          </a>
+          <a
+            href={REACH.href}
+            className="mt-3 flex min-h-11 items-center justify-center text-sm text-muted"
+          >
+            {REACH_SECONDARY}
+          </a>
         </div>
-      ) : null}
+      </div>
     </>
   );
 }

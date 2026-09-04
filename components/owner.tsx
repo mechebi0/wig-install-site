@@ -23,7 +23,7 @@ export function Owner() {
     <section
       id="about"
       aria-label={`About ${STUDIO.owner}`}
-      className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28"
+      className="mx-auto max-w-[1400px] scroll-mt-24 px-5 py-14 sm:px-8 sm:py-20 lg:py-28"
     >
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">

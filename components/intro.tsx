@@ -17,7 +17,7 @@ export function Intro() {
   return (
     <section
       aria-labelledby="intro-heading"
-      className="mx-auto max-w-[1400px] px-5 py-20 sm:px-8 lg:py-28"
+      className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28"
     >
       {/* The eyebrow that used to sit here is gone; see the note on eyebrow
           count in components/collection-grid.tsx. The rule stays, because it
