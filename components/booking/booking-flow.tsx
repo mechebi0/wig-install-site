@@ -30,8 +30,12 @@ import {
   parseDateOnly,
 } from "@/lib/format";
 import type { BookedSlot, GuestBookingReceipt } from "@/lib/supabase/types";
-import { BOOKING_FLOW, REACH } from "@/lib/content";
-import { useInstallParam } from "@/lib/use-install-param";
+import { BOOKING_FLOW, REACH, SELECTION } from "@/lib/content";
+import {
+  setBookingSelection,
+  useBookingSelection,
+} from "@/lib/booking-selection";
+import { getFinish, parseInstallType } from "@/lib/taxonomy";
 
 /**
  * BOOK YOUR CHAIR. Five steps, one question each.
@@ -145,17 +149,21 @@ export function BookingFlow() {
     every render closes that race completely rather than closing it one render
     late.
 
-    The same resolution serves the `?install=` preselection: "frontal" and
-    "closure" ARE the service slugs, so the install type from the URL is just a
-    slug to resolve, and an explicit pick in the draft always wins over it.
+    The same resolution serves the booking selection (lib/booking-selection.ts):
+    "frontal" and "closure" ARE the service slugs, so an install type chosen
+    in the flow above this one, on an install page or in a Book button's URL
+    is just a slug to resolve. An install type is owned by that shared
+    selection, so it wins here, and picking one in this step writes it back
+    there; the draft holds only the other services, which are not installs.
+    That way this step and the flow above it can never show two answers.
 
     locationId: one open studio means there is nothing to choose, so it is
     chosen. Deriving rather than writing it into the draft means an explicit
     choice still wins, and it cannot get stranded pointing at a studio Nat
     closed while the page was sitting open.
   */
-  const preselected = useInstallParam();
-  const chosenService = draft.serviceId || preselected || "";
+  const selection = useBookingSelection();
+  const chosenService = selection.installType ?? draft.serviceId;
   const serviceId = useMemo(() => {
     if (!chosenService) return "";
     if (services.some((item) => item.id === chosenService)) return chosenService;
@@ -383,6 +391,21 @@ export function BookingFlow() {
     setSubmitting(true);
     setSubmitError("");
 
+    /*
+      The finish travels in the notes. The appointments table has no column
+      for it, and adding one is a migration rather than a front-end change;
+      a named line at the top of the notes reaches Nat today with no schema
+      work, and a column can take it over later without losing anything.
+    */
+    const notes = [
+      selection.finish
+        ? `${SELECTION.book.finish}: ${getFinish(selection.finish).label}`
+        : "",
+      draft.notes.trim(),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
     const input: BookingInput = {
       serviceId: service.id,
       locationId: location.id,
@@ -391,7 +414,7 @@ export function BookingFlow() {
       name: draft.name.trim(),
       email: draft.email.trim().toLowerCase(),
       phone: draft.phone.trim(),
-      notes: draft.notes,
+      notes,
     };
 
     if (user) {
@@ -474,7 +497,15 @@ export function BookingFlow() {
                       name="service"
                       value={item.id}
                       checked={serviceId === item.id}
-                      onSelect={(value) => set("serviceId", value)}
+                      onSelect={(value) => {
+                        // An install goes to the shared selection (see the
+                        // note on serviceId above); anything else stays here.
+                        const install = parseInstallType(
+                          services.find((row) => row.id === value)?.slug,
+                        );
+                        setBookingSelection({ installType: install });
+                        set("serviceId", install ? "" : value);
+                      }}
                       title={item.name}
                       meta={formatPrice(item.price_cents)}
                     >
@@ -689,6 +720,9 @@ export function BookingFlow() {
             <div className="flex flex-col gap-7">
               <Summary
                 service={service}
+                finishLabel={
+                  selection.finish ? getFinish(selection.finish).label : ""
+                }
                 locationLabel={location ? `${location.name}, ${location.state}` : ""}
                 date={draft.date}
                 time={draft.time}
@@ -818,6 +852,7 @@ function DateChip({
 
 function Summary({
   service,
+  finishLabel,
   locationLabel,
   date,
   time,
@@ -828,6 +863,8 @@ function Summary({
   onEdit,
 }: {
   service: CatalogService | null;
+  /** "" when no finish was chosen, and then the row is left out. */
+  finishLabel: string;
   locationLabel: string;
   date: string;
   time: string;
@@ -837,8 +874,16 @@ function Summary({
   notes: string;
   onEdit: (step: number) => void;
 }) {
-  const rows: { label: string; value: string; step: number }[] = [
+  /*
+    `href` instead of `step` for the one row this flow does not own: the
+    finish is chosen in the selection above the flow (#choose on /book), so
+    its "Change" goes there rather than to a step with no finish in it.
+  */
+  const rows: { label: string; value: string; step: number; href?: string }[] = [
     { label: "Service", value: service?.name ?? "", step: 0 },
+    ...(finishLabel
+      ? [{ label: SELECTION.book.finish, value: finishLabel, step: 0, href: "#choose" }]
+      : []),
     { label: "Location", value: locationLabel, step: 1 },
     {
       label: "When",
@@ -865,14 +910,24 @@ function Summary({
         >
           <dt className="w-28 shrink-0 text-sm text-muted">{row.label}</dt>
           <dd className="min-w-0 flex-1 text-base text-ink">{row.value}</dd>
-          <button
-            type="button"
-            onClick={() => onEdit(row.step)}
-            className="shrink-0 text-sm text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:decoration-accent"
-          >
-            Change
-            <span className="sr-only"> {row.label.toLowerCase()}</span>
-          </button>
+          {row.href ? (
+            <a
+              href={row.href}
+              className="shrink-0 text-sm text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:decoration-accent"
+            >
+              Change
+              <span className="sr-only"> {row.label.toLowerCase()}</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onEdit(row.step)}
+              className="shrink-0 text-sm text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:decoration-accent"
+            >
+              Change
+              <span className="sr-only"> {row.label.toLowerCase()}</span>
+            </button>
+          )}
         </div>
       ))}
     </dl>

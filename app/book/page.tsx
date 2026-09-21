@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { Services } from "@/components/services";
+import { InstallSelector } from "@/components/install-selector";
 import { Booking } from "@/components/booking";
 import { BookingFlow } from "@/components/booking/booking-flow";
 import { ButtonLink } from "@/components/button";
@@ -22,7 +23,18 @@ export const metadata: Metadata = {
 
 /**
  * Everything needed to actually book, in the order it is needed: what the
- * services are and what they cost, then the booking itself.
+ * services are and what they cost, then the choice, then the booking itself.
+ *
+ * ---------------------------------------------------------------------------
+ * THE CHOICE, BETWEEN THE MENU AND THE FORM
+ * ---------------------------------------------------------------------------
+ * InstallSelector asks the two questions a booking is made of, one at a time:
+ * which install (Frontal or Closure), and which finish (Curls, Wand Curls or
+ * Crimps, optional). Its Book button then drops to the booking panel below,
+ * which opens with both answers already filled in, and an install page's
+ * Book button lands there directly with the same two answers in the URL.
+ * Either way nothing picked along the way has to be picked twice; see
+ * lib/booking-selection.ts for how the choice survives the trip.
  *
  * ---------------------------------------------------------------------------
  * THREE PATHS, AND WHY ALL THREE STILL EXIST
@@ -58,6 +70,11 @@ export default function BookPage() {
     <>
       <PageHeader {...PAGES.book} />
       <Services />
+      <section id="choose" className="scroll-mt-24 border-t border-line bg-bg">
+        <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
+          <InstallSelector mode="book" />
+        </div>
+      </section>
       {!usesOnPageBooking ? (
         <ExternalBooking />
       ) : isSupabaseConfigured ? (

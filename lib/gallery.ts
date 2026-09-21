@@ -46,13 +46,17 @@
 
 import {
   COLLECTIONS_IN_ORDER,
+  STYLE_LABELS,
   featuredItems,
   getCollection,
+  itemsForInstall,
   relatedCollections,
   type GalleryItem,
   type Photo,
+  type StyleCategory,
   type StyleCollection,
 } from "@/lib/collections";
+import type { InstallTypeId } from "@/lib/taxonomy";
 
 /**
  * Says where a collection came from, so a future admin screen can badge
@@ -92,4 +96,37 @@ export function collectionPhotos(collection: StyleCollection): Photo[] {
 /** The featured rail on the homepage. */
 export function featuredInstalls(): GalleryItem[] {
   return featuredItems();
+}
+
+/**
+ * The examples on an install page: only photographs whose frame establishes
+ * that install type (see `installType` in lib/collections.ts), so an untagged
+ * look is never presented as either.
+ *
+ * Taken one style at a time, in collection order, so six of them read as the
+ * range of the work rather than as the first six deep waves. Anything already
+ * on the page, the hero and the finish swatches, is passed in `exclude` so no
+ * photograph appears twice on one screen.
+ *
+ * Returns an empty list when nothing is established, which today is the case
+ * for closures; the page leaves the section out rather than filling it.
+ */
+export function installExamples(
+  type: InstallTypeId,
+  { exclude = [], limit = 6 }: { exclude?: readonly Photo[]; limit?: number } = {},
+): GalleryItem[] {
+  const skip = new Set(exclude.map((photo) => photo.src));
+  const pool = itemsForInstall(type).filter((item) => !skip.has(item.image.src));
+  const queues = (Object.keys(STYLE_LABELS) as StyleCategory[]).map((style) =>
+    pool.filter((item) => item.primaryStyle === style),
+  );
+
+  const picked: GalleryItem[] = [];
+  while (picked.length < limit && queues.some((queue) => queue.length > 0)) {
+    for (const queue of queues) {
+      const next = queue.shift();
+      if (next && picked.length < limit) picked.push(next);
+    }
+  }
+  return picked;
 }

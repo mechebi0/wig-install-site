@@ -31,11 +31,12 @@ import { INSTALL_TYPE_LABELS } from "@/lib/taxonomy";
  * someone who liked it actually wants. The homepage stays a directory.
  *
  * The label under each frame is its PRIMARY style, not every tag it carries,
- * with its install type on the line beneath. An install tagged both Body Wave
- * and Color & Custom is genuinely both, but a rail of photographs with two or
- * three chips under each is a filter dashboard; the collection pages are where
- * the full tagging shows. The install type is always exactly one of two, so it
- * earns its own line.
+ * with its install type on the line beneath where the photograph establishes
+ * one. An install tagged both Body Wave and Color & Custom is genuinely both,
+ * but a rail of photographs with two or three chips under each is a filter
+ * dashboard; the collection pages are where the full tagging shows. The
+ * install type is at most one of two, so it earns its own line when it is
+ * known and is simply absent when it is not.
  */
 export function FeaturedInstalls() {
   const items = featuredInstalls();
@@ -109,9 +110,16 @@ export function FeaturedInstalls() {
                   <p className="label mt-2 text-muted">
                     {STYLE_LABELS[item.primaryStyle]}
                   </p>
-                  <p className="mt-2 text-[0.6875rem] font-medium uppercase leading-none tracking-[0.14em] text-accent">
-                    {INSTALL_TYPE_LABELS[item.installType]}
-                  </p>
+                  {/*
+                    Only where the photograph establishes it; see
+                    `installType` in lib/collections.ts. An unconfirmed look
+                    carries its style and nothing it cannot back up.
+                  */}
+                  {item.installType ? (
+                    <p className="mt-2 text-[0.6875rem] font-medium uppercase leading-none tracking-[0.14em] text-accent">
+                      {INSTALL_TYPE_LABELS[item.installType]}
+                    </p>
+                  ) : null}
                 </div>
               </a>
             </Reveal>

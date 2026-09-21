@@ -1,13 +1,14 @@
-import type { InstallTypeId } from "@/lib/taxonomy";
+import type { FinishId, InstallTypeId } from "@/lib/taxonomy";
 
 /**
  * THE SIX STYLE COLLECTIONS - the single source of truth for the whole
  * /gallery branch of the site.
  *
- * These are STYLES (and one finish): what the hair looks like. They are not
- * services. The service classification, Frontal Install or Closure Install,
- * is a separate axis defined in lib/taxonomy.ts, and every photograph below
- * carries one of the two as `installType`.
+ * These are STYLES (and one lace finish): what the hair looks like. They are
+ * not services. The service classification, Frontal Install or Closure
+ * Install, is a separate axis defined in lib/taxonomy.ts, and a photograph
+ * below carries one of the two as `installType` only where the frame itself
+ * shows which it is (see the note on that field).
  *
  * Every collection card, every collection page, every gallery, the homepage
  * showcase, the related-collection rail and all six sets of page metadata are
@@ -204,6 +205,56 @@ export const HERO_PHOTOS = {
   lace: WORK.bobSoftLob,
 } as const;
 
+/**
+ * The photograph each install type leads with: its card in the booking flow
+ * on /book and the hero of its own page. Named here for the same reason as
+ * HERO_PHOTOS, so a file never ends up carrying two alt texts.
+ *
+ * THE TWO ARE NOT CHOSEN THE SAME WAY, and the difference is deliberate.
+ *
+ * FRONTAL is a photograph that proves it. A deep side part with the hairline
+ * laid right across the forehead needs lace that runs ear to ear, and only a
+ * frontal has it, so this frame is tagged "frontal" in GALLERY_ITEMS below on
+ * the strength of what is visible in it.
+ *
+ * CLOSURE has no such photograph, because a finished closure shows nothing a
+ * frontal cannot also show. So this is an ILLUSTRATION of the look a closure
+ * is built around - a centre part laid flat, the hair falling over the
+ * temples - and not a record of what this client booked. It stays untagged in
+ * GALLERY_ITEMS, and the caption beside it on the page (`imageCaption` in
+ * lib/taxonomy.ts) says what it shows rather than what it is. When Nat
+ * confirms a real closure in the set, it belongs here instead.
+ */
+export const INSTALL_PHOTOS: Record<InstallTypeId, Photo> = {
+  frontal: WORK.straightSideSwoop,
+  closure: WORK.deepWaveMeltedPart,
+};
+
+/**
+ * A photograph of a finish, where the set has one. Each is used as a swatch
+ * cropped to the lengths, so what it shows is the texture rather than whose
+ * install it is.
+ *
+ * Both are named in their own existing descriptions below, so neither is a
+ * new claim: the burgundy bob is "set into a soft curl", and the crimped deep
+ * wave is titled "Crimped Lengths". Nothing in the set is described as a wand
+ * curl, so Wand Curls has no photograph. It renders a plain swatch instead of
+ * borrowing a body wave and calling it something it was never said to be; add
+ * the photograph here when Nat supplies one and the option picks it up.
+ */
+export const FINISH_PHOTOS: Partial<Record<FinishId, Photo>> = {
+  curls: WORK.bobBurgundyCurl,
+  crimps: WORK.deepWaveCrimped,
+};
+
+/**
+ * The picture in the services menu on /book. It used to be a Pexels stock
+ * shot of a wig laid flat. It sits in the Frontal Install cell, so it is one
+ * of the frames tagged frontal on visible evidence: the hair is held back
+ * off the face and the edges are laid in swirls at both temples.
+ */
+export const SERVICE_PHOTO: Photo = WORK.bodyWaveSideSweep;
+
 /* ==========================================================================
    THE THREE DIMENSIONS
    ==========================================================================
@@ -212,23 +263,29 @@ export const HERO_PHOTOS = {
 
    INSTALL TYPE is how the unit is fitted: a frontal or a closure. It is the
    only one of the three that is a service, so it is the only one that decides
-   what gets booked, and it lives in lib/taxonomy.ts. Every photograph carries
-   exactly one. It is independent of style: a body wave can be either.
+   what gets booked, and it lives in lib/taxonomy.ts. A photograph carries one
+   where the frame shows it, and none where it cannot. It is independent of
+   style: a body wave can be either.
 
    STYLE is what the hair looks like: the texture, the length, the cut, the
    colour. It is what a client pictures when she books. It is a description of
    the hair, never a service; "Body Wave" is a style, not an install.
 
-   FINISH is how well the unit is attached: how flat the lace sits, how much
-   of the hairline was rebuilt, whether the scalp reads as scalp. It is what
-   separates a good install from a bad one wearing the same hair.
+   LACE FINISH is how well the unit is attached: how flat the lace sits, how
+   much of the hairline was rebuilt, whether the scalp reads as scalp. It is
+   what separates a good install from a bad one wearing the same hair.
+
+   Not to be confused with the FINISH a client picks when she books - Curls,
+   Wand Curls or Crimps, in lib/taxonomy.ts - which is how the install is
+   styled on the day. That one is an add-on to the booking. This one is a
+   quality visible in a photograph, and nobody books it.
 
    The three are orthogonal. Every photograph on this site has exactly one
-   install type, exactly one primary style and any number of finish
-   attributes, and "Natural Lace" is a
-   FINISH - the quality of the melt - not a sixth hairstyle. A sleek straight
-   install and a deep wave install can both be natural-lace installs, and both
-   belong under it without either being reclassified.
+   primary style, any number of lace-finish attributes and at most one
+   established install type, and "Natural Lace" is a LACE FINISH - the quality
+   of the melt - not a sixth hairstyle. A sleek straight install and a deep
+   wave install can both be natural-lace installs, and both belong under it
+   without either being reclassified.
 
    WHY MEMBERSHIP IS A TAG AND NOT A LIST
    Each collection used to hand-list its photographs, which meant a photograph
@@ -297,14 +354,30 @@ export type GalleryItem = {
   /** One sentence. What is actually in the frame, and nothing beyond it. */
   description: string;
   /**
-   * How the unit was fitted: the service classification, and independent of
-   * the style below. Read off the frame like the finish attributes are - a
-   * frontal shows a laid hairline across the whole front, a closure a fixed
-   * part with the wearer's own hairline around it - and a photograph cannot
-   * settle it for certain, so Nat should correct any she disagrees with. That
-   * is a one-line edit per photograph, and nothing else needs to change.
+   * How the unit was fitted, where the photograph itself establishes it, and
+   * null where it does not. The service axis, independent of the style below.
+   *
+   * THE RULE. "frontal" is set only when the frame shows lace hairline past
+   * the point where a closure's lace would stop: edges laid down at a temple,
+   * a side part with the hairline laid across the forehead, or the hair taken
+   * back off the face. Only lace that runs ear to ear can do any of those, so
+   * the frame settles it. A centre part with the hair falling over both
+   * temples looks the same on either install, so those frames are null.
+   *
+   * No frame is "closure", and that is not an oversight. A finished closure
+   * shows nothing a frontal cannot also show, so a photograph can never prove
+   * one; only Nat can. These used to be filled in for every frame, two of them
+   * as closures, on a best guess from the picture. A guess shown on the site
+   * as a label is a claim about what a real client booked, so the guesses
+   * were taken out and only what the frame proves is left.
+   *
+   * null means "not established", never "neither". The photograph stays in
+   * its collections and in the gallery; it just carries no install label and
+   * is never used as an example on an install page. When Nat confirms one,
+   * setting it here is a one-line edit, and the gallery tag, the homepage
+   * label and the examples on /installs/<type>/ all follow.
    */
-  installType: InstallTypeId;
+  installType: InstallTypeId | null;
   primaryStyle: StyleCategory;
   /** Includes `primaryStyle`. Drives which style collections show this item. */
   styleCategories: StyleCategory[];
@@ -361,7 +434,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveMeltedPart,
-    installType: "frontal",
+    // Centre part, hair over both temples: either install looks like this.
+    installType: null,
     title: "Melted Centre Part",
     description:
       "A long deep wave seen straight on, the parting sitting flat to the scalp with no visible lace edge.",
@@ -394,7 +468,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveLongLayers,
-    installType: "frontal",
+    // The temples are mostly under the hair; too close to call from the frame.
+    installType: null,
     title: "Long Layers",
     description:
       "A long deep wave cut into soft layers, the texture falling forward over both shoulders.",
@@ -405,7 +480,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveShoulderSweep,
-    installType: "closure",
+    // Was "closure" on a guess. Nothing in the frame proves either install.
+    installType: null,
     title: "Shoulder Sweep",
     description:
       "A shoulder-length deep wave with a centre parting, the wave pattern loosening from the root through the ends.",
@@ -417,7 +493,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
   galleryItem({
     photo: WORK.straightGlassFinish,
-    installType: "frontal",
+    // Centre part, hair over both temples: either install looks like this.
+    installType: null,
     title: "Glass Finish",
     description:
       "A waist-length straight install pressed to a glass-smooth finish, the centre parting laid flat and the ends kept blunt.",
@@ -486,7 +563,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
   galleryItem({
     photo: WORK.bodyWaveBlonde,
-    installType: "frontal",
+    // Centre part, the waves cover both temples: not settled by the frame.
+    installType: null,
     title: "Platinum Body Wave",
     description:
       "A long platinum body wave with a centre parting and wide, soft waves through the lengths.",
@@ -498,7 +576,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.bodyWaveCopper,
-    installType: "frontal",
+    // Parting near the centre, both temples under the hair: not settled.
+    installType: null,
     title: "Copper Body Wave",
     description:
       "A bright copper body wave with a deep side parting, set into large glossy waves.",
@@ -546,7 +625,8 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.colourCopperCentrePart,
-    installType: "closure",
+    // Was "closure" on a guess. Nothing in the frame proves either install.
+    installType: null,
     title: "Warm Copper",
     description:
       "A warm copper install with a centre parting, worn straight through the lengths with a soft bend at the ends.",
@@ -566,6 +646,15 @@ export function itemsInStyle(style: StyleCategory): GalleryItem[] {
 /** Every item carrying a finish, in GALLERY_ITEMS order. */
 export function itemsWithFinish(finish: FinishAttribute): GalleryItem[] {
   return GALLERY_ITEMS.filter((item) => item.finishAttributes.includes(finish));
+}
+
+/**
+ * Every item whose frame establishes this install type, in GALLERY_ITEMS
+ * order. Untagged items are never returned for either, which is the point of
+ * leaving them null.
+ */
+export function itemsForInstall(type: InstallTypeId): GalleryItem[] {
+  return GALLERY_ITEMS.filter((item) => item.installType === type);
 }
 
 /**

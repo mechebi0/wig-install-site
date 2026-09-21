@@ -20,3 +20,11 @@
 /styles         /gallery/          301
 /styles/        /gallery/          301
 /styles/:slug   /gallery/:slug     301
+
+# /installs on its own is not a page. The two install pages live under it
+# (/installs/frontal/ and /installs/closure/), and /book is where the two sit
+# side by side, so someone trimming the address lands on the comparison
+# rather than on a 404. 302, not 301: an index page may live here one day,
+# and a permanent redirect would be cached by browsers against it.
+/installs       /book/             302
+/installs/      /book/             302

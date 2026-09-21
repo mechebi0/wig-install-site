@@ -3,7 +3,9 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CalendarCheck, EnvelopeSimple, Phone } from "@phosphor-icons/react/dist/ssr";
+import { useBookingSelection } from "@/lib/booking-selection";
 import { CTA, REACH, STUDIO, bookingTarget } from "@/lib/content";
+import { installTypeForPath } from "@/lib/taxonomy";
 
 /**
  * Sticky booking bar, mobile only, z-15.
@@ -33,6 +35,19 @@ const REVEAL_AT = 320;
 export function MobileBookBar() {
   const pathname = usePathname();
   const [past, setPast] = useState(false);
+
+  /*
+    The button carries whatever has been chosen, so the thumb-reach way to
+    book never drops a selection the visitor just made. On an install page
+    that page's install comes first: someone reading about the frontal who
+    taps Book means a frontal, whatever she looked at earlier. See
+    lib/booking-selection.ts for where the finish is remembered.
+  */
+  const selection = useBookingSelection();
+  const intent = {
+    install: installTypeForPath(pathname) ?? selection.installType,
+    finish: selection.finish,
+  };
 
   useEffect(() => {
     const onScroll = () => setPast(window.scrollY > REVEAL_AT);
@@ -97,7 +112,7 @@ export function MobileBookBar() {
           )}
         </a>
         <a
-          {...bookingTarget()}
+          {...bookingTarget(intent)}
           tabIndex={shown ? 0 : -1}
           className="inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-accent px-6 text-sm font-medium text-on-accent shadow-lifted transition-[background-color,transform] duration-200 active:scale-[0.98]"
         >

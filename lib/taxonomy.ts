@@ -1,28 +1,45 @@
+import {
+  FINISH_PHOTOS,
+  INSTALL_PHOTOS,
+  type Photo,
+} from "@/lib/collections";
+
 /**
- * INSTALL TYPE - the one thing a client actually books.
+ * WHAT A CLIENT BOOKS: the install type, and the finish she adds to it.
  *
  * ---------------------------------------------------------------------------
- * TWO AXES, KEPT APART
+ * THE AXES, KEPT APART
  * ---------------------------------------------------------------------------
- * This site describes a wig install along two independent axes, and the whole
+ * This site describes a wig install along independent axes, and the whole
  * point of this file is that they never share a list.
  *
  *   INSTALL TYPE   how the unit is fitted. Frontal or closure. This is the
  *                  booking / service classification, and it is defined HERE
- *                  and nowhere else.
+ *                  and nowhere else. "What kind of install are you getting?"
+ *
+ *   FINISH         how the install is styled on the day. Curls, Wand Curls
+ *                  or Crimps. An add-on to an install type, never a service
+ *                  of its own: there is no "Frontal Curls" appointment, there
+ *                  is a Frontal Install with Curls. Also defined HERE.
+ *                  "How would you like your install styled?"
  *
  *   STYLE / LOOK   what the hair looks like: deep wave, sleek straight, bob,
  *                  body wave, colour. That lives in lib/collections.ts beside
- *                  the photographs, and it is a description of the hair rather
- *                  than a service. A body wave is a style; a frontal is an
- *                  install type; a body-wave frontal is both.
+ *                  the photographs, and it is inspiration rather than a
+ *                  service. A body wave is a style; a frontal is an install
+ *                  type; a body-wave frontal is both.
  *
- * Every consumer that needs to say "frontal" or "closure" reads it from here:
- * the homepage install panel, the booking service names in lib/content.ts,
- * the install-type label on each gallery photograph, and the booking link
- * builder. Nothing else types the words, so the taxonomy cannot drift.
+ * A FINISH here is not the LACE FINISH in lib/collections.ts (Natural Lace,
+ * Melted Hairline and the rest). That one is a quality you can see in a
+ * photograph; this one is something you ask for when you book.
  *
- * The ids are the same words the `services` table and SERVICES in
+ * Every consumer that needs to say "frontal", "closure" or a finish name reads
+ * it from here: the homepage install panel, the two install pages, the
+ * booking flow on /book, the booking service names in lib/content.ts, the
+ * install label on a gallery photograph, and the booking link builder.
+ * Nothing else types the words, so the taxonomy cannot drift.
+ *
+ * The install ids are the same words the `services` table and SERVICES in
  * lib/content.ts already use as slugs, so a booking row and an install type
  * are the same key with no translation layer between them.
  *
@@ -31,13 +48,31 @@
  * ---------------------------------------------------------------------------
  * Nat has no Acuity account yet, so `bookingUrl` is "" on both types and no
  * scheduler address is written down anywhere in this repo. When the account
- * exists, the two scheduling links are supplied as build-time environment
- * variables (see the two names below) and every Book button for that install
- * type starts pointing at its own appointment type. Until then bookingTarget()
- * in lib/content.ts sends them all to /book, which is today's behaviour.
+ * exists, each install type becomes its own Acuity appointment type and its
+ * scheduling link is supplied as a build-time environment variable (the two
+ * names below). The finishes do NOT become appointment types of their own:
+ * the chosen one travels with the install type's link as a query parameter,
+ * and bookingTarget() in lib/content.ts is where that parameter is named.
+ * Until then bookingTarget() sends every button to /book, which is today's
+ * behaviour.
  */
 
 export type InstallTypeId = "frontal" | "closure";
+
+export type FinishId = "curls" | "wand-curls" | "crimps";
+
+/**
+ * What the booking layer is handed, and the shape Acuity will be handed:
+ * one install type and, optionally, one finish.
+ *
+ * Both are nullable because a visitor can arrive at the booking flow having
+ * chosen neither yet. The finish stays optional to the end: it is an add-on,
+ * and a client who wants her install left as it is has nothing to pick.
+ */
+export type BookingSelection = {
+  installType: InstallTypeId | null;
+  finish: FinishId | null;
+};
 
 export type InstallType = {
   id: InstallTypeId;
@@ -51,6 +86,49 @@ export type InstallType = {
   shortLabel: string;
   /** One sentence, for the homepage panel. What it is, and who does it. */
   summary: string;
+  /** Its own page. Generated by app/installs/[type]/page.tsx. */
+  href: string;
+  /**
+   * Three short beats, full stops: the italic line under the page title and
+   * on its card in the booking flow. Same device as a collection tagline.
+   */
+  tagline: string;
+  /** Two sentences for the page: what the install is, and what Nat does. */
+  description: string;
+  /**
+   * The page's description tag, without the brand or the town. The route
+   * adds both from lib/content.ts, so neither is typed twice.
+   */
+  metaDescription: string;
+  /** Four short facts for the "how it works" band on the page. */
+  highlights: readonly { title: string; body: string }[];
+  /**
+   * The photograph the page and the booking card lead with. See
+   * INSTALL_PHOTOS in lib/collections.ts for why the two are chosen
+   * differently, and why the closure one is an illustration of the look.
+   */
+  image: Photo;
+  /**
+   * `object-position` for that photograph wherever this install leads with
+   * it: its page hero (5:6), its card on /book (square at desktop) and the
+   * cross-link card. Its own value rather than the gallery's `focalPosition`,
+   * which is tuned for a 3:4 cell and in these wider frames would slice
+   * Nat's neon sign in half along the top edge.
+   */
+  imageFocal: string;
+  /**
+   * One line under that photograph, saying what is visible in it. Written as
+   * a description of the frame, never as a claim about what the client in it
+   * booked.
+   */
+  imageCaption: string;
+  /**
+   * One line over the gallery of this install on its page: why these
+   * photographs count as examples. Empty while there are none.
+   */
+  examplesNote: string;
+  /** The finishes that can be added to this install. All three today. */
+  finishes: readonly FinishId[];
   /**
    * This install type's own scheduler link, or "" while none is connected.
    * Read from the environment at BUILD time, like STUDIO.bookingUrl. The `??`
@@ -59,11 +137,30 @@ export type InstallType = {
   bookingUrl: string;
 };
 
+export type Finish = {
+  id: FinishId;
+  /** Display name, used verbatim on every surface. */
+  label: string;
+  /** One sentence. What it looks like, not how long it lasts. */
+  description: string;
+  /**
+   * Nat's photograph of this finish, where the set has one. Optional on
+   * purpose: an option without a real photograph renders a plain swatch
+   * rather than a borrowed one. See FINISH_PHOTOS in lib/collections.ts.
+   */
+  image?: Photo;
+  /** `object-position` for the swatch crop, measured off the file. */
+  imageFocal?: string;
+};
+
 /** The display names, for the places that hold an id and need the words. */
 export const INSTALL_TYPE_LABELS: Record<InstallTypeId, string> = {
   frontal: "Frontal Install",
   closure: "Closure Install",
 };
+
+/** Every finish can be added to either install. */
+const ALL_FINISHES: readonly FinishId[] = ["curls", "wand-curls", "crimps"];
 
 /** The two, in the order every surface shows them. */
 export const INSTALL_TYPES: readonly InstallType[] = [
@@ -72,6 +169,38 @@ export const INSTALL_TYPES: readonly InstallType[] = [
     label: INSTALL_TYPE_LABELS.frontal,
     shortLabel: "Frontal",
     summary: "Professional frontal wig installation performed by Nat.",
+    href: "/installs/frontal/",
+    tagline: "Ear to ear. Any parting. Every edge laid.",
+    description:
+      "A frontal is a band of lace that runs across the whole front of the hairline, from one ear to the other. Nat tints it to your skin and lays every edge, so the parting can sit anywhere and the hair can be worn back off your face.",
+    metaDescription:
+      "Lace from ear to ear, tinted to your skin, with every edge laid and the parting wherever you want it.",
+    highlights: [
+      {
+        title: "Lace ear to ear",
+        body: "The lace runs the full width of the hairline, so there is no track at the front to hide.",
+      },
+      {
+        title: "Any parting",
+        body: "Middle, side or a deep side part. The parting is not fixed to one spot.",
+      },
+      {
+        title: "Worn back",
+        body: "Slick-backs, half-up styles and braided fronts, with the hairline on show.",
+      },
+      {
+        title: "More upkeep",
+        body: "More lace at the hairline to look after between appointments than a closure has.",
+      },
+    ],
+    image: INSTALL_PHOTOS.frontal,
+    // Keeps the sign whole at the top and the swooped hairline mid-frame.
+    imageFocal: "center 30%",
+    imageCaption:
+      "A deep side part with the hairline laid right across. Only ear-to-ear lace does that.",
+    examplesNote:
+      "Every look here shows lace laid past the parting, which only a frontal allows.",
+    finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_FRONTAL_URL ?? "",
   },
   {
@@ -79,7 +208,70 @@ export const INSTALL_TYPES: readonly InstallType[] = [
     label: INSTALL_TYPE_LABELS.closure,
     shortLabel: "Closure",
     summary: "Professional closure wig installation performed by Nat.",
+    href: "/installs/closure/",
+    tagline: "One parting. Less lace. Lower upkeep.",
+    description:
+      "A closure is a smaller piece of lace set where the hair parts, with the rest of the unit built on wefts. Nat tints it and lays it flat, so the parting reads as scalp while the hair frames your face.",
+    metaDescription:
+      "A lace closure at the parting, tinted and laid flat, with less lace to manage and lower upkeep than a frontal.",
+    highlights: [
+      {
+        title: "Lace at the parting",
+        body: "A smaller square of lace where the hair parts. The rest of the unit is built on wefts.",
+      },
+      {
+        title: "A set parting",
+        body: "Made for a middle or slight side part that sits inside the lace.",
+      },
+      {
+        title: "Less to manage",
+        body: "Less lace to lay and less adhesive at the hairline, so upkeep between visits is lower.",
+      },
+      {
+        title: "Gentle on edges",
+        body: "Less of the hairline is glued down, which is gentler on a tender scalp.",
+      },
+    ],
+    image: INSTALL_PHOTOS.closure,
+    // Higher than the frontal's: this sign hangs closer to the top of the
+    // file, and in the square card on /book 30% grazed its glow.
+    imageFocal: "center 15%",
+    imageCaption:
+      "A centre part laid flat, the hair falling over the temples: the look a closure is built around.",
+    examplesNote: "",
+    finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_CLOSURE_URL ?? "",
+  },
+];
+
+/**
+ * The three finishes, in the order every surface shows them.
+ *
+ * The swatch crops are chosen per photograph. A bob's curl sits around the
+ * face, so that crop keeps the head in; the crimp runs down the lengths, so
+ * that crop drops to them.
+ */
+export const FINISHES: readonly Finish[] = [
+  {
+    id: "curls",
+    label: "Curls",
+    description: "Soft, full curls set through the lengths for movement and volume.",
+    image: FINISH_PHOTOS.curls,
+    imageFocal: "center 55%",
+  },
+  {
+    id: "wand-curls",
+    label: "Wand Curls",
+    description:
+      "Defined spiral curls wrapped around a wand, from the mid-lengths to the ends.",
+    image: FINISH_PHOTOS["wand-curls"],
+  },
+  {
+    id: "crimps",
+    label: "Crimps",
+    description: "A tight, crimped texture pressed through the lengths.",
+    image: FINISH_PHOTOS.crimps,
+    imageFocal: "center 90%",
   },
 ];
 
@@ -94,7 +286,29 @@ export function parseInstallType(
   return INSTALL_TYPES.find((type) => type.id === value)?.id ?? null;
 }
 
+/** parseInstallType's twin for the finish. Same job, same guarantee. */
+export function parseFinish(value: string | null | undefined): FinishId | null {
+  return FINISHES.find((finish) => finish.id === value)?.id ?? null;
+}
+
 export function getInstallType(id: InstallTypeId): InstallType {
   // INSTALL_TYPES is keyed by the union above, so this cannot miss.
   return INSTALL_TYPES.find((type) => type.id === id)!;
+}
+
+export function getFinish(id: FinishId): Finish {
+  // Same guarantee as getInstallType.
+  return FINISHES.find((finish) => finish.id === id)!;
+}
+
+/**
+ * The install type whose own page this is, or null on any other page.
+ *
+ * `trailingSlash: true` means the browser reports "/installs/frontal/" while
+ * a pathname hook can hand back either spelling, so both are normalised to
+ * the trailing-slash form `href` is written in before comparing.
+ */
+export function installTypeForPath(pathname: string): InstallTypeId | null {
+  const path = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  return INSTALL_TYPES.find((type) => type.href === path)?.id ?? null;
 }

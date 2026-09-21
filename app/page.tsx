@@ -18,7 +18,8 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *                 is not said here: the announcement stripe above the nav bar
  *                 carries the towns on every page (see app/layout.tsx).
  *   Installs      the two things a client books, Frontal Install and Closure
- *                 Install, no prices, each with its own Book button. It sits
+ *                 Install, no prices, each with its own Book button and a
+ *                 link to its own page under /installs/. It sits
  *                 directly under the hero because the hero has already shown
  *                 the work, and the next thing a visitor needs is to know
  *                 what they are choosing between.

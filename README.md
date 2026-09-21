@@ -34,7 +34,9 @@ own page.
 | `/gallery/body-wave-glam`   | as above                                                          |
 | `/gallery/color-and-custom` | as above                                                          |
 | `/gallery/natural-lace`     | as above                                                          |
-| `/book`                    | Every service and price, studio details, the booking flow          |
+| `/installs/frontal`        | The Frontal Install: what it is, how it works, Nat's frontal work, choose a finish, book |
+| `/installs/closure`        | The Closure Install, same layout                                   |
+| `/book`                    | Every service and price, choose install then finish, the booking flow |
 | `/before-you-book`         | The appointment step by step, and the FAQ                          |
 | `/reviews`                 | Client quotes                                                      |
 | `/meet-nat`                | Introduction, credentials, three assurances                        |
@@ -43,11 +45,13 @@ own page.
 
 The six collection pages are generated from one file, `app/gallery/[slug]/page.tsx`,
 via `generateStaticParams`, so the build emits six real HTML files and the six
-pages cannot drift apart.
+pages cannot drift apart. The two install pages work the same way from
+`app/installs/[type]/page.tsx`, reading `lib/taxonomy.ts`.
 
 Two earlier URLs are still linked from elsewhere: `/work` (the single page that
 carried the whole portfolio) and `/styles` (the collections, before the rename).
-`public/_redirects` 301s both to `/gallery/`.
+`public/_redirects` 301s both to `/gallery/`. It also sends a bare `/installs/`,
+which is not a page, to `/book/` (302), where the two installs sit side by side.
 
 ## Deployment
 
@@ -113,8 +117,9 @@ alt text, then list it in whichever collections it belongs to.
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a
-  hand-off panel automatically. `bookingTarget({ install, style })` builds the
-  link; an install-type link (below) wins over this one when it is set.
+  hand-off panel automatically. `bookingTarget({ install, finish, style })`
+  builds the link; an install-type link (below) wins over this one when it is
+  set.
 - `SERVICES` — names, prices, durations. Still stand-ins. `frontal` and
   `closure` are the two install types and take their names from
   `lib/taxonomy.ts`.
@@ -123,26 +128,67 @@ alt text, then list it in whichever collections it belongs to.
 - `PAGES`, `HOME`, `HERO`, `COLLECTION_PAGE` — page and section copy.
 - `OWNER`, `QUESTIONS`, `TESTIMONIALS`, `PROCESS`, `ASSURANCES`.
 
-### `lib/taxonomy.ts` — install type, kept apart from style
+### `lib/taxonomy.ts` — what a client books: install type and finish
 
-The site describes an install on two independent axes, and they never share a
+The site describes an install on independent axes, and they never share a
 list:
 
 - **Install type** is the service you book: **Frontal Install** or **Closure
-  Install**. It is defined only in `lib/taxonomy.ts`, and every surface that
-  says "frontal" or "closure" reads it from there.
+  Install**. "What kind of install are you getting?"
+- **Finish** is the styling add-on: **Curls**, **Wand Curls** or **Crimps**.
+  "How would you like your install styled?" It is an add-on to an install,
+  never a service of its own: there is no "Frontal Curls", there is a Frontal
+  Install with Curls.
 - **Style / look** is what the hair looks like (deep wave, sleek straight, bob,
-  body wave, colour). That lives in `lib/collections.ts` with the photographs.
-  A body wave is a style, never an install; a body-wave frontal is both.
+  body wave, colour). That lives in `lib/collections.ts` with the photographs,
+  and it is inspiration rather than a service. A body wave is a style, never an
+  install; a body-wave frontal is both.
 
-Every gallery photograph carries one `installType`. It is read off the frame,
-which cannot settle it for certain, so Nat should correct any she disagrees with
-in `GALLERY_ITEMS` (one line each).
+The first two are defined only in `lib/taxonomy.ts`, and every surface that
+names either reads it from there. Each install type there carries its page
+copy, its lead photograph, its booking link and the finishes it offers
+(`INSTALL_TYPES`); each finish carries its name, one line and a photograph when
+the set has one (`FINISHES`). Not to be confused with the **lace finish**
+(Natural Lace, Melted Hairline...) in `lib/collections.ts`, which is a quality
+visible in a photograph rather than something anyone books; the site labels
+that one "Lace finish" so the two never read as the same word.
 
-Acuity is not connected and no scheduler URL is written down. When it is, set
-`NEXT_PUBLIC_ACUITY_FRONTAL_URL` and `NEXT_PUBLIC_ACUITY_CLOSURE_URL` (build
-time, like `NEXT_PUBLIC_ACUITY_BOOKING_URL`) and each install-type Book button
-opens its own appointment type. Unset, they all go to `/book/?install=...`, and `/book` opens with that service already selected (both the email form and the five-step flow; an unrecognised value is ignored). The hook is `useInstallParam` in `lib/use-install-param.ts`.
+**The booking selection** is `{ installType, finish }`
+(`BookingSelection` in `lib/taxonomy.ts`). The flow on `/book` and on each
+install page (`components/install-selector.tsx`) writes it, and
+`lib/booking-selection.ts` keeps it in two places: the URL
+(`?install=frontal&finish=curls`) and, for the life of the tab,
+`sessionStorage`. So whichever Book button a visitor uses afterwards (the
+flow's own, the nav, the mobile bar, or a server-rendered one on another page)
+`/book` opens with both answers already chosen, and the request that reaches
+Nat names both.
+
+**Acuity is not connected**, and no scheduler URL or field id is written down
+anywhere. When it is:
+
+| Variable | What to put in it |
+| --- | --- |
+| `NEXT_PUBLIC_ACUITY_FRONTAL_URL` | The Frontal Install appointment type's direct scheduling link |
+| `NEXT_PUBLIC_ACUITY_CLOSURE_URL` | The Closure Install appointment type's direct scheduling link |
+| `NEXT_PUBLIC_ACUITY_FINISH_FIELD` | Optional. The query key of the "Finish" intake question, e.g. `field:12345678`, confirmed in Acuity |
+
+All are build-time, like `NEXT_PUBLIC_ACUITY_BOOKING_URL`. Set the first two
+and every button that names an install opens its own appointment type, with the
+finish sent by name under the third. Unset (today) they all go to `/book/`.
+`bookingTarget()` in `lib/content.ts` is the one place that decides.
+
+**Which photographs are labelled Frontal or Closure** is decided by what the
+frame proves, not by a guess. `installType` in `GALLERY_ITEMS` is `"frontal"`
+only where the photograph shows lace laid past the point a closure's lace would
+stop (edges laid down at a temple, a side part with the hairline laid across it,
+or the hair taken off the face), which only ear-to-ear lace allows. Everywhere
+else it is `null`: the look stays in the gallery, unlabelled, and is never used
+as an install example. No photograph is `"closure"`, because a finished closure
+shows nothing a frontal could not also show; only Nat can mark one. That is
+why `/installs/closure/` has no gallery of its own yet, and why its lead
+photograph is captioned as the look a closure is built around rather than as a
+closure. Marking a photograph is a one-line edit in `GALLERY_ITEMS`, and the
+gallery tag and the install page examples follow automatically.
 
 The `/gallery/body-wave-glam` URL and its `body-wave-glam` key are kept so
 existing links do not break; the style is now labelled "Body Wave".
@@ -157,15 +203,15 @@ gallery is still in the bundle (short version: a static export has no server
 render to fetch during, so a database-backed gallery would ship six pages of
 empty grids).
 
-### `lib/images.ts` — the hero rotation and the two non-portfolio slots
+### `lib/images.ts` — the hero rotation and the services picture
 
 The hero slides reference photographs out of `lib/collections.ts`, so a picture
-is never described in two places. What is left here is the ordering of the six
-hero slides and the one remaining stock slot.
+is never described in two places. What is left here is the ordering of the hero
+slides and the one picture in the services menu on `/book`, which is Nat's own
+work like everything else; there is no stock photography on the site.
 
 ```
 public/images/work/    every photograph of finished work, three widths each
-public/images/         the lace-cap product shot (stock)
 public/brand/          Nat's neon studio sign, background removed
 ```
 
@@ -284,16 +330,30 @@ UPDATE, documented in `supabase/README.md`.
   that flag while the words are still invented.**
 - More Signature Bob photographs. That collection has three; the others have
   four to six.
-- A booking link, if she moves to a booking tool.
+- **Which photographs are closures.** No photograph can prove a closure, so
+  none is labelled one and `/installs/closure/` has no gallery of its own until
+  Nat marks some (`installType: "closure"` in `GALLERY_ITEMS`). The same goes for
+  the seven looks left unlabelled because the frame does not settle frontal or
+  closure (the melted centre part, long layers, shoulder sweep, glass finish,
+  platinum and copper body waves, and warm copper).
+- **A photograph of Wand Curls.** None of the set is described as one, so that
+  option shows a plain swatch. Add it to `FINISH_PHOTOS` in
+  `lib/collections.ts` and the option picks it up.
+- Confirmation that Curls, Wand Curls and Crimps are the finishes she offers,
+  on both installs, and what, if anything, they add to the price or the time.
+- The Acuity account: the two appointment types (Frontal Install, Closure
+  Install), their links, and a "Finish" intake question. See the table under
+  `lib/taxonomy.ts` above for where each goes.
 - Supabase project credentials. See `supabase/README.md`.
 
 ## Photography and licence
 
 Everything in `public/images/work/` is **Nat's own work**, shot in her own
-studio. It is not stock and it is not licensed from anyone.
+studio. It is not stock and it is not licensed from anyone. The originals are in
+`photos/`.
 
-The one remaining stand-in is `public/images/unit-lace-cap-wide.jpg`, a
-royalty-free photograph from [Pexels](https://www.pexels.com/license/) (free for
-commercial use, no attribution required) used on `/book` to illustrate a lace
-cap. It shows an object rather than a result, which is the line: stock may
-illustrate a thing, never a piece of Nat's work.
+There is no stock photography on the site. The last piece, a Pexels shot of a
+lace cap used in the services menu on `/book`, was replaced with one of Nat's
+frames and deleted. If a slot ever needs a picture the set does not have, use a
+real frame that honestly fits it, or a plain swatch (as Wand Curls does), rather
+than going back to stock.

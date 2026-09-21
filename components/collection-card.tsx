@@ -160,7 +160,9 @@ export function CollectionCard({
           */}
           {collection.dimension === "finish" ? (
             <p className="label absolute right-5 top-5 z-[1] rounded-full bg-[rgb(var(--scrim)/0.55)] px-3 py-1.5 text-on-accent/90 backdrop-blur-sm">
-              Finish
+              {/* "Lace finish", to stay distinct from the styling finish a
+                  client picks when she books; see lib/taxonomy.ts. */}
+              Lace finish
             </p>
           ) : null}
         </div>

@@ -31,7 +31,9 @@
 
 import {
   INSTALL_TYPE_LABELS,
+  getFinish,
   getInstallType,
+  type FinishId,
   type InstallTypeId,
 } from "@/lib/taxonomy";
 
@@ -237,6 +239,13 @@ export const CTA = {
    */
   bookInstall: "Book",
   /**
+   * The way into an install type's own page, from its card on the homepage
+   * and in the booking flow. Followed by the install's name at the call site
+   * ("View Frontal Install"), the same shape as the Book button beside it, so
+   * the two read as a pair: learn about it, or book it.
+   */
+  viewInstall: "View",
+  /**
    * The booking action on a collection PAGE, keyed by the same `dimension`
    * field that draws the eyebrow above the title.
    *
@@ -275,13 +284,46 @@ function withParams(href: string, params: Record<string, string | undefined>) {
   return `${href}${href.includes("?") ? "&" : "?"}${query}`;
 }
 
-/** What the visitor was looking at when they decided to book. Both optional. */
+/**
+ * What the visitor chose, or was looking at, when she decided to book. All
+ * optional. The two selection fields also take null, so a BookingSelection
+ * from lib/taxonomy.ts can be passed straight through.
+ */
 export type BookingIntent = {
   /** The service axis. Frontal or closure; see lib/taxonomy.ts. */
-  install?: InstallTypeId;
+  install?: InstallTypeId | null;
+  /** The add-on axis. Curls, Wand Curls or Crimps; see lib/taxonomy.ts. */
+  finish?: FinishId | null;
   /** The style axis. A collection slug, e.g. "deep-wave-glam". */
   style?: string;
 };
+
+/**
+ * THE FINISH, ON ITS WAY OUT TO A SCHEDULER. A configuration seam, not a
+ * guess.
+ *
+ * On /book the finish travels as `?finish=<id>` and lib/booking-selection.ts
+ * reads it back. An external scheduler does not know that key. Acuity ignores
+ * parameters it does not recognise, so sending it costs nothing, but for the
+ * finish to reach the appointment Nat receives it has to name one of her
+ * intake-form questions. Acuity can pre-fill an intake question from a
+ * `field:<id>` parameter: once the account and its intake form exist, confirm
+ * the exact key in Acuity and set it as NEXT_PUBLIC_ACUITY_FINISH_FIELD (build
+ * time, like the booking links). No field id is written down in this repo
+ * until then.
+ *
+ * External links carry the finish's display name ("Wand Curls") rather than
+ * its id, because an intake answer is read by a person and a dropdown option
+ * matches on its visible text.
+ */
+const EXTERNAL_FINISH_PARAM =
+  (process.env.NEXT_PUBLIC_ACUITY_FINISH_FIELD ?? "").trim() || "finish";
+
+/**
+ * The id every booking panel on /book carries: the request form, the live
+ * flow and the external hand-off all render as `#request`.
+ */
+export const BOOKING_ANCHOR = "request";
 
 /**
  * Resolves where a booking CTA points. Every booking CTA on the site spreads
@@ -300,33 +342,64 @@ export type BookingIntent = {
  *
  *   bookingTarget()                            -> /book/
  *   bookingTarget({ install: "frontal" })      -> /book/?install=frontal
+ *   bookingTarget({ install: "frontal", finish: "curls" })
+ *                                              -> /book/?install=frontal&finish=curls
  *   bookingTarget({ style: "deep-wave-glam" }) -> /book/?style=deep-wave-glam
  *
  * The argument is optional and the no-argument call sites are unchanged.
  *
+ * A finish never picks the destination. It is an add-on to an install type,
+ * not an appointment type of its own, so it only ever rides along on the
+ * install's link (under EXTERNAL_FINISH_PARAM once that link is external).
+ *
  * WHAT READS THE PARAMETERS
- * `install` is consumed on /book: both booking forms open with that service
- * selected (see useInstallParam in lib/use-install-param.ts, which reads it
- * without useSearchParams, since that would need a Suspense boundary and fails
- * the export build; see the note in lib/auth/redirect.ts). An unrecognised
- * value is ignored. `style` is not consumed anywhere yet: a style is a
- * different axis from the service, so it can never preselect one, and it rides
- * along only so the intent survives the click for a future style field or a
- * scheduler. Nothing breaks from its presence, as under `output: "export"` an
- * unread query string is ignored by the static route.
+ * `install` and `finish` are consumed on /book: the booking flow and both
+ * booking forms open with them selected (see lib/booking-selection.ts, which
+ * reads them without useSearchParams, since that would need a Suspense
+ * boundary and fails the export build; see the note in lib/auth/redirect.ts).
+ * An unrecognised value is ignored. `style` is not consumed anywhere yet: a
+ * style is a different axis from the service, so it can never preselect one,
+ * and it rides along only so the intent survives the click for a future style
+ * field or a scheduler. Nothing breaks from its presence, as under
+ * `output: "export"` an unread query string is ignored by the static route.
  */
-export function bookingTarget({ install, style }: BookingIntent = {}) {
+export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
   const external =
     (install ? getInstallType(install).bookingUrl.trim() : "") ||
     STUDIO.bookingUrl.trim();
-  const params = { install, style };
-  return external
-    ? {
-        href: withParams(external, params),
-        target: "_blank" as const,
-        rel: "noopener noreferrer",
-      }
-    : { href: withParams("/book/", params) };
+
+  if (external) {
+    return {
+      href: withParams(external, {
+        install: install ?? undefined,
+        [EXTERNAL_FINISH_PARAM]: finish ? getFinish(finish).label : undefined,
+        style,
+      }),
+      target: "_blank" as const,
+      rel: "noopener noreferrer",
+    };
+  }
+
+  return {
+    href: withParams("/book/", {
+      install: install ?? undefined,
+      finish: finish ?? undefined,
+      style,
+    }),
+  };
+}
+
+/**
+ * bookingTarget(), except that an on-site destination opens at the booking
+ * panel rather than at the top of /book. For the buttons pressed after the
+ * visitor has already chosen, so the page she lands on does not ask again.
+ * An external link is returned untouched.
+ */
+export function bookingTargetAtForm(intent: BookingIntent) {
+  const target = bookingTarget(intent);
+  return "target" in target
+    ? target
+    : { href: `${target.href}#${BOOKING_ANCHOR}` };
 }
 
 /** True while booking runs through the form on /book rather than an external tool. */
@@ -367,7 +440,7 @@ export const PAGES = {
   book: {
     kicker: "Book",
     title: "Book your chair.",
-    lede: "Pick your service, take a time that suits you, and Nat will text back to confirm. Usually the same day.",
+    lede: "Choose your install and your finish, pick a day that suits you, and Nat will text back to confirm. Usually the same day.",
   },
   beforeYouBook: {
     kicker: "Before you book",
@@ -544,7 +617,7 @@ export const ASSURANCES = [
  * the photographs above it - no lace brand, no product claim.
  */
 export const FINISH_FOCUS = {
-  eyebrow: "A finish, not a hairstyle",
+  eyebrow: "A lace finish, not a hairstyle",
   heading: "What natural lace actually means",
   body: "Every look on this page is a different style. What they share is how the unit meets the skin, which is the part that decides whether an install reads as hair or as a wig.",
   points: [
@@ -578,18 +651,24 @@ export const FINISH_FOCUS = {
  */
 export const GALLERY_AXES = {
   heading: "Three ways to read this work",
-  body: "Every look is labelled by how it was installed. The collections below group them by style, plus one by finish.",
+  body: "The collections below group the looks by style, plus one by lace finish. Where a photograph shows how the unit was fitted, it carries that label too.",
   axes: [
     {
       label: "Install type",
-      body: "Frontal or closure: how the unit is fitted, and the choice you make when you book. Every look carries one of the two.",
+      body: "Frontal or closure: how the unit is fitted, and the choice you make when you book. A look is labelled with one only where the photograph shows it.",
     },
     {
       label: "Style",
       body: "The texture, the length, the cut and the colour - what you picture when you book. Deep wave, sleek straight, bobs, body wave, and custom colour.",
     },
     {
-      label: "Finish",
+      /*
+        "Lace finish" rather than "Finish": the booking flow now asks for a
+        finish too (Curls, Wand Curls, Crimps; lib/taxonomy.ts), and that one
+        is a styling add-on, not the quality of the melt. One word for two
+        different things is exactly the drift lib/taxonomy.ts exists to stop.
+      */
+      label: "Lace finish",
       body: "How well the unit is attached: the melt, the hairline, the parting. Natural Lace collects installs of every texture that share that standard.",
     },
   ],
@@ -604,6 +683,55 @@ export const COLLECTION_PAGE = {
     heading: "Ready for your crown?",
     body: "Bring this page to your consult. Nat will tell you straight whether the unit you have will get you there.",
   },
+} as const;
+
+/**
+ * The words around the booking selection: install, then finish, then the
+ * button. Used on /book and on each install page, where the first step is a
+ * switch between the two install pages rather than a question
+ * (components/install-selector.tsx). The install and finish names come from
+ * lib/taxonomy.ts; these are only the words that frame them.
+ *
+ * The steps are named for what they ask, never "Step 1 / Step 2". The number
+ * is carried by a small numeral beside each heading and read to a screen
+ * reader as "Step 2 of 3", which is where it is actually useful.
+ */
+export const SELECTION = {
+  install: {
+    heading: "Choose your install",
+    body: "Frontal or closure. Nat performs both herself.",
+  },
+  finish: {
+    heading: "Choose your finish",
+    body: "How would you like your install styled?",
+    optional: "Optional",
+    clear: "Clear finish",
+    /** The empty choice in the request form's finish menu. */
+    none: "No finish",
+  },
+  book: {
+    heading: "Book your appointment",
+    install: "Install",
+    finish: "Finish",
+    noInstall: "Not chosen yet",
+    noFinish: "None chosen",
+    needInstall: "Choose Frontal Install or Closure Install first.",
+  },
+  stepOf: (step: number, total: number) => `Step ${step} of ${total}: `,
+} as const;
+
+/**
+ * The two install pages, /installs/frontal/ and /installs/closure/. Everything
+ * specific to one install lives on its entry in lib/taxonomy.ts; this is the
+ * wording both pages share, so the two cannot drift into two voices.
+ */
+export const INSTALL_PAGE = {
+  eyebrow: "Install type",
+  toFinish: "Choose your finish",
+  how: (shortLabel: string) => `How a ${shortLabel.toLowerCase()} works`,
+  examples: (shortLabel: string) => `${shortLabel} installs from the chair`,
+  other: "The other install",
+  gallery: "Browse every look in the gallery",
 } as const;
 
 /**

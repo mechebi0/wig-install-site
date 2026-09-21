@@ -9,9 +9,25 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
 import { Reveal } from "@/components/reveal";
-import { BOOKING, LOCATIONS, REACH, SERVICES, STUDIO } from "@/lib/content";
+import {
+  BOOKING,
+  LOCATIONS,
+  REACH,
+  SELECTION,
+  SERVICES,
+  STUDIO,
+} from "@/lib/content";
 import { formatPrice } from "@/lib/format";
-import { useInstallParam } from "@/lib/use-install-param";
+import {
+  setBookingSelection,
+  useBookingSelection,
+} from "@/lib/booking-selection";
+import {
+  FINISHES,
+  getFinish,
+  parseFinish,
+  parseInstallType,
+} from "@/lib/taxonomy";
 
 /**
  * Booking request form.
@@ -26,6 +42,13 @@ import { useInstallParam } from "@/lib/use-install-param";
  *      That is a real working path on a static host, not a fake success.
  *
  * It never reports success for a request that did not go anywhere.
+ *
+ * THE INSTALL AND THE FINISH arrive already chosen whenever the visitor chose
+ * them anywhere before this: in the flow directly above the form, on an
+ * install page, or in a Book button's URL. Both are read from, and written
+ * back to, the one booking selection (lib/booking-selection.ts), so this form
+ * and the flow above it can never show two different answers. Both reach Nat
+ * in the request, named in full.
  */
 const BOOKING_ENDPOINT = process.env.NEXT_PUBLIC_BOOKING_ENDPOINT ?? "";
 
@@ -52,7 +75,8 @@ const EMPTY: Fields = {
   notes: "",
 };
 
-function validate(fields: Fields): Errors {
+/** `service` is passed separately because it is derived, not held in `fields`. */
+function validate(fields: Fields, service: string): Errors {
   const errors: Errors = {};
 
   if (!fields.name.trim()) {
@@ -70,6 +94,10 @@ function validate(fields: Fields): Errors {
     errors.phone = "The studio confirms by text, so a number is required.";
   } else if (digits.length < 10) {
     errors.phone = "That looks short. Include the area code.";
+  }
+
+  if (!service) {
+    errors.service = "Choose the service you would like to book.";
   }
 
   // Date is optional, but a past one is always a mistake. Resolved at submit
@@ -91,14 +119,27 @@ export function Booking() {
   const [status, setStatus] = useState<Status>("idle");
 
   /*
-    The selected service is derived, not synchronised: an explicit pick wins,
-    then the install type named in `?install=` (see lib/use-install-param.ts),
-    then the first service. Kept out of state so the URL can arrive after
-    hydration without an effect, and so a successful send (which resets
-    `fields`) returns to the preselection rather than to a hardcoded default.
+    The selected service is derived, not synchronised, and each kind of
+    answer has exactly one owner:
+
+      an install type    the shared booking selection. Picking Frontal or
+                         Closure here moves the flow above the form too, and
+                         whatever was picked there (or on an install page, or
+                         in a Book button's URL) shows here without an effect.
+      any other service  this form's own state, since "Customization only" is
+                         not an install and the flow above does not offer it.
+                         Picking one clears the install from the selection so
+                         the two never disagree.
+
+    There is no silent default any more. It used to fall back to the first
+    service, but with the choice now asked for directly above, a form quietly
+    reading "Frontal Install" beside a flow that shows nothing chosen would be
+    two answers to one question. It asks instead, and says so if it is sent
+    without one.
   */
-  const preselected = useInstallParam();
-  const service = fields.service || preselected || SERVICES[0].id;
+  const selection = useBookingSelection();
+  const service = selection.installType ?? fields.service;
+  const finish = selection.finish;
 
   const update = (key: keyof Fields) => (value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
@@ -110,10 +151,16 @@ export function Booking() {
     });
   };
 
+  const chooseService = (value: string) => {
+    const install = parseInstallType(value);
+    setBookingSelection({ installType: install });
+    update("service")(install ? "" : value);
+  };
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const found = validate(fields);
+    const found = validate(fields, service);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       setStatus("idle");
@@ -126,6 +173,7 @@ export function Booking() {
 
     const serviceName =
       SERVICES.find((item) => item.id === service)?.name ?? service;
+    const finishName = finish ? getFinish(finish).label : "";
 
     if (!BOOKING_ENDPOINT) {
       const body = [
@@ -133,13 +181,14 @@ export function Booking() {
         `Email: ${fields.email}`,
         `Phone: ${fields.phone}`,
         `Service: ${serviceName}`,
+        `Finish: ${finishName || SELECTION.finish.none}`,
         `Preferred date: ${fields.date || "No preference"}`,
         "",
         fields.notes || "No notes.",
       ].join("\n");
 
       window.location.href = `mailto:${STUDIO.email}?subject=${encodeURIComponent(
-        `Install request: ${serviceName}`,
+        `Install request: ${serviceName}${finishName ? `, ${finishName}` : ""}`,
       )}&body=${encodeURIComponent(body)}`;
 
       setStatus("success");
@@ -150,7 +199,14 @@ export function Booking() {
       const response = await fetch(BOOKING_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ ...fields, service, serviceName }),
+        // Ids for a machine to route on, names for a person to read.
+        body: JSON.stringify({
+          ...fields,
+          service,
+          serviceName,
+          finish: finish ?? "",
+          finishName,
+        }),
       });
 
       if (!response.ok) throw new Error(`Request failed: ${response.status}`);
@@ -232,7 +288,13 @@ export function Booking() {
             className="sm:col-span-2"
           />
 
-          <div className="flex flex-col gap-2">
+          {/*
+            Full width: the options carry their prices, and the longest,
+            "Reinstall and refresh ($70)", clips in a half-width column at
+            desktop, where the form has seven of twelve columns. The finish
+            and the date then share the next row.
+          */}
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <label
               htmlFor={`${formId}-service`}
               className="text-sm font-medium text-ink"
@@ -243,15 +305,64 @@ export function Booking() {
               id={`${formId}-service`}
               name="service"
               value={service}
-              onChange={(event) => update("service")(event.target.value)}
-              className="w-full rounded-3xl border border-line-strong bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent"
+              onChange={(event) => chooseService(event.target.value)}
+              aria-invalid={errors.service ? true : undefined}
+              aria-describedby={
+                errors.service ? `${formId}-service-error` : undefined
+              }
+              className={`w-full rounded-3xl border bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent ${
+                errors.service ? "border-danger" : "border-line-strong"
+              }`}
             >
+              <option value="" disabled>
+                Choose a service
+              </option>
               {SERVICES.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name} ({formatPrice(item.priceCents)})
                 </option>
               ))}
             </select>
+            {errors.service ? (
+              <p id={`${formId}-service-error`} className="text-sm text-danger">
+                {errors.service}
+              </p>
+            ) : null}
+          </div>
+
+          {/*
+            The styling add-on. Optional, so the empty choice is a real,
+            named option rather than a blank. It writes to the same booking
+            selection as the finish tiles above the form, so changing either
+            changes both.
+          */}
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor={`${formId}-finish`}
+              className="text-sm font-medium text-ink"
+            >
+              {SELECTION.book.finish}
+            </label>
+            <select
+              id={`${formId}-finish`}
+              name="finish"
+              value={finish ?? ""}
+              onChange={(event) =>
+                setBookingSelection({ finish: parseFinish(event.target.value) })
+              }
+              aria-describedby={`${formId}-finish-help`}
+              className="w-full rounded-3xl border border-line-strong bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent"
+            >
+              <option value="">{SELECTION.finish.none}</option>
+              {FINISHES.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p id={`${formId}-finish-help`} className="text-sm text-muted">
+              {SELECTION.finish.optional}. {SELECTION.finish.body}
+            </p>
           </div>
 
           <Field

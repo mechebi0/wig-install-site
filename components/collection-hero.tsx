@@ -61,8 +61,13 @@ export function CollectionHero({
               visitor who does not know that reads Natural Lace as a texture
               she has never heard of. Two words fix it.
             */}
+            {/*
+              "Lace finish", not "Finish": the booking flow also asks for a
+              finish (Curls, Wand Curls, Crimps; lib/taxonomy.ts), and that is
+              a styling add-on, not the quality of the melt this page is about.
+            */}
             <p className="label mt-8 text-on-accent/60">
-              {collection.dimension === "finish" ? "Finish" : "Style"}
+              {collection.dimension === "finish" ? "Lace finish" : "Style"}
             </p>
 
             <h1 className="mt-3 max-w-[13ch] font-display text-4xl leading-[1.02] tracking-tight text-on-accent md:text-5xl lg:text-6xl">

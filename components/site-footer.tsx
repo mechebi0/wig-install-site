@@ -2,6 +2,22 @@ import { InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/wordmark";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { LOCATIONS, NAV_LINKS, REACH, STUDIO } from "@/lib/content";
+import { INSTALL_TYPES } from "@/lib/taxonomy";
+
+/*
+  The Pages list, in reading order. The two install pages sit straight after
+  Gallery so the two-column grid below pairs them on one row of their own
+  ("Frontal Install | Closure Install"), which reads as the choice it is.
+  NAV_LINKS[0] is Gallery by the same positional contract SiteNav uses to
+  split the bar; the rest follow in nav order, then the booking link.
+*/
+const FOOTER_PAGES = [
+  { label: "Home", href: "/" },
+  NAV_LINKS[0],
+  ...INSTALL_TYPES.map((type) => ({ label: type.label, href: type.href })),
+  ...NAV_LINKS.slice(1),
+  { label: "Book Your Chair", href: "/book/" },
+];
 
 /**
  * Footer, kept minimal on purpose.
@@ -119,26 +135,21 @@ export function SiteFooter() {
           <nav aria-label="Footer" className="lg:col-span-4">
             <h2 className="label text-on-accent">Pages</h2>
             {/*
-              Two columns at every width. Six links in one column was 264px of
-              footer on a phone; in two it is 108px, and the narrowest cell this
-              ever gets (a 390px screen, so roughly 163px a column) still fits
-              "Before you book" at text-sm without wrapping.
+              Two columns at every width. Eight links in one column would be
+              288px of footer on a phone; in two it is 144px, and the narrowest
+              cell this ever gets (a 390px screen, so roughly 163px a column)
+              still fits "Before you book" and "Closure Install" at text-sm
+              without wrapping.
 
               Row-major fill, so the visual order and the DOM order are the same
               order and the tab order does not zigzag.
             */}
             <ul className="mt-4 grid grid-cols-2 gap-x-6">
-              <li>
-                <FooterLink href="/">Home</FooterLink>
-              </li>
-              {NAV_LINKS.map((link) => (
+              {FOOTER_PAGES.map((link) => (
                 <li key={link.href}>
                   <FooterLink href={link.href}>{link.label}</FooterLink>
                 </li>
               ))}
-              <li>
-                <FooterLink href="/book/">Book Your Chair</FooterLink>
-              </li>
             </ul>
           </nav>
 

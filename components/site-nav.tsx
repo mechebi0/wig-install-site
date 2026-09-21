@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { List, UserCircle, X } from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
 import { useAuthState } from "@/lib/auth/session";
+import { useBookingSelection } from "@/lib/booking-selection";
+import { installTypeForPath } from "@/lib/taxonomy";
 import { Wordmark } from "@/components/wordmark";
 import {
   CTA,
@@ -114,6 +116,19 @@ export function SiteNav() {
   const pathname = usePathname();
   const auth = useAuthState();
   const [scrolled, setScrolled] = useState(false);
+
+  /*
+    Book Your Chair carries the visitor's choice, the same rule as the mobile
+    booking bar: an install page's own install first, then whatever was
+    chosen (lib/booking-selection.ts). The selection is empty on the
+    server, so the prerendered link carries at most the page's own install,
+    and hydration adds the rest of the choice.
+  */
+  const selection = useBookingSelection();
+  const booking = bookingTarget({
+    install: installTypeForPath(pathname) ?? selection.installType,
+    finish: selection.finish,
+  });
 
   /*
     The sheet stores the route it was opened on rather than a boolean, so
@@ -324,7 +339,7 @@ export function SiteNav() {
               stylesheet order rather than class order.
             */}
             <div className="hidden sm:block">
-              <a {...bookingTarget()} className={buttonStyles.compact}>
+              <a {...booking} className={buttonStyles.compact}>
                 {CTA.book}
               </a>
             </div>
@@ -442,7 +457,7 @@ export function SiteNav() {
         */}
         <div className="mt-auto px-5 pb-10 pt-8 sm:px-8">
           <a
-            {...bookingTarget()}
+            {...booking}
             onClick={() => setOpenedAt(null)}
             className={`${buttonStyles.primary} w-full`}
           >

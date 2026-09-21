@@ -14,6 +14,7 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
  * side by side is what stops that happening one section at a time.
  *
  *   InstallTypes         the two services, frontal and closure, out to /book
+ *                        and to each install's own page
  *   CollectionShowcase   six style cards, out to /gallery
  *
  * They answer two different questions and are kept visibly apart. InstallTypes
@@ -62,7 +63,8 @@ function TextLink({ href, children }: { href: string; children: string }) {
  * elsewhere on the page carries the colour, and this block only has to be
  * unmistakable.
  *
- * Names, descriptions and the per-type booking link all come from
+ * Names, descriptions, the per-type booking link and the link to each
+ * install's own page (/installs/frontal/, /installs/closure/) all come from
  * lib/taxonomy.ts. Nothing here types "frontal" or "closure".
  */
 export function InstallTypes() {
@@ -99,12 +101,24 @@ export function InstallTypes() {
                   <h3 className="font-display text-3xl leading-[1.05] tracking-tight text-ink lg:text-5xl">
                     {type.label}
                   </h3>
+                  {/* The same three beats the install's own page opens on,
+                      so the card and the page read as one voice. */}
+                  <p className="mt-3 font-display text-lg italic text-muted lg:text-xl">
+                    {type.tagline}
+                  </p>
                   <p className="mt-5 max-w-[30ch] text-base leading-relaxed text-muted lg:text-lg">
                     {type.summary}
                   </p>
                 </div>
 
-                <div>
+                {/*
+                  Two ways on from each install: book it, or open its own
+                  page (the finishes, the photographs, how it compares). The
+                  Book pill stays the primary object; the page link is the
+                  quiet text-link tier the rest of the homepage uses, so the
+                  panel gains a doorway without gaining a second button.
+                */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
                   <ButtonLink
                     {...bookingTarget({ install: type.id })}
                     className="w-full sm:w-auto"
@@ -112,6 +126,9 @@ export function InstallTypes() {
                     <CalendarCheck size={17} weight="regular" aria-hidden="true" />
                     {CTA.bookInstall} {type.label}
                   </ButtonLink>
+                  <TextLink href={type.href}>
+                    {`${CTA.viewInstall} ${type.label}`}
+                  </TextLink>
                 </div>
               </article>
             </Reveal>

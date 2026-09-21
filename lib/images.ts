@@ -3,36 +3,25 @@
  *
  * The portfolio itself lives in lib/collections.ts, which owns every
  * photograph of finished work and the six collections they are grouped into.
- * What is left here is the homepage hero rotation, plus the two single slots
- * that are not portfolio pieces.
+ * What is left here is the homepage hero rotation, plus the one single slot
+ * that is not a portfolio piece: the picture in the services menu on /book.
  *
  * ---------------------------------------------------------------------------
- * PROVENANCE, WHICH IS NOW TWO DIFFERENT THINGS
+ * PROVENANCE
  * ---------------------------------------------------------------------------
- * REAL. Everything in HERO_SLIDES is Nat's own work, pulled from the same set
- * as the collections and referenced straight out of lib/collections.ts so a
+ * ALL REAL. Everything here is Nat's own work, pulled from the same set as the
+ * collections and referenced straight out of lib/collections.ts, so a
  * photograph is never described twice.
  *
- * STAND-IN. The two slots at the bottom are still royalty-free stock from
- * Pexels (pexels.com/license: free commercial use, no attribution required),
- * committed locally rather than hotlinked so the Cloudflare Pages deployment
- * has no third-party image dependency. `sourceId` records the originating
- * photo. Neither one is presented as Nat's work, and that is the line: stock
- * may illustrate an object, never a result.
+ * There is no stock photography on the site any more. The last piece, a
+ * Pexels shot of a wig laid flat with the lace cap up, used to fill the
+ * services slot at the bottom of this file; it has been replaced with one of
+ * Nat's own frames and the file deleted from public/images/. If a slot ever
+ * needs a picture the set does not have, use a real frame that honestly fits
+ * it rather than going back to stock.
  */
 
-import { HERO_PHOTOS, type Photo } from "@/lib/collections";
-
-export type ImageSlot = {
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
-  /** Originating Pexels photo id, for traceability. Drop when replaced. */
-  sourceId?: number;
-};
-
-const img = (file: string) => `/images/${file}`;
+import { HERO_PHOTOS, SERVICE_PHOTO, type Photo } from "@/lib/collections";
 
 /* ==========================================================================
    HOMEPAGE HERO CAROUSEL
@@ -275,24 +264,25 @@ export const HERO_SLIDES: HeroSlide[] = [
 ];
 
 /* ==========================================================================
-   SINGLE SLOTS - both still stand-ins
+   SINGLE SLOT
    ========================================================================== */
 
 /**
- * 4:3 landscape. Fills the featured cell in the services panel on /book.
+ * The featured cell in the services menu on /book, which carries the first
+ * service: Frontal Install.
  *
- * A unit photographed flat with the lace cap facing up, because the services
- * section is about the thing that gets worked on rather than about a result.
- * It shows the lace, the knots and the perimeter that has to be tinted and
- * cut. STAND-IN, and the one place a stock photograph is defensible: it
- * illustrates an object, and claims nothing about whose work it is.
+ * It used to be the stock lace-cap shot described at the top of this file.
+ * It is now one of Nat's frames, and specifically one whose install type the
+ * photograph itself establishes (see SERVICE_PHOTO in lib/collections.ts), so
+ * the picture in the frontal cell is a frontal.
+ *
+ * The cell is 16:10 and the file is 3:4, so the crop keeps a band a little
+ * under half the file's height. `focal` puts that band on the laid hairline
+ * and the swirls at both temples, which are the point of the frame.
  */
-export const SERVICE_IMAGE: ImageSlot = {
-  src: img("unit-lace-cap-wide.jpg"),
-  alt: "A brown wig laid flat with the lace cap facing up, showing the knots and the lace perimeter",
-  width: 1000,
-  height: 750,
-  sourceId: 13074451,
+export const SERVICE_IMAGE: { photo: Photo; focal: string } = {
+  photo: SERVICE_PHOTO,
+  focal: "center 35%",
 };
 
 /** The slide's focal point, falling back to `HERO_FOCAL_DEFAULT`. */

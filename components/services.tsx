@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { useServices, type CatalogService } from "@/lib/catalog";
 import { formatDuration, formatPrice } from "@/lib/format";
@@ -68,15 +68,21 @@ export function Services() {
           as="article"
           className="flex flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft lg:col-span-7 lg:row-span-2"
         >
+          {/*
+            Nat's own frame, through the same component as every other
+            photograph on the site, so it gets the 600/1200/1600 srcSet rather
+            than one fixed file. `priority` because this cell is the first
+            picture on /book and sits in the opening screen at every width,
+            which makes it the page's likely LCP; the stock shot it replaced
+            was lazy, which only delayed it.
+          */}
           <div className="relative aspect-16/10 w-full overflow-hidden bg-surface-2">
-            <Image
-              src={SERVICE_IMAGE.src}
-              alt={SERVICE_IMAGE.alt}
-              width={SERVICE_IMAGE.width}
-              height={SERVICE_IMAGE.height}
-              loading="lazy"
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="h-full w-full object-cover"
+            <Photograph
+              photo={SERVICE_IMAGE.photo}
+              sizes="(min-width: 1024px) 55vw, calc(100vw - 2.5rem)"
+              priority
+              style={{ objectPosition: SERVICE_IMAGE.focal }}
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
           <div className="flex flex-1 flex-col p-7 lg:p-9">
