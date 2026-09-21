@@ -83,6 +83,17 @@ export const INSTALL_TYPES: readonly InstallType[] = [
   },
 ];
 
+/**
+ * An install type from untrusted text, such as a query-string value, or null.
+ * The one place an arbitrary string is checked against the two ids, so a typo
+ * or a hand-edited URL can never select something that does not exist.
+ */
+export function parseInstallType(
+  value: string | null | undefined,
+): InstallTypeId | null {
+  return INSTALL_TYPES.find((type) => type.id === value)?.id ?? null;
+}
+
 export function getInstallType(id: InstallTypeId): InstallType {
   // INSTALL_TYPES is keyed by the union above, so this cannot miss.
   return INSTALL_TYPES.find((type) => type.id === id)!;

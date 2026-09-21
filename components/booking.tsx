@@ -11,6 +11,7 @@ import { buttonStyles } from "@/components/button";
 import { Reveal } from "@/components/reveal";
 import { BOOKING, LOCATIONS, REACH, SERVICES, STUDIO } from "@/lib/content";
 import { formatPrice } from "@/lib/format";
+import { useInstallParam } from "@/lib/use-install-param";
 
 /**
  * Booking request form.
@@ -44,7 +45,9 @@ const EMPTY: Fields = {
   name: "",
   email: "",
   phone: "",
-  service: SERVICES[0].id,
+  // "" means the visitor has not chosen; see `service` in Booking() for what
+  // stands in until they do.
+  service: "",
   date: "",
   notes: "",
 };
@@ -87,6 +90,16 @@ export function Booking() {
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>("idle");
 
+  /*
+    The selected service is derived, not synchronised: an explicit pick wins,
+    then the install type named in `?install=` (see lib/use-install-param.ts),
+    then the first service. Kept out of state so the URL can arrive after
+    hydration without an effect, and so a successful send (which resets
+    `fields`) returns to the preselection rather than to a hardcoded default.
+  */
+  const preselected = useInstallParam();
+  const service = fields.service || preselected || SERVICES[0].id;
+
   const update = (key: keyof Fields) => (value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
     setErrors((current) => {
@@ -112,8 +125,7 @@ export function Booking() {
     setStatus("submitting");
 
     const serviceName =
-      SERVICES.find((service) => service.id === fields.service)?.name ??
-      fields.service;
+      SERVICES.find((item) => item.id === service)?.name ?? service;
 
     if (!BOOKING_ENDPOINT) {
       const body = [
@@ -138,7 +150,7 @@ export function Booking() {
       const response = await fetch(BOOKING_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ ...fields, serviceName }),
+        body: JSON.stringify({ ...fields, service, serviceName }),
       });
 
       if (!response.ok) throw new Error(`Request failed: ${response.status}`);
@@ -230,13 +242,13 @@ export function Booking() {
             <select
               id={`${formId}-service`}
               name="service"
-              value={fields.service}
+              value={service}
               onChange={(event) => update("service")(event.target.value)}
               className="w-full rounded-3xl border border-line-strong bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent"
             >
-              {SERVICES.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name} ({formatPrice(service.priceCents)})
+              {SERVICES.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name} ({formatPrice(item.priceCents)})
                 </option>
               ))}
             </select>

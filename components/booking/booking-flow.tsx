@@ -31,6 +31,7 @@ import {
 } from "@/lib/format";
 import type { BookedSlot, GuestBookingReceipt } from "@/lib/supabase/types";
 import { BOOKING_FLOW, REACH } from "@/lib/content";
+import { useInstallParam } from "@/lib/use-install-param";
 
 /**
  * BOOK YOUR CHAIR. Five steps, one question each.
@@ -144,16 +145,22 @@ export function BookingFlow() {
     every render closes that race completely rather than closing it one render
     late.
 
+    The same resolution serves the `?install=` preselection: "frontal" and
+    "closure" ARE the service slugs, so the install type from the URL is just a
+    slug to resolve, and an explicit pick in the draft always wins over it.
+
     locationId: one open studio means there is nothing to choose, so it is
     chosen. Deriving rather than writing it into the draft means an explicit
     choice still wins, and it cannot get stranded pointing at a studio Nat
     closed while the page was sitting open.
   */
+  const preselected = useInstallParam();
+  const chosenService = draft.serviceId || preselected || "";
   const serviceId = useMemo(() => {
-    if (!draft.serviceId) return "";
-    if (services.some((item) => item.id === draft.serviceId)) return draft.serviceId;
-    return services.find((item) => item.slug === draft.serviceId)?.id ?? "";
-  }, [services, draft.serviceId]);
+    if (!chosenService) return "";
+    if (services.some((item) => item.id === chosenService)) return chosenService;
+    return services.find((item) => item.slug === chosenService)?.id ?? "";
+  }, [services, chosenService]);
 
   const locationId =
     locations.find((item) => item.id === draft.locationId)?.id ??

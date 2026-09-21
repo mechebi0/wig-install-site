@@ -304,15 +304,16 @@ export type BookingIntent = {
  *
  * The argument is optional and the no-argument call sites are unchanged.
  *
- * WHY THE PARAMETERS ARE CARRIED BUT NOT YET CONSUMED
- * They ride along so the intent survives the click and is there to be read the
- * moment /book or a scheduler is pointed at. Nothing on /book reads them today
- * and nothing breaks from their presence: under `output: "export"` a query
- * string is ignored by the static route, and the page never touches
- * useSearchParams (which would need a Suspense boundary and fails the export
- * build; see the note in lib/auth/redirect.ts). A style is a different axis
- * from the service, so it can never preselect one; an install type can, and
- * that is the follow-up once the form reads the query.
+ * WHAT READS THE PARAMETERS
+ * `install` is consumed on /book: both booking forms open with that service
+ * selected (see useInstallParam in lib/use-install-param.ts, which reads it
+ * without useSearchParams, since that would need a Suspense boundary and fails
+ * the export build; see the note in lib/auth/redirect.ts). An unrecognised
+ * value is ignored. `style` is not consumed anywhere yet: a style is a
+ * different axis from the service, so it can never preselect one, and it rides
+ * along only so the intent survives the click for a future style field or a
+ * scheduler. Nothing breaks from its presence, as under `output: "export"` an
+ * unread query string is ignored by the static route.
  */
 export function bookingTarget({ install, style }: BookingIntent = {}) {
   const external =

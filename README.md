@@ -142,7 +142,7 @@ in `GALLERY_ITEMS` (one line each).
 Acuity is not connected and no scheduler URL is written down. When it is, set
 `NEXT_PUBLIC_ACUITY_FRONTAL_URL` and `NEXT_PUBLIC_ACUITY_CLOSURE_URL` (build
 time, like `NEXT_PUBLIC_ACUITY_BOOKING_URL`) and each install-type Book button
-opens its own appointment type. Unset, they all go to `/book/?install=...`.
+opens its own appointment type. Unset, they all go to `/book/?install=...`, and `/book` opens with that service already selected (both the email form and the five-step flow; an unrecognised value is ignored). The hook is `useInstallParam` in `lib/use-install-param.ts`.
 
 The `/gallery/body-wave-glam` URL and its `body-wave-glam` key are kept so
 existing links do not break; the style is now labelled "Body Wave".
