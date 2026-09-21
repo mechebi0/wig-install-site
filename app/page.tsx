@@ -1,7 +1,7 @@
 import { HeroCarousel } from "@/components/hero-carousel";
 import {
   CollectionShowcase,
-  ServiceSummary,
+  InstallTypes,
 } from "@/components/home-teasers";
 import { FeaturedInstalls } from "@/components/featured-installs";
 import { COLLECTIONS_IN_ORDER } from "@/lib/collections";
@@ -17,9 +17,14 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *                 two actions, and six of her installs. Where Nat is booking
  *                 is not said here: the announcement stripe above the nav bar
  *                 carries the towns on every page (see app/layout.tsx).
- *   Collections   all six, as cards, then out to /gallery. It leads because
- *                 the work is what a first-time visitor came to see.
- *   Services      the three appointments by name, no prices, out to /book
+ *   Installs      the two things a client books, Frontal Install and Closure
+ *                 Install, no prices, each with its own Book button. It sits
+ *                 directly under the hero because the hero has already shown
+ *                 the work, and the next thing a visitor needs is to know
+ *                 what they are choosing between.
+ *   Looks         the six style collections, as cards, then out to /gallery.
+ *                 Styles describe the hair; they are not services, and the
+ *                 install type above is what decides the appointment.
  *   Featured      six recent installs, none of them a hero slide, each out to
  *                 the collection it belongs to. The page closes here.
  *
@@ -126,8 +131,8 @@ export default function Home() {
         homepage with the same fact twice inside 130px.
       */}
       <HeroCarousel />
+      <InstallTypes />
       <CollectionShowcase />
-      <ServiceSummary />
       <FeaturedInstalls />
     </>
   );

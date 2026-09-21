@@ -1,6 +1,13 @@
+import type { InstallTypeId } from "@/lib/taxonomy";
+
 /**
  * THE SIX STYLE COLLECTIONS - the single source of truth for the whole
  * /gallery branch of the site.
+ *
+ * These are STYLES (and one finish): what the hair looks like. They are not
+ * services. The service classification, Frontal Install or Closure Install,
+ * is a separate axis defined in lib/taxonomy.ts, and every photograph below
+ * carries one of the two as `installType`.
  *
  * Every collection card, every collection page, every gallery, the homepage
  * showcase, the related-collection rail and all six sets of page metadata are
@@ -31,7 +38,7 @@
  * ---------------------------------------------------------------------------
  * All of them sit flat in `public/images/work/`, not in a folder per
  * collection. Six of these photographs legitimately belong to two collections
- * at once (a copper body wave is both Body Wave Glam and Color & Custom), and
+ * at once (a copper body wave is both Body Wave and Color & Custom), and
  * a folder per collection would mean committing the same JPEG twice and
  * editing its alt text in two places.
  *
@@ -198,20 +205,27 @@ export const HERO_PHOTOS = {
 } as const;
 
 /* ==========================================================================
-   THE TWO DIMENSIONS
+   THE THREE DIMENSIONS
    ==========================================================================
-   A wig install is described by two independent things, and collapsing them
+   A wig install is described by three independent things, and collapsing them
    into one list is the mistake this model exists to prevent.
 
+   INSTALL TYPE is how the unit is fitted: a frontal or a closure. It is the
+   only one of the three that is a service, so it is the only one that decides
+   what gets booked, and it lives in lib/taxonomy.ts. Every photograph carries
+   exactly one. It is independent of style: a body wave can be either.
+
    STYLE is what the hair looks like: the texture, the length, the cut, the
-   colour. It is what a client pictures when she books.
+   colour. It is what a client pictures when she books. It is a description of
+   the hair, never a service; "Body Wave" is a style, not an install.
 
    FINISH is how well the unit is attached: how flat the lace sits, how much
    of the hairline was rebuilt, whether the scalp reads as scalp. It is what
    separates a good install from a bad one wearing the same hair.
 
-   The two are orthogonal. Every photograph on this site has exactly one
-   primary style and any number of finish attributes, and "Natural Lace" is a
+   The three are orthogonal. Every photograph on this site has exactly one
+   install type, exactly one primary style and any number of finish
+   attributes, and "Natural Lace" is a
    FINISH - the quality of the melt - not a sixth hairstyle. A sleek straight
    install and a deep wave install can both be natural-lace installs, and both
    belong under it without either being reclassified.
@@ -224,7 +238,14 @@ export const HERO_PHOTOS = {
    is referenced by each collection it belongs to rather than copied into it.
 */
 
-/** What the hair is. Every item has exactly one primary and may carry more. */
+/**
+ * What the hair is. Every item has exactly one primary and may carry more.
+ *
+ * The keys are stable identifiers and double as the /gallery/<slug>/ route,
+ * so they are not renamed when a display label changes. "body-wave-glam" is
+ * the URL and the key for the style now labelled "Body Wave"; changing it
+ * would break every existing link to that page.
+ */
 export type StyleCategory =
   | "deep-wave-glam"
   | "sleek-straight"
@@ -243,7 +264,7 @@ export const STYLE_LABELS: Record<StyleCategory, string> = {
   "deep-wave-glam": "Deep Wave Glam",
   "sleek-straight": "Sleek Straight",
   "signature-bob": "Signature Bob",
-  "body-wave-glam": "Body Wave Glam",
+  "body-wave-glam": "Body Wave",
   "color-and-custom": "Color & Custom",
 };
 
@@ -275,6 +296,15 @@ export type GalleryItem = {
   title: string;
   /** One sentence. What is actually in the frame, and nothing beyond it. */
   description: string;
+  /**
+   * How the unit was fitted: the service classification, and independent of
+   * the style below. Read off the frame like the finish attributes are - a
+   * frontal shows a laid hairline across the whole front, a closure a fixed
+   * part with the wearer's own hairline around it - and a photograph cannot
+   * settle it for certain, so Nat should correct any she disagrees with. That
+   * is a one-line edit per photograph, and nothing else needs to change.
+   */
+  installType: InstallTypeId;
   primaryStyle: StyleCategory;
   /** Includes `primaryStyle`. Drives which style collections show this item. */
   styleCategories: StyleCategory[];
@@ -320,6 +350,7 @@ function galleryItem(input: ItemInput): GalleryItem {
 export const GALLERY_ITEMS: GalleryItem[] = [
   galleryItem({
     photo: WORK.deepWaveMiddlePart,
+    installType: "frontal",
     title: "Waist-Length Deep Wave",
     description:
       "A centre-parted deep wave taken to the waist, the lace melted flat at the parting and the edges laid in soft swirls.",
@@ -330,6 +361,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveMeltedPart,
+    installType: "frontal",
     title: "Melted Centre Part",
     description:
       "A long deep wave seen straight on, the parting sitting flat to the scalp with no visible lace edge.",
@@ -340,6 +372,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveCrimped,
+    installType: "frontal",
     title: "Crimped Lengths",
     description:
       "Natural black deep wave parted down the middle, falling well past the shoulders in a tight, defined crimp.",
@@ -350,6 +383,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveBraidedFront,
+    installType: "frontal",
     title: "Braided Front",
     description:
       "The front section braided back off the face, with the baby hairs laid in fine curves along the hairline.",
@@ -360,6 +394,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveLongLayers,
+    installType: "frontal",
     title: "Long Layers",
     description:
       "A long deep wave cut into soft layers, the texture falling forward over both shoulders.",
@@ -370,6 +405,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.deepWaveShoulderSweep,
+    installType: "closure",
     title: "Shoulder Sweep",
     description:
       "A shoulder-length deep wave with a centre parting, the wave pattern loosening from the root through the ends.",
@@ -381,6 +417,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
   galleryItem({
     photo: WORK.straightGlassFinish,
+    installType: "frontal",
     title: "Glass Finish",
     description:
       "A waist-length straight install pressed to a glass-smooth finish, the centre parting laid flat and the ends kept blunt.",
@@ -391,6 +428,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.straightSideSwoop,
+    installType: "frontal",
     title: "Side Swoop",
     description:
       "A deep side parting with one moulded swoop set across the forehead and the edges laid along the hairline.",
@@ -401,6 +439,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.straightCentrePart,
+    installType: "frontal",
     title: "Clean Centre Part",
     description:
       "Pressed smooth from a clean centre parting down to a blunt baseline.",
@@ -412,6 +451,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
   galleryItem({
     photo: WORK.bobSoftLob,
+    installType: "frontal",
     title: "Soft Lob",
     description:
       "A soft lob curved under at the ends and parted at the side, with the baby hairs laid in fine waves.",
@@ -422,6 +462,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.bobBluntSidePart,
+    installType: "frontal",
     title: "Blunt Bob",
     description:
       "A blunt shoulder-skimming bob, side parted, cut to a straight and sharply defined baseline.",
@@ -432,6 +473,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.bobBurgundyCurl,
+    installType: "frontal",
     title: "Burgundy Curl",
     description:
       "A chin-length bob in a deep burgundy brown, set into a soft curl and swept away from the face.",
@@ -444,6 +486,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
   galleryItem({
     photo: WORK.bodyWaveBlonde,
+    installType: "frontal",
     title: "Platinum Body Wave",
     description:
       "A long platinum body wave with a centre parting and wide, soft waves through the lengths.",
@@ -455,6 +498,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.bodyWaveCopper,
+    installType: "frontal",
     title: "Copper Body Wave",
     description:
       "A bright copper body wave with a deep side parting, set into large glossy waves.",
@@ -466,6 +510,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.bodyWaveSideSweep,
+    installType: "frontal",
     title: "S-Wave Side Sweep",
     description:
       "A deep side parting with the front section moulded into an S-wave across the forehead.",
@@ -477,6 +522,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
 
   galleryItem({
     photo: WORK.colourPinkStraight,
+    installType: "frontal",
     title: "Candy Pink",
     description:
       "A long straight install in candy pink with a deep side parting, cut to a blunt baseline.",
@@ -488,6 +534,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.colourBlondeStraight,
+    installType: "frontal",
     title: "Platinum Straight",
     description:
       "A long platinum blonde straight install parted down the middle, the lace tinted to blend away at the parting.",
@@ -499,6 +546,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
   galleryItem({
     photo: WORK.colourCopperCentrePart,
+    installType: "closure",
     title: "Warm Copper",
     description:
       "A warm copper install with a centre parting, worn straight through the lengths with a soft bend at the ends.",
@@ -650,7 +698,7 @@ const COLLECTION_META: CollectionMeta[] = [
     slug: "body-wave-glam",
     dimension: "style",
     style: "body-wave-glam",
-    title: "Body Wave Glam",
+    title: "Body Wave",
     tagline: "Soft. Full. Luminous.",
     summary: "Wide, glossy waves with weight behind them.",
     description:

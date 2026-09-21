@@ -6,6 +6,7 @@ import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { FINISH_LABELS, type GalleryItem } from "@/lib/collections";
+import { INSTALL_TYPE_LABELS, getInstallType } from "@/lib/taxonomy";
 
 /**
  * The gallery on a collection page. One component, all six collections.
@@ -71,7 +72,7 @@ export function StyleGallery({
             <button
               type="button"
               onClick={() => setOpen(index)}
-              aria-label={`View larger: ${item.alt}`}
+              aria-label={`View larger: ${INSTALL_TYPE_LABELS[item.installType]}, ${item.alt}`}
               className="group relative block w-full cursor-pointer overflow-hidden rounded-3xl bg-surface-3 aspect-[3/4]"
             >
               <Photograph
@@ -86,6 +87,22 @@ export function StyleGallery({
                 aria-hidden="true"
                 className="absolute inset-0 bg-[rgb(var(--scrim)/0.28)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
               />
+
+              {/*
+                The install type, always visible. Unlike the finish caption
+                below it is not hover-only: a phone has no hover, and which of
+                the two installs a look is decides what a visitor books, so it
+                cannot be a detail that touch users never see. It is the same
+                small frosted tag the Natural Lace card uses for "Finish", kept
+                to one word so it fits a two-up phone cell, and aria-hidden
+                because the button's own label already carries the full name.
+              */}
+              <span
+                aria-hidden="true"
+                className="absolute left-2.5 top-2.5 z-[1] rounded-full bg-[rgb(var(--scrim)/0.55)] px-2.5 py-1.5 text-[0.625rem] font-medium uppercase leading-none tracking-[0.14em] text-on-accent/90 backdrop-blur-sm sm:left-3.5 sm:top-3.5 sm:text-[0.6875rem]"
+              >
+                {getInstallType(item.installType).shortLabel}
+              </span>
               <span
                 aria-hidden="true"
                 className="absolute bottom-4 right-4 inline-flex h-9 w-9 translate-y-1 items-center justify-center rounded-full bg-on-accent/90 text-accent opacity-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:transition-none"

@@ -235,7 +235,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "body-wave",
-    label: "Body Wave Glam",
+    label: "Body Wave",
     headline: "Soft waves. Full volume. Pure glamour.",
     description: "Luxurious movement and body, from the first look to the last.",
     photo: HERO_PHOTOS.blonde,

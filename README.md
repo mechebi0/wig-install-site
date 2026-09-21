@@ -26,7 +26,7 @@ own page.
 
 | Route                      | What is on it                                                     |
 | -------------------------- | ----------------------------------------------------------------- |
-| `/`                        | Hero carousel, brand statement, six collections, teasers, CTA      |
+| `/`                        | Hero carousel, the two install types, six style collections, recent work |
 | `/gallery`                  | The six collections as large editorial cards                       |
 | `/gallery/deep-wave-glam`   | Collection hero, gallery with lightbox, CTA, related collections   |
 | `/gallery/sleek-straight`   | as above                                                          |
@@ -113,12 +113,39 @@ alt text, then list it in whichever collections it belongs to.
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a
-  hand-off panel automatically.
-- `SERVICES` — names, prices, durations. Still stand-ins.
+  hand-off panel automatically. `bookingTarget({ install, style })` builds the
+  link; an install-type link (below) wins over this one when it is set.
+- `SERVICES` — names, prices, durations. Still stand-ins. `frontal` and
+  `closure` are the two install types and take their names from
+  `lib/taxonomy.ts`.
 - `ANNOUNCEMENT` — the words in the stripe at the top of every page; see
   "The announcement stripe" below.
 - `PAGES`, `HOME`, `HERO`, `COLLECTION_PAGE` — page and section copy.
 - `OWNER`, `QUESTIONS`, `TESTIMONIALS`, `PROCESS`, `ASSURANCES`.
+
+### `lib/taxonomy.ts` — install type, kept apart from style
+
+The site describes an install on two independent axes, and they never share a
+list:
+
+- **Install type** is the service you book: **Frontal Install** or **Closure
+  Install**. It is defined only in `lib/taxonomy.ts`, and every surface that
+  says "frontal" or "closure" reads it from there.
+- **Style / look** is what the hair looks like (deep wave, sleek straight, bob,
+  body wave, colour). That lives in `lib/collections.ts` with the photographs.
+  A body wave is a style, never an install; a body-wave frontal is both.
+
+Every gallery photograph carries one `installType`. It is read off the frame,
+which cannot settle it for certain, so Nat should correct any she disagrees with
+in `GALLERY_ITEMS` (one line each).
+
+Acuity is not connected and no scheduler URL is written down. When it is, set
+`NEXT_PUBLIC_ACUITY_FRONTAL_URL` and `NEXT_PUBLIC_ACUITY_CLOSURE_URL` (build
+time, like `NEXT_PUBLIC_ACUITY_BOOKING_URL`) and each install-type Book button
+opens its own appointment type. Unset, they all go to `/book/?install=...`.
+
+The `/gallery/body-wave-glam` URL and its `body-wave-glam` key are kept so
+existing links do not break; the style is now labelled "Body Wave".
 
 ### `lib/gallery.ts` — the read path
 

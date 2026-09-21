@@ -1,7 +1,9 @@
-import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
+import { ButtonLink } from "@/components/button";
 import { CollectionGrid } from "@/components/collection-grid";
 import { Reveal } from "@/components/reveal";
-import { HOME, SERVICES } from "@/lib/content";
+import { CTA, HOME, bookingTarget } from "@/lib/content";
+import { INSTALL_TYPES } from "@/lib/taxonomy";
 
 /**
  * Two of the homepage's middle blocks.
@@ -11,8 +13,13 @@ import { HOME, SERVICES } from "@/lib/content";
  * and neither is allowed to grow past the size of a doorway. Editing them
  * side by side is what stops that happening one section at a time.
  *
- *   CollectionShowcase   six cards, out to /gallery
- *   ServiceSummary       the three services by name, out to /book
+ *   InstallTypes         the two services, frontal and closure, out to /book
+ *   CollectionShowcase   six style cards, out to /gallery
+ *
+ * They answer two different questions and are kept visibly apart. InstallTypes
+ * is what you book. CollectionShowcase is the hair you browse. Nothing in the
+ * second block is a service, which is why its Book buttons carry a style and
+ * this block's carry an install type.
  */
 
 /** A quiet text link with a rule that wipes in. The site's tertiary action. */
@@ -34,59 +41,82 @@ function TextLink({ href, children }: { href: string; children: string }) {
 }
 
 /**
- * What Nat actually does, in three lines and no prices.
+ * The primary service presentation: the two install types, and nothing else.
  *
  * ---------------------------------------------------------------------------
  * WHY THERE ARE NO PRICES HERE
  * ---------------------------------------------------------------------------
  * Every figure in SERVICES is still a placeholder waiting on Nat, and a price
  * on a homepage is the single thing a visitor will remember and quote back.
- * /book carries them, once, where they can be corrected in one place. Names
- * and one line each is enough to answer "what is this business", which is the
- * only job this block has.
+ * /book carries them, once, where they can be corrected in one place. A name
+ * and one line each is enough to answer "what do you do", which is the only
+ * job this block has.
  *
- * It is a plain definition list rather than three cards. Three bordered cards
- * carrying two lines of text each is the most generic block on the modern web,
- * and this page already spends its card budget on photographs.
+ * ---------------------------------------------------------------------------
+ * WHY TWO PANELS AND NOT A LIST
+ * ---------------------------------------------------------------------------
+ * This is the first place a visitor decides what to book, so each option gets
+ * a surface big enough to tap without aiming and a button that says exactly
+ * which appointment it opens. The panel is the same quiet paper-and-hairline
+ * surface /book uses for its services, not a new component: the photography
+ * elsewhere on the page carries the colour, and this block only has to be
+ * unmistakable.
+ *
+ * Names, descriptions and the per-type booking link all come from
+ * lib/taxonomy.ts. Nothing here types "frontal" or "closure".
  */
-export function ServiceSummary() {
+export function InstallTypes() {
   return (
     <section
-      aria-labelledby="services-heading"
+      aria-labelledby="installs-heading"
       className="border-t border-line bg-bg"
     >
       <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <Reveal className="min-w-0">
-            <p className="label text-accent">{HOME.services.kicker}</p>
+            <p className="label text-accent">{HOME.installs.kicker}</p>
             <h2
-              id="services-heading"
+              id="installs-heading"
               className="mt-5 max-w-[18ch] font-display text-3xl leading-[1.06] tracking-tight text-ink md:text-4xl lg:text-5xl"
             >
-              {HOME.services.heading}
+              {HOME.installs.heading}
             </h2>
             <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
-              {HOME.services.body}
+              {HOME.installs.body}
             </p>
           </Reveal>
 
           <Reveal index={1} className="shrink-0">
-            <TextLink href="/book/">{HOME.services.link}</TextLink>
+            <TextLink href="/book/">{HOME.installs.link}</TextLink>
           </Reveal>
         </div>
 
-        <dl className="mt-12 grid grid-cols-1 gap-x-10 gap-y-8 sm:grid-cols-3 lg:mt-16">
-          {SERVICES.map((service, index) => (
-            <Reveal key={service.id} index={index}>
-              <dt className="border-t border-line pt-5 font-display text-lg leading-tight tracking-tight text-ink lg:text-xl">
-                {service.name}
-              </dt>
-              <dd className="mt-3 max-w-[42ch] text-sm leading-relaxed text-muted">
-                {service.body}
-              </dd>
+        <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:mt-16 lg:gap-8">
+          {INSTALL_TYPES.map((type, index) => (
+            <Reveal as="li" key={type.id} index={index} className="flex">
+              <article className="flex w-full flex-col justify-between gap-10 rounded-3xl border border-line-strong bg-surface p-7 shadow-soft sm:p-9 lg:min-h-[22rem] lg:p-12">
+                <div>
+                  <h3 className="font-display text-3xl leading-[1.05] tracking-tight text-ink lg:text-5xl">
+                    {type.label}
+                  </h3>
+                  <p className="mt-5 max-w-[30ch] text-base leading-relaxed text-muted lg:text-lg">
+                    {type.summary}
+                  </p>
+                </div>
+
+                <div>
+                  <ButtonLink
+                    {...bookingTarget({ install: type.id })}
+                    className="w-full sm:w-auto"
+                  >
+                    <CalendarCheck size={17} weight="regular" aria-hidden="true" />
+                    {CTA.bookInstall} {type.label}
+                  </ButtonLink>
+                </div>
+              </article>
             </Reveal>
           ))}
-        </dl>
+        </ul>
       </div>
     </section>
   );

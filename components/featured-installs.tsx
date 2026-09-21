@@ -4,6 +4,7 @@ import { Reveal } from "@/components/reveal";
 import { STYLE_LABELS } from "@/lib/collections";
 import { featuredInstalls } from "@/lib/gallery";
 import { HOME } from "@/lib/content";
+import { INSTALL_TYPE_LABELS } from "@/lib/taxonomy";
 
 /**
  * The recent-work rail on the homepage.
@@ -29,10 +30,12 @@ import { HOME } from "@/lib/content";
  * goes to the collection that photograph belongs to, which is the next thing
  * someone who liked it actually wants. The homepage stays a directory.
  *
- * The label under each frame is its PRIMARY style, not every tag it carries.
- * An install tagged both Body Wave Glam and Color & Custom is genuinely both,
- * but a rail of photographs with two or three chips under each is a filter
- * dashboard; the collection pages are where the full tagging shows.
+ * The label under each frame is its PRIMARY style, not every tag it carries,
+ * with its install type on the line beneath. An install tagged both Body Wave
+ * and Color & Custom is genuinely both, but a rail of photographs with two or
+ * three chips under each is a filter dashboard; the collection pages are where
+ * the full tagging shows. The install type is always exactly one of two, so it
+ * earns its own line.
  */
 export function FeaturedInstalls() {
   const items = featuredInstalls();
@@ -105,6 +108,9 @@ export function FeaturedInstalls() {
                   </h3>
                   <p className="label mt-2 text-muted">
                     {STYLE_LABELS[item.primaryStyle]}
+                  </p>
+                  <p className="mt-2 text-[0.6875rem] font-medium uppercase leading-none tracking-[0.14em] text-accent">
+                    {INSTALL_TYPE_LABELS[item.installType]}
                   </p>
                 </div>
               </a>

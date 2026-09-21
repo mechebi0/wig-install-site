@@ -125,7 +125,7 @@ export function CollectionHero({
             */}
             <div className="mt-9">
               <ButtonLink
-                {...bookingTarget(collection.slug)}
+                {...bookingTarget({ style: collection.slug })}
                 variant="onPhoto"
                 className="w-full sm:w-auto"
               >

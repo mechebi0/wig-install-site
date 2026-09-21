@@ -41,7 +41,7 @@ export default function StylesPage() {
             </p>
           </Reveal>
 
-          <dl className="mt-8 grid grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-2 lg:mt-10">
+          <dl className="mt-8 grid grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-3 lg:mt-10">
             {GALLERY_AXES.axes.map((axis, index) => (
               <Reveal key={axis.label} index={index}>
                 <dt className="label border-t border-line pt-5 text-accent">

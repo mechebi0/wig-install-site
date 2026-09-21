@@ -225,7 +225,10 @@ export function CollectionCard({
       */}
       {booking ? (
         <div className="mt-5">
-          <ButtonLink variant="card" {...bookingTarget(collection.slug)}>
+          <ButtonLink
+            variant="card"
+            {...bookingTarget({ style: collection.slug })}
+          >
             <CalendarCheck size={15} weight="regular" aria-hidden="true" />
             {CTA.bookStyle}
             <span className="sr-only"> {collection.title}</span>

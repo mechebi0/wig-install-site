@@ -29,6 +29,12 @@
  * on-page notice while testimonialsArePlaceholder is true.
  */
 
+import {
+  INSTALL_TYPE_LABELS,
+  getInstallType,
+  type InstallTypeId,
+} from "@/lib/taxonomy";
+
 /**
  * Contact details. Fill any of these in and the site starts showing it; leave
  * it empty and the site simply does not mention it.
@@ -224,6 +230,13 @@ export const CTA = {
    */
   bookStyle: "Book",
   /**
+   * The booking verb on an install-type block. Same first word as every other
+   * booking button, followed by the install type's own name at the call site
+   * ("Book Frontal Install"), so the visible label already says which of the
+   * two appointments it opens and needs no screen-reader suffix.
+   */
+  bookInstall: "Book",
+  /**
    * The booking action on a collection PAGE, keyed by the same `dimension`
    * field that draws the eyebrow above the title.
    *
@@ -248,50 +261,71 @@ export const CTA = {
 } as const;
 
 /**
- * Adds `?style=<slug>` to a booking href, keeping any query string the
+ * Appends `key=value` pairs to a booking href, keeping any query string the
  * destination already carries. Acuity links routinely arrive with one attached
  * (`...?owner=12345678`), so appending blindly with "?" would corrupt them.
+ * Empty values are skipped, so an absent intent adds nothing.
  */
-function withStyle(href: string, style?: string) {
-  if (!style) return href;
-  const separator = href.includes("?") ? "&" : "?";
-  return `${href}${separator}style=${encodeURIComponent(style)}`;
+function withParams(href: string, params: Record<string, string | undefined>) {
+  const query = Object.entries(params)
+    .filter(([, value]) => value)
+    .map(([key, value]) => `${key}=${encodeURIComponent(value!)}`)
+    .join("&");
+  if (!query) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}${query}`;
 }
 
+/** What the visitor was looking at when they decided to book. Both optional. */
+export type BookingIntent = {
+  /** The service axis. Frontal or closure; see lib/taxonomy.ts. */
+  install?: InstallTypeId;
+  /** The style axis. A collection slug, e.g. "deep-wave-glam". */
+  style?: string;
+};
+
 /**
- * Resolves where a booking CTA points, from the single STUDIO.bookingUrl
- * switch. Every booking CTA on the site spreads these props, so the real
- * booking link is a one-line change rather than a hunt through markup.
+ * Resolves where a booking CTA points. Every booking CTA on the site spreads
+ * these props, so the real booking link is a config change rather than a hunt
+ * through markup.
  *
- * Pass a collection slug to carry the style the visitor was looking at when
- * they decided to book:
+ * The destination is the first of these that is set:
  *
- *   bookingTarget()                   -> /book/
- *   bookingTarget("deep-wave-glam")   -> /book/?style=deep-wave-glam
+ *   1. the install type's own link   NEXT_PUBLIC_ACUITY_FRONTAL_URL / _CLOSURE_URL
+ *   2. the studio-wide link          STUDIO.bookingUrl
+ *   3. the on-page booking page      /book/
  *
- * The argument is optional and every existing call site is unchanged.
+ * so a button that names an install type can land on that appointment type
+ * once Acuity exists, a generic button lands on the scheduler's own menu, and
+ * with neither connected (today) every button goes to /book, exactly as before.
  *
- * WHY THE PARAMETER IS CARRIED BUT NOT YET CONSUMED
- * /book asks which SERVICE you want (the install, the reinstall, the colour
- * add-on). A collection is a hairstyle, which is a different axis, so there is
- * no honest way to preselect a service from a style slug and pretending
- * otherwise would put the wrong appointment in the form. The parameter rides
- * along so the intent survives the click and is there to be read the moment
- * either the booking form grows a style field or Acuity is pointed at. Nothing
- * on /book reads it today and nothing breaks from its presence: under
- * `output: "export"` a query string is ignored by the static route, and the
- * page never touches useSearchParams (which would need a Suspense boundary and
- * fails the export build; see the note in lib/auth/redirect.ts).
+ *   bookingTarget()                            -> /book/
+ *   bookingTarget({ install: "frontal" })      -> /book/?install=frontal
+ *   bookingTarget({ style: "deep-wave-glam" }) -> /book/?style=deep-wave-glam
+ *
+ * The argument is optional and the no-argument call sites are unchanged.
+ *
+ * WHY THE PARAMETERS ARE CARRIED BUT NOT YET CONSUMED
+ * They ride along so the intent survives the click and is there to be read the
+ * moment /book or a scheduler is pointed at. Nothing on /book reads them today
+ * and nothing breaks from their presence: under `output: "export"` a query
+ * string is ignored by the static route, and the page never touches
+ * useSearchParams (which would need a Suspense boundary and fails the export
+ * build; see the note in lib/auth/redirect.ts). A style is a different axis
+ * from the service, so it can never preselect one; an install type can, and
+ * that is the follow-up once the form reads the query.
  */
-export function bookingTarget(style?: string) {
-  const external = STUDIO.bookingUrl.trim();
+export function bookingTarget({ install, style }: BookingIntent = {}) {
+  const external =
+    (install ? getInstallType(install).bookingUrl.trim() : "") ||
+    STUDIO.bookingUrl.trim();
+  const params = { install, style };
   return external
     ? {
-        href: withStyle(external, style),
+        href: withParams(external, params),
         target: "_blank" as const,
         rel: "noopener noreferrer",
       }
-    : { href: withStyle("/book/", style) };
+    : { href: withParams("/book/", params) };
 }
 
 /** True while booking runs through the form on /book rather than an external tool. */
@@ -358,10 +392,22 @@ export const PAGES = {
  * else. Anything that needs a paragraph to explain belongs on its own page.
  */
 export const HOME = {
+  /**
+   * The primary service presentation: the two install types, and nothing
+   * else. Their names and one-line descriptions come from lib/taxonomy.ts.
+   */
+  installs: {
+    kicker: "Choose your install",
+    heading: "Frontal or closure.",
+    body: "Two ways to book, and Nat performs both herself.",
+    link: "See what is included",
+  },
   collections: {
-    kicker: "The collection",
+    /* The STYLE axis. Deliberately not worded as a service: the hair is what
+       is being browsed here, and the install type is chosen above. */
+    kicker: "The looks",
     heading: "Explore the Crowned by Nat collection.",
-    body: "Six ways to wear an install. Open the one you keep coming back to.",
+    body: "Six looks to browse. The style is what the hair looks like; frontal or closure is how it is installed.",
     /*
       NOT CTA.gallery, and this is the one place on the site that departs from
       it. This block now sits directly under the hero, whose secondary button
@@ -372,18 +418,6 @@ export const HOME = {
       something the hero button did not.
     */
     link: "See all six collections",
-  },
-  /**
-   * The service summary. Names and one line each, and deliberately NO prices:
-   * every figure in SERVICES is still a placeholder awaiting Nat, and a number
-   * on the homepage is the one thing a visitor will quote back. /book carries
-   * them, in one place, where they can be corrected once.
-   */
-  services: {
-    kicker: "The appointment",
-    heading: "What happens in the chair.",
-    body: "Three ways to book, and Nat performs every one of them herself.",
-    link: "See what is included",
   },
   featured: {
     kicker: "Recent work",
@@ -542,9 +576,13 @@ export const FINISH_FOCUS = {
  * grid. After that the cards can just be photographs.
  */
 export const GALLERY_AXES = {
-  heading: "Two ways to read this work",
-  body: "Most of these collections are about the hair. One is about the install.",
+  heading: "Three ways to read this work",
+  body: "Every look is labelled by how it was installed. The collections below group them by style, plus one by finish.",
   axes: [
+    {
+      label: "Install type",
+      body: "Frontal or closure: how the unit is fitted, and the choice you make when you book. Every look carries one of the two.",
+    },
     {
       label: "Style",
       body: "The texture, the length, the cut and the colour - what you picture when you book. Deep wave, sleek straight, bobs, body wave, and custom colour.",
@@ -576,6 +614,10 @@ export const COLLECTION_PAGE = {
  * the live rows arrive from the database. Keeping the two in step is the whole
  * reason the ids are stable words rather than numbers.
  *
+ * "frontal" and "closure" are the two INSTALL TYPES (lib/taxonomy.ts), the
+ * primary service classification, and their names are read from there. The
+ * other two are secondary services on a unit rather than install types.
+ *
  * Money is held in CENTS and time in MINUTES rather than as the display
  * strings this file used to carry. The strings were fine while nothing but a
  * price list read them; they stopped being fine the moment a booking had to do
@@ -590,14 +632,14 @@ export const COLLECTION_PAGE = {
 export const SERVICES = [
   {
     id: "frontal",
-    name: "Full frontal install",
+    name: INSTALL_TYPE_LABELS.frontal,
     priceCents: 18000,
     durationMinutes: 120,
     body: "Lace tinted to your skin, knots bleached, hairline plucked and cut. Includes the style you leave in.",
   },
   {
     id: "closure",
-    name: "Closure install",
+    name: INSTALL_TYPE_LABELS.closure,
     priceCents: 14000,
     durationMinutes: 90,
     body: "Less lace to manage, lower upkeep, and gentler on a tender scalp.",
