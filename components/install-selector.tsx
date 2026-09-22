@@ -37,7 +37,7 @@ import {
  * ---------------------------------------------------------------------------
  * ONE COMPONENT, TWO PLACES
  * ---------------------------------------------------------------------------
- *   mode "book"   on /book. All three steps; the install is a real choice.
+ *   mode "book"   on /book. All four steps; the install is a real choice.
  *   mode "page"   on /installs/<type>/. The page already IS the install, so
  *                 the first step becomes a two-way switch between the two
  *                 install pages rather than a question, and the choice of
@@ -79,7 +79,7 @@ type InstallSelectorProps =
   | { mode: "book" }
   | { mode: "page"; installType: InstallTypeId };
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 /*
   The selectable surface, shared by the install cards and the finish tiles.
@@ -99,6 +99,7 @@ export function InstallSelector(props: InstallSelectorProps) {
   const onPage = props.mode === "page";
   const installType = onPage ? props.installType : selection.installType;
   const finish = selection.finish;
+  const styleDescription = selection.styleDescription;
   const finishes = installType
     ? getInstallType(installType).finishes
     : FINISHES.map((option) => option.id);
@@ -373,7 +374,51 @@ export function InstallSelector(props: InstallSelectorProps) {
         ) : null}
       </Reveal>
 
-      {/* ---------------------------------------------------- 3 the ask --- */}
+      {/* -------------------------------------------- 3 a style in mind --- */}
+      <Reveal className="mt-14 lg:mt-20">
+        <StepHeading
+          id={`${uid}-style`}
+          step={3}
+          title={SELECTION.style.heading}
+          body={
+            <>
+              {SELECTION.style.body}{" "}
+              <span className="whitespace-nowrap text-muted/80">
+                ({SELECTION.finish.optional})
+              </span>
+            </>
+          }
+          bodyId={`${uid}-style-body`}
+        />
+
+        {/*
+          A single control, so it is labelled the way the finish FIELDSET is
+          labelled - aria-labelledby to the step heading, aria-describedby to
+          the sentence under it - rather than a repeated visible <label> that
+          would just restate the question a second time. The placeholder is
+          additional, in-context text on top of that real accessible name, not
+          a stand-in for one (Section 4.6): it keeps its own name after the
+          first character is typed.
+
+          Free text, so it is never required and never validated: the button
+          below stays enabled with this field empty, exactly like a chosen
+          finish is not required to reach it.
+        */}
+        <textarea
+          name="styleDescription"
+          rows={3}
+          value={styleDescription}
+          onChange={(event) =>
+            setBookingSelection({ styleDescription: event.target.value })
+          }
+          placeholder={SELECTION.style.placeholder}
+          aria-labelledby={`${uid}-style`}
+          aria-describedby={`${uid}-style-body`}
+          className="mt-7 min-h-12 w-full resize-y rounded-3xl border border-line-strong bg-bg px-4 py-3.5 text-base leading-relaxed text-ink transition-colors duration-200 placeholder:text-muted/60 hover:border-accent lg:mt-8"
+        />
+      </Reveal>
+
+      {/* ---------------------------------------------------- 4 the ask --- */}
       <Reveal className="mt-14 lg:mt-20">
         {/*
           The one wine surface in the flow, for the same reason the closing
@@ -386,7 +431,7 @@ export function InstallSelector(props: InstallSelectorProps) {
             <div className="min-w-0">
               <StepHeading
                 id={`${uid}-book`}
-                step={3}
+                step={4}
                 title={SELECTION.book.heading}
                 tone="wine"
               />

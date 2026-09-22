@@ -140,6 +140,7 @@ export function Booking() {
   const selection = useBookingSelection();
   const service = selection.installType ?? fields.service;
   const finish = selection.finish;
+  const styleDescription = selection.styleDescription;
 
   const update = (key: keyof Fields) => (value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
@@ -174,6 +175,10 @@ export function Booking() {
     const serviceName =
       SERVICES.find((item) => item.id === service)?.name ?? service;
     const finishName = finish ? getFinish(finish).label : "";
+    // Never a bare "Style: " line: an empty description says nothing a
+    // missing line does not already say, unlike Finish, whose "No finish" is
+    // itself a real answer.
+    const styleNote = styleDescription.trim();
 
     if (!BOOKING_ENDPOINT) {
       const body = [
@@ -182,6 +187,7 @@ export function Booking() {
         `Phone: ${fields.phone}`,
         `Service: ${serviceName}`,
         `Finish: ${finishName || SELECTION.finish.none}`,
+        ...(styleNote ? [`${SELECTION.book.style}: ${styleNote}`] : []),
         `Preferred date: ${fields.date || "No preference"}`,
         "",
         fields.notes || "No notes.",
@@ -206,6 +212,7 @@ export function Booking() {
           serviceName,
           finish: finish ?? "",
           finishName,
+          styleDescription: styleNote,
         }),
       });
 

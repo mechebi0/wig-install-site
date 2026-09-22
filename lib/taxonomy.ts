@@ -62,16 +62,28 @@ export type InstallTypeId = "frontal" | "closure";
 export type FinishId = "curls" | "wand-curls" | "crimps";
 
 /**
- * What the booking layer is handed, and the shape Acuity will be handed:
- * one install type and, optionally, one finish.
+ * What the booking layer is handed: one install type, optionally one finish,
+ * and any free-text style request the visitor typed in her own words.
  *
- * Both are nullable because a visitor can arrive at the booking flow having
- * chosen neither yet. The finish stays optional to the end: it is an add-on,
- * and a client who wants her install left as it is has nothing to pick.
+ * `installType` and `finish` are nullable because a visitor can arrive at the
+ * booking flow having chosen neither yet; `finish` stays optional to the end
+ * because it is an add-on, and a client who wants her install left as it is
+ * has nothing to pick. `styleDescription` defaults to "" rather than null:
+ * an empty textarea and "nothing typed yet" are the same state, unlike the
+ * two enums above where null specifically means "not chosen from a list".
+ *
+ * `styleDescription` is NOT sent to Acuity today (see the note on
+ * EXTERNAL_FINISH_PARAM in lib/content.ts) - it travels only as far as the
+ * two booking paths that exist right now, folded into their notes. It sits
+ * on this same selection anyway, alongside installType and finish, so a
+ * future Acuity integration reads one shape for "what did she choose" rather
+ * than hunting across several. See lib/booking-selection.ts for where it is
+ * kept and why it never reaches the URL the other two fields do.
  */
 export type BookingSelection = {
   installType: InstallTypeId | null;
   finish: FinishId | null;
+  styleDescription: string;
 };
 
 export type InstallType = {

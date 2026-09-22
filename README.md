@@ -153,15 +153,22 @@ the set has one (`FINISHES`). Not to be confused with the **lace finish**
 visible in a photograph rather than something anyone books; the site labels
 that one "Lace finish" so the two never read as the same word.
 
-**The booking selection** is `{ installType, finish }`
+A fourth, optional field rides alongside the two: **style description**, a
+free-text box ("Have a specific style in mind?") for a cut, length, colour or
+reference look in the client's own words. It is not a taxonomy entry (there is
+nothing to enumerate) and is never sent to a scheduler; it exists only to
+reach Nat, folded into the notes on both booking paths below.
+
+**The booking selection** is `{ installType, finish, styleDescription }`
 (`BookingSelection` in `lib/taxonomy.ts`). The flow on `/book` and on each
 install page (`components/install-selector.tsx`) writes it, and
 `lib/booking-selection.ts` keeps it in two places: the URL
-(`?install=frontal&finish=curls`) and, for the life of the tab,
-`sessionStorage`. So whichever Book button a visitor uses afterwards (the
-flow's own, the nav, the mobile bar, or a server-rendered one on another page)
-`/book` opens with both answers already chosen, and the request that reaches
-Nat names both.
+(`?install=frontal&finish=curls`, `installType`/`finish` only) and, for the
+life of the tab, `sessionStorage` (all three fields; `styleDescription` never
+reaches the URL, since a paragraph does not belong in a shareable link). So
+whichever Book button a visitor uses afterwards (the flow's own, the nav, the
+mobile bar, or a server-rendered one on another page) `/book` opens with every
+answer already in place, and the request that reaches Nat names all three.
 
 **Acuity is not connected**, and no scheduler URL or field id is written down
 anywhere. When it is:

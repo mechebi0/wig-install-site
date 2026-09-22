@@ -694,7 +694,7 @@ export const COLLECTION_PAGE = {
  *
  * The steps are named for what they ask, never "Step 1 / Step 2". The number
  * is carried by a small numeral beside each heading and read to a screen
- * reader as "Step 2 of 3", which is where it is actually useful.
+ * reader as "Step 2 of 4", which is where it is actually useful.
  */
 export const SELECTION = {
   install: {
@@ -709,10 +709,23 @@ export const SELECTION = {
     /** The empty choice in the request form's finish menu. */
     none: "No finish",
   },
+  /**
+   * The free-text step between the finish and the booking panel: a specific
+   * cut, length, colour or reference look, in the visitor's own words. Always
+   * optional, and never a service of its own, unlike install and finish it
+   * has no fixed set of answers, so there is nothing here to enumerate.
+   */
+  style: {
+    heading: "Have a specific style in mind?",
+    body: "Tell Nat about the cut, colour or look you have in mind.",
+    placeholder: "The look, length, cut or colour you have in mind",
+  },
   book: {
     heading: "Book your appointment",
     install: "Install",
     finish: "Finish",
+    /** Shared with the notes line sent to Nat and the confirm-step summary. */
+    style: "Style",
     noInstall: "Not chosen yet",
     noFinish: "None chosen",
     needInstall: "Choose Frontal Install or Closure Install first.",

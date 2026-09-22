@@ -392,14 +392,18 @@ export function BookingFlow() {
     setSubmitError("");
 
     /*
-      The finish travels in the notes. The appointments table has no column
-      for it, and adding one is a migration rather than a front-end change;
-      a named line at the top of the notes reaches Nat today with no schema
-      work, and a column can take it over later without losing anything.
+      The finish, and any free-text style request, travel in the notes. The
+      appointments table has no column for either, and adding one is a
+      migration rather than a front-end change; named lines at the top of the
+      notes reach Nat today with no schema work, and a column can take each
+      over later without losing anything.
     */
     const notes = [
       selection.finish
         ? `${SELECTION.book.finish}: ${getFinish(selection.finish).label}`
+        : "",
+      selection.styleDescription.trim()
+        ? `${SELECTION.book.style}: ${selection.styleDescription.trim()}`
         : "",
       draft.notes.trim(),
     ]
@@ -723,6 +727,7 @@ export function BookingFlow() {
                 finishLabel={
                   selection.finish ? getFinish(selection.finish).label : ""
                 }
+                styleDescription={selection.styleDescription}
                 locationLabel={location ? `${location.name}, ${location.state}` : ""}
                 date={draft.date}
                 time={draft.time}
@@ -853,6 +858,7 @@ function DateChip({
 function Summary({
   service,
   finishLabel,
+  styleDescription,
   locationLabel,
   date,
   time,
@@ -865,6 +871,8 @@ function Summary({
   service: CatalogService | null;
   /** "" when no finish was chosen, and then the row is left out. */
   finishLabel: string;
+  /** "" when nothing was typed, and then the row is left out. */
+  styleDescription: string;
   locationLabel: string;
   date: string;
   time: string;
@@ -875,14 +883,18 @@ function Summary({
   onEdit: (step: number) => void;
 }) {
   /*
-    `href` instead of `step` for the one row this flow does not own: the
-    finish is chosen in the selection above the flow (#choose on /book), so
-    its "Change" goes there rather than to a step with no finish in it.
+    `href` instead of `step` for the two rows this flow does not own: the
+    finish and the style notes are both entered in the selection above the
+    flow (#choose on /book), so their "Change" goes there rather than to a
+    step that has no matching control.
   */
   const rows: { label: string; value: string; step: number; href?: string }[] = [
     { label: "Service", value: service?.name ?? "", step: 0 },
     ...(finishLabel
       ? [{ label: SELECTION.book.finish, value: finishLabel, step: 0, href: "#choose" }]
+      : []),
+    ...(styleDescription.trim()
+      ? [{ label: SELECTION.book.style, value: styleDescription.trim(), step: 0, href: "#choose" }]
       : []),
     { label: "Location", value: locationLabel, step: 1 },
     {
