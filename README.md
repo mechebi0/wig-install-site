@@ -138,7 +138,12 @@ list:
 - **Finish** is the styling add-on: **Curls**, **Wand Curls** or **Crimps**.
   "How would you like your install styled?" It is an add-on to an install,
   never a service of its own: there is no "Frontal Curls", there is a Frontal
-  Install with Curls.
+  Install with Curls. **Required** alongside the install type: neither the
+  selection flow's Book button nor the plain request form will send without
+  both, and both surfaces name whichever is still missing rather than failing
+  silently. The two non-install services on `/book` (Customization only,
+  Reinstall and refresh) have no finish to require, so the request form's own
+  Finish field stays genuinely optional there.
 - **Style / look** is what the hair looks like (deep wave, sleek straight, bob,
   body wave, colour). That lives in `lib/collections.ts` with the photographs,
   and it is inspiration rather than a service. A body wave is a style, never an
@@ -157,7 +162,10 @@ A fourth, optional field rides alongside the two: **style description**, a
 free-text box ("Have a specific style in mind?") for a cut, length, colour or
 reference look in the client's own words. It is not a taxonomy entry (there is
 nothing to enumerate) and is never sent to a scheduler; it exists only to
-reach Nat, folded into the notes on both booking paths below.
+reach Nat, folded into the notes on both booking paths below. Capped at
+`MAX_STYLE_DESCRIPTION_LENGTH` (500 characters, `lib/content.ts`) via the
+textarea's native `maxLength`, with a small character count that appears only
+once a visitor is close to it.
 
 **The booking selection** is `{ installType, finish, styleDescription }`
 (`BookingSelection` in `lib/taxonomy.ts`). The flow on `/book` and on each

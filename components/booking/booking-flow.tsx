@@ -176,6 +176,15 @@ export function BookingFlow() {
 
   const service = services.find((item) => item.id === serviceId) ?? null;
   const location = locations.find((item) => item.id === locationId) ?? null;
+  /*
+    Finish is required, but only while the chosen service actually IS an
+    install (Frontal or Closure): Customization only and Reinstall and
+    refresh have no finish to style. Derived from the resolved service's slug
+    rather than from `selection.installType` directly, so it agrees with
+    `serviceId` above even in the one render where the two have not caught up
+    with each other yet.
+  */
+  const isInstallService = parseInstallType(service?.slug) !== null;
 
   /*
     Fill the contact details in for a customer who is already signed in.
@@ -341,7 +350,7 @@ export function BookingFlow() {
   const canContinue = (() => {
     switch (step) {
       case 0:
-        return Boolean(serviceId);
+        return Boolean(serviceId) && (!isInstallService || Boolean(selection.finish));
       case 1:
         return Boolean(locationId);
       case 2:
@@ -520,6 +529,25 @@ export function BookingFlow() {
                     </ChoiceCard>
                   ))}
                 </div>
+
+                {/*
+                  Blocked on finish alone: service is a real install, chosen,
+                  but the flow above (#choose) has not been given a finish
+                  yet. Named and linked rather than a bare "Continue is
+                  disabled", since a disabled button with no explanation is
+                  the thing that makes a visitor assume the site is broken.
+                */}
+                {isInstallService && !selection.finish ? (
+                  <p className="mt-5 text-sm leading-relaxed text-muted">
+                    {SELECTION.book.needFinish}{" "}
+                    <a
+                      href="#choose"
+                      className="font-medium text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent"
+                    >
+                      Choose your finish
+                    </a>
+                  </p>
+                ) : null}
               </fieldset>
             )
           ) : null}

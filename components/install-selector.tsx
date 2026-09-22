@@ -2,6 +2,7 @@
 
 import { useId, useRef, type ReactNode } from "react";
 import {
+  ArrowDown,
   ArrowRight,
   CalendarCheck,
   Check,
@@ -17,6 +18,7 @@ import {
 import {
   BOOKING_ANCHOR,
   CTA,
+  MAX_STYLE_DESCRIPTION_LENGTH,
   SELECTION,
   bookingTarget,
   bookingTargetAtForm,
@@ -48,6 +50,10 @@ import {
  * button hands the pair on in the URL. There is no "Frontal Curls" anywhere:
  * the install and the finish are two separate answers, exactly as they will be
  * two separate things in Acuity.
+ *
+ * INSTALL AND FINISH ARE BOTH REQUIRED to reach the Book button; only the
+ * free-text style step is optional. See the note on SELECTION in
+ * lib/content.ts for why neither required step carries a "(Required)" badge.
  *
  * ---------------------------------------------------------------------------
  * WHY RADIOS
@@ -90,6 +96,9 @@ const TOTAL_STEPS = 4;
 const CHOICE_SURFACE =
   "flex h-full overflow-hidden rounded-3xl border border-line-strong bg-surface transition-[border-color,background-color,box-shadow] duration-200 hover:border-accent peer-checked:border-accent peer-checked:bg-accent-soft peer-checked:shadow-soft peer-checked:ring-1 peer-checked:ring-accent peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-[3px] peer-focus-visible:outline-accent motion-reduce:transition-none";
 
+/** How close to MAX_STYLE_DESCRIPTION_LENGTH before the counter appears. */
+const STYLE_COUNTER_THRESHOLD = 60;
+
 export function InstallSelector(props: InstallSelectorProps) {
   const selection = useBookingSelection();
   const uid = useId();
@@ -100,6 +109,7 @@ export function InstallSelector(props: InstallSelectorProps) {
   const installType = onPage ? props.installType : selection.installType;
   const finish = selection.finish;
   const styleDescription = selection.styleDescription;
+  const styleCharsLeft = MAX_STYLE_DESCRIPTION_LENGTH - styleDescription.length;
   const finishes = installType
     ? getInstallType(installType).finishes
     : FINISHES.map((option) => option.id);
@@ -114,28 +124,33 @@ export function InstallSelector(props: InstallSelectorProps) {
       onPage ? { installType: props.installType, finish: id } : { finish: id },
     );
 
-  const clearFinish = () => {
-    chooseFinish(null);
-    // The Clear button disappears with the finish; keep the keyboard in the
-    // group it was working in rather than dropping focus onto the page.
-    finishGroup.current
-      ?.querySelector<HTMLInputElement>("input")
-      ?.focus({ preventScroll: true });
-  };
-
   /*
-    Where the Book button goes. On an install page the choice is complete,
-    so it opens /book at the request form with both answers in the URL. On
-    /book itself the form is further down this same page, so it is an anchor:
-    a link back to /book with a different query string would reload the page
-    for nothing. Either way an external scheduler, once configured, wins.
+    Where the Book button goes. Both installType and finish are required, so
+    either missing means null: no half-complete link. On an install page the
+    choice is otherwise complete, so it opens /book at the request form with
+    both answers in the URL. On /book itself the form is further down this
+    same page, so it is an anchor: a link back to /book with a different
+    query string would reload the page for nothing. Either way an external
+    scheduler, once configured, wins.
   */
   const bookTarget = (() => {
-    if (!installType) return null;
+    if (!installType || !finish) return null;
     if (onPage) return bookingTargetAtForm({ install: installType, finish });
     const target = bookingTarget({ install: installType, finish });
     return "target" in target ? target : { href: `#${BOOKING_ANCHOR}` };
   })();
+
+  /**
+   * Sends the keyboard to whichever required group still needs an answer,
+   * for the "aria-disabled" Book button below. Install first when both are
+   * missing, since it is the one the visitor meets first. In "page" mode
+   * installType can never be missing (it is the page), so this only ever
+   * reaches the finish fieldset there.
+   */
+  const focusMissing = () => {
+    const target = !installType ? installGroup.current : finishGroup.current;
+    target?.querySelector<HTMLInputElement>("input")?.focus();
+  };
 
   return (
     <div>
@@ -198,6 +213,7 @@ export function InstallSelector(props: InstallSelectorProps) {
           <fieldset
             ref={installGroup}
             aria-labelledby={`${uid}-install`}
+            aria-required="true"
             className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:gap-8"
           >
             {INSTALL_TYPES.map((type) => (
@@ -280,14 +296,7 @@ export function InstallSelector(props: InstallSelectorProps) {
           id={`${uid}-finish`}
           step={2}
           title={SELECTION.finish.heading}
-          body={
-            <>
-              {SELECTION.finish.body}{" "}
-              <span className="whitespace-nowrap text-muted/80">
-                ({SELECTION.finish.optional})
-              </span>
-            </>
-          }
+          body={SELECTION.finish.body}
           bodyId={`${uid}-finish-body`}
         />
 
@@ -295,6 +304,7 @@ export function InstallSelector(props: InstallSelectorProps) {
           ref={finishGroup}
           aria-labelledby={`${uid}-finish`}
           aria-describedby={`${uid}-finish-body`}
+          aria-required="true"
           className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:mt-10 lg:grid-cols-3 lg:gap-6"
         >
           {finishes.map((id) => {
@@ -357,21 +367,6 @@ export function InstallSelector(props: InstallSelectorProps) {
             );
           })}
         </fieldset>
-
-        {/*
-          A radio group cannot be unticked, and the finish is optional, so
-          there has to be a way back to none. It only appears once there is
-          something to clear.
-        */}
-        {finish ? (
-          <button
-            type="button"
-            onClick={clearFinish}
-            className="mt-4 inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:decoration-accent"
-          >
-            {SELECTION.finish.clear}
-          </button>
-        ) : null}
       </Reveal>
 
       {/* -------------------------------------------- 3 a style in mind --- */}
@@ -384,7 +379,7 @@ export function InstallSelector(props: InstallSelectorProps) {
             <>
               {SELECTION.style.body}{" "}
               <span className="whitespace-nowrap text-muted/80">
-                ({SELECTION.finish.optional})
+                ({SELECTION.style.optional})
               </span>
             </>
           }
@@ -401,21 +396,44 @@ export function InstallSelector(props: InstallSelectorProps) {
           first character is typed.
 
           Free text, so it is never required and never validated: the button
-          below stays enabled with this field empty, exactly like a chosen
-          finish is not required to reach it.
+          below stays enabled with this field empty, unlike install and
+          finish, which both must be chosen to reach it.
         */}
         <textarea
           name="styleDescription"
           rows={3}
           value={styleDescription}
+          maxLength={MAX_STYLE_DESCRIPTION_LENGTH}
           onChange={(event) =>
             setBookingSelection({ styleDescription: event.target.value })
           }
           placeholder={SELECTION.style.placeholder}
           aria-labelledby={`${uid}-style`}
-          aria-describedby={`${uid}-style-body`}
+          aria-describedby={
+            styleCharsLeft <= STYLE_COUNTER_THRESHOLD
+              ? `${uid}-style-body ${uid}-style-count`
+              : `${uid}-style-body`
+          }
           className="mt-7 min-h-12 w-full resize-y rounded-3xl border border-line-strong bg-bg px-4 py-3.5 text-base leading-relaxed text-ink transition-colors duration-200 placeholder:text-muted/60 hover:border-accent lg:mt-8"
         />
+
+        {/*
+          Silent for nearly the whole 500 characters, on purpose: a counter
+          ticking down from the first keystroke is the kind of chrome that
+          makes a luxury booking flow feel like a form. It appears only once
+          there is a real reason to watch it, aria-live so a screen reader
+          user gets the same late warning a sighted one sees rather than
+          being cut off with no explanation at maxLength.
+        */}
+        {styleCharsLeft <= STYLE_COUNTER_THRESHOLD ? (
+          <p
+            id={`${uid}-style-count`}
+            aria-live="polite"
+            className="mt-2 text-xs text-muted"
+          >
+            {SELECTION.style.charsLeft(styleCharsLeft)}
+          </p>
+        ) : null}
       </Reveal>
 
       {/* ---------------------------------------------------- 4 the ask --- */}
@@ -496,22 +514,22 @@ export function InstallSelector(props: InstallSelectorProps) {
                   <button
                     type="button"
                     aria-disabled="true"
-                    aria-describedby={`${uid}-need-install`}
-                    onClick={() =>
-                      installGroup.current
-                        ?.querySelector<HTMLInputElement>("input")
-                        ?.focus()
-                    }
+                    aria-describedby={`${uid}-need-selection`}
+                    onClick={focusMissing}
                     className={`${buttonStyles.onPhoto} w-full cursor-pointer opacity-60 sm:w-auto`}
                   >
                     <CalendarCheck size={17} weight="regular" aria-hidden="true" />
                     {CTA.book}
                   </button>
                   <p
-                    id={`${uid}-need-install`}
+                    id={`${uid}-need-selection`}
                     className="mt-3 text-sm text-on-accent/75"
                   >
-                    {SELECTION.book.needInstall}
+                    {!installType && !finish
+                      ? SELECTION.book.needBoth
+                      : !installType
+                        ? SELECTION.book.needInstall
+                        : SELECTION.book.needFinish}
                   </p>
                 </>
               )}
@@ -528,8 +546,17 @@ export function InstallSelector(props: InstallSelectorProps) {
  *
  * A client component only so that it can carry the finish when one has
  * already been chosen, on this page or an earlier one. Before hydration, and
- * with no finish chosen, it books the install alone, which is also exactly
- * what the prerendered HTML says, so there is no mismatch.
+ * with no finish chosen, it reads as the finish-first fallback below, which is
+ * also exactly what the prerendered HTML says, so there is no mismatch.
+ *
+ * FINISH IS NOW REQUIRED, so this button is no longer a plain link to /book
+ * regardless of state: without a finish yet, sending the visitor straight to
+ * the request form would land her on a field she still has to fill in before
+ * anything can send, which is a worse version of the finish step she has not
+ * seen yet. Scrolling her to #finish instead is the same destination the
+ * quiet "Choose your finish" button beside it already goes to, so the
+ * pill and its neighbour briefly agree rather than one out-promising the
+ * other. Once a finish exists, it reverts to the real booking link.
  */
 export function BookInstallLink({
   installType,
@@ -539,6 +566,17 @@ export function BookInstallLink({
   className?: string;
 }) {
   const { finish } = useBookingSelection();
+
+  if (!finish) {
+    return (
+      <a href="#finish" className={`${buttonStyles.onPhoto} ${className}`}>
+        <CalendarCheck size={16} weight="regular" aria-hidden="true" />
+        {CTA.bookInstall} {getInstallType(installType).label}
+        <ArrowDown size={14} weight="regular" aria-hidden="true" />
+      </a>
+    );
+  }
+
   return (
     <ButtonLink
       {...bookingTargetAtForm({ install: installType, finish })}

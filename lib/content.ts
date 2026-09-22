@@ -695,6 +695,14 @@ export const COLLECTION_PAGE = {
  * The steps are named for what they ask, never "Step 1 / Step 2". The number
  * is carried by a small numeral beside each heading and read to a screen
  * reader as "Step 2 of 4", which is where it is actually useful.
+ *
+ * REQUIRED VS OPTIONAL, AND WHY NEITHER STEP SAYS "REQUIRED"
+ * Install and finish are both required to book: the flow will not hand over
+ * a Book link, and the plain request form will not send, without both. Style
+ * is the one step that is not, and it is the only one of the three marked
+ * "(Optional)". An unmarked step is required; that is the whole convention,
+ * and it holds for install without a label today, so finish follows it rather
+ * than gaining a new "(Required)" badge no other step carries.
  */
 export const SELECTION = {
   install: {
@@ -704,8 +712,13 @@ export const SELECTION = {
   finish: {
     heading: "Choose your finish",
     body: "How would you like your install styled?",
+    /**
+     * Still read where a finish genuinely IS optional: the plain request
+     * form's own Finish menu, when the service chosen there is not an
+     * install (Customization only, Reinstall and refresh have no finish to
+     * style). Not used inside the required install -> finish flow any more.
+     */
     optional: "Optional",
-    clear: "Clear finish",
     /** The empty choice in the request form's finish menu. */
     none: "No finish",
   },
@@ -718,7 +731,10 @@ export const SELECTION = {
   style: {
     heading: "Have a specific style in mind?",
     body: "Tell Nat about the cut, colour or look you have in mind.",
+    optional: "Optional",
     placeholder: "The look, length, cut or colour you have in mind",
+    /** Shown only once the textarea is close to maxStyleLength; see there. */
+    charsLeft: (n: number) => `${n} character${n === 1 ? "" : "s"} left`,
   },
   book: {
     heading: "Book your appointment",
@@ -729,9 +745,23 @@ export const SELECTION = {
     noInstall: "Not chosen yet",
     noFinish: "None chosen",
     needInstall: "Choose Frontal Install or Closure Install first.",
+    needFinish: "Choose a finish first.",
+    needBoth: "Choose your install and a finish first.",
   },
   stepOf: (step: number, total: number) => `Step ${step} of ${total}: `,
 } as const;
+
+/**
+ * The style description's ceiling. There was no existing character-limit
+ * convention anywhere on the site to inherit (no other field carries one), so
+ * this is a fresh, considered number rather than a borrowed one: long enough
+ * for a genuine "12-inch layered bob with a middle part, soft waves, no
+ * bangs" description, short enough that the request stays something Nat can
+ * read at a glance rather than an essay. Enforced natively via the
+ * textarea's `maxLength`, and surfaced to the visitor only once she is close
+ * to it (see SELECTION.style.charsLeft) rather than as a constant reminder.
+ */
+export const MAX_STYLE_DESCRIPTION_LENGTH = 500;
 
 /**
  * The two install pages, /installs/frontal/ and /installs/closure/. Everything

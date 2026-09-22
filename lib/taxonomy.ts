@@ -21,7 +21,10 @@ import {
  *                  or Crimps. An add-on to an install type, never a service
  *                  of its own: there is no "Frontal Curls" appointment, there
  *                  is a Frontal Install with Curls. Also defined HERE.
- *                  "How would you like your install styled?"
+ *                  "How would you like your install styled?" Required
+ *                  whenever an install is being booked; the two non-install
+ *                  services (Customization only, Reinstall and refresh) have
+ *                  no finish to require.
  *
  *   STYLE / LOOK   what the hair looks like: deep wave, sleek straight, bob,
  *                  body wave, colour. That lives in lib/collections.ts beside
@@ -62,15 +65,19 @@ export type InstallTypeId = "frontal" | "closure";
 export type FinishId = "curls" | "wand-curls" | "crimps";
 
 /**
- * What the booking layer is handed: one install type, optionally one finish,
- * and any free-text style request the visitor typed in her own words.
+ * What the booking layer is handed: one install type, one finish, and any
+ * free-text style request the visitor typed in her own words.
  *
- * `installType` and `finish` are nullable because a visitor can arrive at the
- * booking flow having chosen neither yet; `finish` stays optional to the end
- * because it is an add-on, and a client who wants her install left as it is
- * has nothing to pick. `styleDescription` defaults to "" rather than null:
- * an empty textarea and "nothing typed yet" are the same state, unlike the
- * two enums above where null specifically means "not chosen from a list".
+ * `installType` and `finish` are both nullable, and both nulls are
+ * TRANSIENT rather than valid end states: a visitor can arrive at the
+ * booking flow having chosen neither yet, but the flow will not hand over a
+ * Book link, and the plain request form will not send, while either is
+ * still null and the service in question is actually an install (see
+ * `isInstallService` at each booking surface: an install's finish is
+ * required, a non-install service like Customization only has no finish to
+ * require). `styleDescription` defaults to "" rather than null: an empty
+ * textarea and "nothing typed yet" are the same state, and it stays optional
+ * all the way to submission, unlike the two enums above.
  *
  * `styleDescription` is NOT sent to Acuity today (see the note on
  * EXTERNAL_FINISH_PARAM in lib/content.ts) - it travels only as far as the

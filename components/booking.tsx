@@ -27,6 +27,7 @@ import {
   getFinish,
   parseFinish,
   parseInstallType,
+  type FinishId,
 } from "@/lib/taxonomy";
 
 /**
@@ -49,6 +50,11 @@ import {
  * back to, the one booking selection (lib/booking-selection.ts), so this form
  * and the flow above it can never show two different answers. Both reach Nat
  * in the request, named in full.
+ *
+ * FINISH IS REQUIRED, but only while the service is actually an install: this
+ * form's own Service menu also offers Customization only and Reinstall and
+ * refresh, which have no finish to style, so the requirement (and its "Choose
+ * a finish before sending" error) applies exactly when it means something.
  */
 const BOOKING_ENDPOINT = process.env.NEXT_PUBLIC_BOOKING_ENDPOINT ?? "";
 
@@ -61,7 +67,8 @@ type Fields = {
   notes: string;
 };
 
-type Errors = Partial<Record<keyof Fields, string>>;
+/** "finish" is not a Fields key: it lives in the shared selection, not here. */
+type Errors = Partial<Record<keyof Fields | "finish", string>>;
 type Status = "idle" | "submitting" | "success" | "error";
 
 const EMPTY: Fields = {
@@ -75,8 +82,20 @@ const EMPTY: Fields = {
   notes: "",
 };
 
-/** `service` is passed separately because it is derived, not held in `fields`. */
-function validate(fields: Fields, service: string): Errors {
+/**
+ * `service` and `finish` are passed separately because both are derived from
+ * the shared booking selection rather than held in `fields`.
+ *
+ * `finish` is required only when the chosen service actually IS an install
+ * (Frontal or Closure): Customization only and Reinstall and refresh have no
+ * finish to style, so nothing here can be left unanswered for them.
+ */
+function validate(
+  fields: Fields,
+  service: string,
+  isInstallService: boolean,
+  finish: FinishId | null,
+): Errors {
   const errors: Errors = {};
 
   if (!fields.name.trim()) {
@@ -98,6 +117,10 @@ function validate(fields: Fields, service: string): Errors {
 
   if (!service) {
     errors.service = "Choose the service you would like to book.";
+  }
+
+  if (isInstallService && !finish) {
+    errors.finish = "Choose a finish before sending.";
   }
 
   // Date is optional, but a past one is always a mistake. Resolved at submit
@@ -139,6 +162,7 @@ export function Booking() {
   */
   const selection = useBookingSelection();
   const service = selection.installType ?? fields.service;
+  const isInstallService = selection.installType !== null;
   const finish = selection.finish;
   const styleDescription = selection.styleDescription;
 
@@ -161,7 +185,7 @@ export function Booking() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const found = validate(fields, service);
+    const found = validate(fields, service, isInstallService, finish);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       setStatus("idle");
@@ -338,10 +362,12 @@ export function Booking() {
           </div>
 
           {/*
-            The styling add-on. Optional, so the empty choice is a real,
-            named option rather than a blank. It writes to the same booking
-            selection as the finish tiles above the form, so changing either
-            changes both.
+            The styling add-on. Required when the service above is an install
+            (Frontal or Closure), the same rule the flow at the top of /book
+            enforces; for the two non-install services there is no finish to
+            style, so the empty "No finish" choice stays valid there. It
+            writes to the same booking selection as the finish tiles above
+            the form, so changing either changes both.
           */}
           <div className="flex flex-col gap-2">
             <label
@@ -357,8 +383,15 @@ export function Booking() {
               onChange={(event) =>
                 setBookingSelection({ finish: parseFinish(event.target.value) })
               }
-              aria-describedby={`${formId}-finish-help`}
-              className="w-full rounded-3xl border border-line-strong bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent"
+              aria-invalid={errors.finish ? true : undefined}
+              aria-describedby={
+                errors.finish
+                  ? `${formId}-finish-error ${formId}-finish-help`
+                  : `${formId}-finish-help`
+              }
+              className={`w-full rounded-3xl border bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent ${
+                errors.finish ? "border-danger" : "border-line-strong"
+              }`}
             >
               <option value="">{SELECTION.finish.none}</option>
               {FINISHES.map((option) => (
@@ -367,8 +400,15 @@ export function Booking() {
                 </option>
               ))}
             </select>
+            {errors.finish ? (
+              <p id={`${formId}-finish-error`} className="text-sm text-danger">
+                {errors.finish}
+              </p>
+            ) : null}
             <p id={`${formId}-finish-help`} className="text-sm text-muted">
-              {SELECTION.finish.optional}. {SELECTION.finish.body}
+              {isInstallService
+                ? SELECTION.finish.body
+                : `${SELECTION.finish.optional}. ${SELECTION.finish.body}`}
             </p>
           </div>
 
