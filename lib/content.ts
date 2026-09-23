@@ -12,8 +12,9 @@
  * ---------------------------------------------------------------------------
  * Confirmed, and safe to present as fact:
  *
- *      Crowned by Nat. Installs performed by Nat. One chair, in Towson, MD.
- *      The crest in public/brand is the studio's official logo.
+ *      Crowned by Nat. Installs performed by Nat. One chair, between
+ *      Towson, MD and Laurel, MD. The crest in public/brand is the studio's
+ *      official logo.
  *
  * NOT supplied yet, and therefore deliberately EMPTY rather than invented. An
  * empty string here is not an oversight: every component reads these through
@@ -109,15 +110,21 @@ export const INSTAGRAM_URL_PLACEHOLDER = "https://www.instagram.com/";
  * back is one line here and nothing else. Do not re-type a town name into copy;
  * that is how the site ends up advertising a chair that is not open.
  *
- * Laurel, MD was removed on 2026-09-02. Nat installs in Towson only. The row
- * still exists in the locations table (seeded inactive; see
- * supabase/migrations) so she can switch it back on from the admin dashboard
- * without a deploy, and everything below reads active rows first.
+ * Laurel, MD was paused on 2026-09-02 and confirmed again on 2026-09-22: Nat
+ * now takes appointments in both towns, and which one a given week falls to
+ * varies rather than being fixed. The row was never deleted from the
+ * `locations` table, only marked inactive, so this is a config flip rather
+ * than new work, and she can switch either town off from the admin dashboard
+ * without a deploy. Everything below reads active rows first once a Supabase
+ * project exists; until then this array is the whole answer.
  *
  * Keep the order deliberate. It is the order the announcement stripe reads them
  * out in when there is more than one.
  */
-export const LOCATIONS = [{ name: "Towson", region: "MD" }] as const;
+export const LOCATIONS = [
+  { name: "Towson", region: "MD" },
+  { name: "Laurel", region: "MD" },
+] as const;
 
 export const STUDIO = {
   /** Confirmed brand name. Used verbatim everywhere it appears. */
@@ -214,9 +221,10 @@ export const STUDIO = {
  * looking for a local install both expect to read it, and the only string the
  * page metadata uses for location.
  *
- * `STUDIO.city` on its own is the town names with no state ("Towson"), which
- * is right inside a sentence that already established Maryland and wrong in a
- * page title, where it reads as a half-finished address. This adds the state
+ * `STUDIO.city` on its own is the town names with no state ("Towson and
+ * Laurel"), which is right inside a sentence that already established
+ * Maryland and wrong in a page title, where it reads as a half-finished
+ * address. This adds the state
  * once, here, rather than at four call sites in app/layout.tsx.
  *
  * Derived from LOCATIONS like everything else, so it follows a change of town
@@ -536,7 +544,7 @@ export const HOME = {
   },
   closing: {
     heading: "Your chair is waiting.",
-    body: "One client at a time, in Towson, MD. Send a request and Nat comes back to you with two or three slots.",
+    body: "One client at a time, in Towson or Laurel, MD. Send a request and Nat comes back to you with two or three slots.",
   },
 } as const;
 
@@ -986,7 +994,7 @@ export const policiesAreDraft = true;
 export const QUESTIONS = [
   {
     q: "Where does the appointment happen?",
-    a: "Nat takes appointments in Towson, MD. The full address comes with your confirmation, and the strip at the top of the site always shows where she is currently booking.",
+    a: "Nat takes appointments in Towson or Laurel, MD, depending on the week. The full address comes with your confirmation, and the strip at the top of the site always shows where she is currently booking.",
   },
   {
     q: "Who actually does my install?",

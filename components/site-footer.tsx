@@ -128,7 +128,7 @@ export function SiteFooter() {
               ) : null}
               Now booking in{" "}
               {LOCATIONS.map((location) => `${location.name}, ${location.region}`).join(
-                " and ",
+                " × ",
               )}
               .
             </p>

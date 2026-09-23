@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   */
   /*
     SERVICE_AREA rather than STUDIO.city on its own. `city` is the town names
-    joined ("Towson"), which read as an incomplete address in a search result;
+    joined ("Towson and Laurel"), which read as an incomplete address in a search result;
     a local search needs the state on it. Both halves still come from LOCATIONS
     in lib/content.ts, so a change of town is still a one-line change there.
   */

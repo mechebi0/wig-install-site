@@ -1,7 +1,7 @@
 # Crowned by Nat
 
 Marketing and booking site for **Crowned by Nat**, a one-chair lace wig install
-studio working out of Towson, MD. Every install is performed
+studio serving Towson, MD and Laurel, MD. Every install is performed
 personally by Nat.
 
 Next.js (App Router) + TypeScript + Tailwind CSS v4, exported as a fully static
@@ -112,13 +112,14 @@ alt text, then list it in whichever collections it belongs to.
   (Instagram's own homepage, never a guessed handle) so the control exists and
   works today. Fill in `CONTACT.instagram` and it takes over automatically;
   see the note beside `INSTAGRAM_URL_PLACEHOLDER` in `lib/content.ts`.
-- `LOCATIONS` — Towson, MD. The single source of truth for the service area:
-  the announcement stripe, the footer, the "Where" row on `/book`, the page
-  metadata and the LocalBusiness structured data all derive from it, so adding
-  or removing a town is one line. It is the compiled-in fallback used while
-  there is no Supabase project; see `lib/catalog.ts`. Laurel, MD was dropped on
-  2026-09-02 and survives only as an inactive row in the `locations` table, so
-  Nat can switch it back on from the admin dashboard without a deploy.
+- `LOCATIONS` — Towson, MD and Laurel, MD. The single source of truth for the
+  service area: the announcement stripe, the footer, the "Where" row on
+  `/book`, the page metadata and the LocalBusiness structured data all derive
+  from it, so adding or removing a town is one line. It is the compiled-in
+  fallback used while there is no Supabase project; see `lib/catalog.ts`.
+  Laurel, MD was paused on 2026-09-02 and confirmed again on 2026-09-22; the
+  row was never deleted from the `locations` table, only marked inactive, so
+  Nat can switch either town off from the admin dashboard without a deploy.
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a
