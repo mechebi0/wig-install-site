@@ -188,9 +188,9 @@ export function HeroCarousel() {
   /**
    * How much of the rotation is in the DOM, in three stages.
    *
-   * It used to be a boolean: the lead slide alone, then all seven at 900ms.
-   * On a desktop connection that is invisible, and on a phone it is six extra
-   * photographs pulled in a burst while the page is still settling, five of
+   * It used to be a boolean: the lead slide alone, then all six at 900ms.
+   * On a desktop connection that is invisible, and on a phone it is five extra
+   * photographs pulled in a burst while the page is still settling, four of
    * which will not be looked at for the better part of a minute and none of
    * which will be looked at at all by the visitor who scrolls straight past.
    *

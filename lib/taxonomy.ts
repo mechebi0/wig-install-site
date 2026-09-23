@@ -311,9 +311,9 @@ export const INSTALL_TYPES: readonly InstallType[] = [
       not as a record of what this client booked.
     */
     image: INSTALL_PHOTOS["wig-touch-up"],
-    imageFocal: "center 43%",
+    imageFocal: "center 25%",
     imageCaption:
-      "A finished look: the kind of shape and shine a touch-up brings back.",
+      "Soft layers falling into movement through the lengths: the kind of shape a touch-up brings back.",
     examplesNote: "",
     finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_TOUCHUP_URL ?? "",

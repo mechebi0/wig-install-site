@@ -26,7 +26,7 @@ import { HERO_PHOTOS, SERVICE_PHOTO, type Photo } from "@/lib/collections";
 /* ==========================================================================
    HOMEPAGE HERO CAROUSEL
    ==========================================================================
-   Seven of Nat's installs, crossfading behind a fixed brand block.
+   Six of Nat's installs, crossfading behind a fixed brand block.
 
    WHY THERE IS ONLY ONE CROP PER SLIDE
 
@@ -41,7 +41,7 @@ import { HERO_PHOTOS, SERVICE_PHOTO, type Photo } from "@/lib/collections";
    THE ORDER
 
    No two adjacent slides share a texture or a colour family, so the rotation
-   always reads as a change; see "THE SEVEN, AND WHY IN THIS ORDER" below,
+   always reads as a change; see "THE SIX, AND WHY IN THIS ORDER" below,
    next to the array itself, for the current order and the reasoning.
 
    Slide one is the LCP element and carries the neon studio sign in frame,
@@ -135,7 +135,7 @@ export type HeroSlide = {
 };
 
 /*
-   THE SEVEN, AND WHY IN THIS ORDER
+   THE SIX, AND WHY IN THIS ORDER
 
    Copy first: each slide carries its own label, headline and sentence, and the
    carousel renders whichever the active index names. There is one index and it
@@ -156,16 +156,16 @@ export type HeroSlide = {
    that label on screen two slides running - the one adjacency the rule below
    cannot allow no matter what the photographs look like. The crimped deep
    wave therefore moved rather than staying in place: it now sits fourth,
-   with a straight and a bob between it and the lead on one side and a body
-   wave, a colour and a bob between it and the lead on the other.
+   with a straight and a bob between it and the lead on one side and a
+   colour and a bob between it and the lead on the other.
 
    With that the rule this rotation has always used still holds with no
    exception: no two adjacent slides share a colour family AND a texture,
-   including across the wrap from seven back to one.
+   including across the wrap from six back to one.
 
        black deep wave (swirl, sign in frame) -> black straight -> burgundy
-       bob -> black deep wave (crimped) -> platinum body wave -> candy pink
-       straight -> black bob -> (back to swirl)
+       bob -> black deep wave (crimped) -> candy pink straight -> black bob
+       -> (back to swirl)
 
    LENGTHS. Headlines are held to roughly 40 characters and descriptions to
    roughly 90, which is what keeps the copy block the same height on every
@@ -221,18 +221,6 @@ export const HERO_SLIDES: HeroSlide[] = [
     // A close frame: the crown sits high at 31% of the file while the face is
     // low at 61%, so this one is held back to keep the hair off the top edge.
     focal: "center 62%",
-  },
-  {
-    id: "body-wave",
-    label: "Body Wave",
-    headline: "Soft waves. Full volume. Pure glamour.",
-    description: "Luxurious movement and body, from the first look to the last.",
-    photo: HERO_PHOTOS.blonde,
-    finish: "Natural Lace",
-    collection: "body-wave-glam",
-    // The only close frame: she already fills it, and anything higher than
-    // this strands her against the top edge.
-    focal: "center 43%",
   },
   {
     id: "colour",

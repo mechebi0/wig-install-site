@@ -352,14 +352,14 @@ UPDATE, documented in `supabase/README.md`.
 - Real client reviews. Until then `testimonialsArePlaceholder` stays `true`,
   which keeps the visible "sample wording" notice on `/reviews`. **Do not flip
   that flag while the words are still invented.**
-- More Signature Bob photographs. That collection has three; the others have
-  four to six.
+- More Signature Bob and Body Wave photographs. Those two collections have
+  three and two; the others have five or six.
 - **Which photographs are closures.** No photograph can prove a closure, so
   none is labelled one and `/installs/closure/` has no gallery of its own until
   Nat marks some (`installType: "closure"` in `GALLERY_ITEMS`). The same goes for
-  the seven looks left unlabelled because the frame does not settle frontal or
+  the six looks left unlabelled because the frame does not settle frontal or
   closure (the melted centre part, long layers, shoulder sweep, glass finish,
-  platinum and copper body waves, and warm copper).
+  copper body wave, and warm copper).
 - **A photograph of Wand Curls.** None of the set is described as one, so that
   option shows a plain swatch. Add it to `FINISH_PHOTOS` in
   `lib/collections.ts` and the option picks it up.

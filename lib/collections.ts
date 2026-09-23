@@ -38,7 +38,7 @@ import type { FinishId, InstallTypeId } from "@/lib/taxonomy";
  * WHERE THE FILES LIVE, AND HOW TO ADD MORE
  * ---------------------------------------------------------------------------
  * All of them sit flat in `public/images/work/`, not in a folder per
- * collection. Six of these photographs legitimately belong to two collections
+ * collection. Five of these photographs legitimately belong to two collections
  * at once (a copper body wave is both Body Wave and Color & Custom), and
  * a folder per collection would mean committing the same JPEG twice and
  * editing its alt text in two places.
@@ -146,10 +146,6 @@ const WORK = {
     "body-wave-side-sweep",
     "A body-wave install with a deep side parting, the front section moulded into an S-wave across the forehead",
   ),
-  bodyWaveBlonde: photo(
-    "body-wave-blonde",
-    "A long platinum blonde body-wave install with a centre parting and wide, soft waves through the lengths",
-  ),
   bodyWaveCopper: photo(
     "body-wave-copper",
     "A bright copper body-wave install with a deep side parting, set into large glossy waves",
@@ -170,11 +166,11 @@ const WORK = {
 } as const;
 
 /**
- * The seven photographs the homepage hero rotates through.
+ * The six photographs the homepage hero rotates through.
  *
  * Named here rather than in lib/images.ts so the hero and the collections
  * cannot end up holding two different alt texts for the same file. See the
- * note on ordering in lib/images.ts for why these seven and why in this order.
+ * note on ordering in lib/images.ts for why these six and why in this order.
  *
  * WHY THE LEAD FRAME CHANGED, TWICE
  * It used to be the middle-part deep wave, chosen because Nat's neon sign is
@@ -199,7 +195,6 @@ export const HERO_PHOTOS = {
   deepWave: WORK.deepWaveCrimped,
   straight: WORK.straightGlassFinish,
   bob: WORK.bobBurgundyCurl,
-  blonde: WORK.bodyWaveBlonde,
   pink: WORK.colourPinkStraight,
   /** The finish slide. A bob, because Natural Lace cuts across the styles. */
   lace: WORK.bobSoftLob,
@@ -233,7 +228,7 @@ export const HERO_PHOTOS = {
 export const INSTALL_PHOTOS: Record<InstallTypeId, Photo> = {
   frontal: WORK.straightSideSwoop,
   closure: WORK.deepWaveMeltedPart,
-  "wig-touch-up": WORK.bodyWaveBlonde,
+  "wig-touch-up": WORK.deepWaveLongLayers,
 };
 
 /**
@@ -568,19 +563,6 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   }),
 
   galleryItem({
-    photo: WORK.bodyWaveBlonde,
-    // Centre part, the waves cover both temples: not settled by the frame.
-    installType: null,
-    title: "Platinum Body Wave",
-    description:
-      "A long platinum body wave with a centre parting and wide, soft waves through the lengths.",
-    primaryStyle: "body-wave-glam",
-    alsoStyles: ["color-and-custom"],
-    finishAttributes: ["natural-lace", "melted-hairline", "hd-lace"],
-    featured: false,
-    focalPosition: "center 43%",
-  }),
-  galleryItem({
     photo: WORK.bodyWaveCopper,
     // Parting near the centre, both temples under the hair: not settled.
     installType: null,
@@ -800,8 +782,8 @@ const COLLECTION_META: CollectionMeta[] = [
       "Body wave is the softer register: a wider wave, more shine off the surface, and volume that reads as fullness rather than texture. It takes light better than any other pattern, which is why it is the one that photographs best in almost any room.",
     metaDescription:
       "Body-wave lace installs by Crowned by Nat. Soft volume, wide glossy waves, and elegant movement, in Towson, MD.",
-    hero: WORK.bodyWaveBlonde,
-    hoverImage: WORK.bodyWaveCopper,
+    hero: WORK.bodyWaveCopper,
+    hoverImage: WORK.bodyWaveSideSweep,
     order: 4,
   },
   {
