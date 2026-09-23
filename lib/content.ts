@@ -13,7 +13,7 @@
  * Confirmed, and safe to present as fact:
  *
  *      Crowned by Nat. Installs performed by Nat. One chair, in Towson, MD.
- *      The neon mark in public/brand is her own studio sign.
+ *      The crest in public/brand is the studio's official logo.
  *
  * NOT supplied yet, and therefore deliberately EMPTY rather than invented. An
  * empty string here is not an oversight: every component reads these through
@@ -58,13 +58,42 @@ const CONTACT = {
   /** No studio number supplied. Every "or call" fallback switches to email. */
   phone: "" as string,
   email: "crownedbynattt@gmail.com",
-  /** No handle confirmed. The footer omits the social row while this is "". */
+  /**
+   * No handle confirmed. The footer omits the social row while this is "".
+   * The nav's Instagram icon (components/site-nav.tsx) still renders while
+   * this is empty, unlike the footer - see INSTAGRAM_URL_PLACEHOLDER below
+   * for why, and fill this in with the real profile URL to replace it.
+   */
   instagram: "" as string,
   /** Not supplied. Chairs are described by town instead; see LOCATIONS. */
   street: "" as string,
   /** Not supplied. The studio panel on /book omits the row while this is []. */
   hours: [] as ReadonlyArray<{ days: string; time: string }>,
 } as const;
+
+/**
+ * PLACEHOLDER. Not CONTACT.instagram, and deliberately never read by it.
+ *
+ * Searched the whole project (2026-09-22) for an existing handle before
+ * adding this - README.md lists an Instagram handle among the values still
+ * missing, and CONTACT.instagram above has always been "". No real one
+ * exists anywhere here, and this does not invent one: it is Instagram's own
+ * homepage, not a guessed @crownedbynat profile.
+ *
+ * It exists only so the nav's new Instagram icon (components/site-nav.tsx)
+ * has something real and clickable to point at today, without writing a
+ * fake handle into CONTACT.instagram, which also feeds the "sameAs"
+ * structured data on the homepage and must stay empty until a real profile
+ * is confirmed (an unconfirmed guess there would misrepresent the business
+ * to search engines, not just to a visitor).
+ *
+ * THE ACTUAL URL STILL NEEDS TO BE SUPPLIED. The moment Nat confirms her
+ * handle: set CONTACT.instagram above to the real profile URL. Nothing else
+ * changes - the nav icon reads `STUDIO.instagram || INSTAGRAM_URL_PLACEHOLDER`,
+ * so a real value there is picked up automatically and this constant simply
+ * stops being reached. It can be deleted at the same time, or left inert.
+ */
+export const INSTAGRAM_URL_PLACEHOLDER = "https://www.instagram.com/";
 
 /**
  * WHERE NAT WORKS.
@@ -98,42 +127,48 @@ export const STUDIO = {
   ownerShort: "Nat",
 
   /**
-   * BRAND MARK, and it is the real one.
+   * BRAND MARK, and it is the real, official one (supplied 2026-09-22 as
+   * Natlogo.png, replacing both assets that used to live here).
    *
-   * This is Nat's own neon studio sign, the same one hanging behind the client
-   * in half the photographs on this site. It was supplied as a photograph on a
-   * black wall; the black has been lifted out so the glow composites over any
-   * dark field rather than sitting in a black box. It therefore belongs on
-   * WINE OR DARKER SURFACES ONLY. On blush paper it would be invisible, which
-   * is why the nav and the mobile sheet use the typographic wordmark instead
-   * and the mark itself appears on the hero and in the footer band.
+   * A rose-gold crest: a crowned "CN" monogram over the full "Crowned by Nat"
+   * wordmark, on a genuinely transparent field, 800x800 (resized down from a
+   * supplied 1254x1254 and re-compressed; see "The brand mark" in README.md
+   * for the source). Unlike the neon-sign photo this replaced, it is NOT
+   * restricted to dark surfaces: it carries its own
+   * shadow and outline, so it reads cleanly on wine and on near-white paper
+   * alike, which is why one file now serves the hero plate, the footer AND
+   * the nav bar, and why the nav's mobile sheet draws it too instead of
+   * falling back to the typographic Wordmark the way it used to.
    *
-   * Set to "" to fall back to the typographic wordmark everywhere.
+   * Same file for every size: `logoWidth`/`logoHeight` below are its real
+   * pixel dimensions, used as the `<img>` intrinsic size wherever it is
+   * drawn large (the hero plate, the footer); components that draw it small
+   * (the nav) size it by height in their own className rather than reading a
+   * second small export, since a square crest does not need cropping to
+   * scale down the way the old wide lockup did.
+   *
+   * Set to "" to fall back to the typographic wordmark everywhere it was
+   * used before this mark existed (still the admin dashboard and the
+   * login/signup shell's mobile back-link; see components/wordmark.tsx).
    */
-  logo: "/brand/crowned-by-nat-neon.webp",
-  logoWidth: 900,
-  logoHeight: 294,
+  logo: "/brand/crowned-by-nat-mark.png",
+  logoWidth: 800,
+  logoHeight: 800,
 
   /**
    * THE SAME MARK, FOR THE NAV BAR.
    *
-   * Exported from the supplied artwork (photos/Logo.png, 2172x724) at 480x160,
-   * which is 3.2x the widest it is ever drawn, so it stays crisp on a 3x screen
-   * without shipping a 1.2MB file on every page. Same 3:1 proportions, same
-   * artwork, no recolouring.
-   *
-   * It goes on the nav's near-white paper rather than on wine, which the note
-   * above says the mark cannot do. That note is about the OLD asset, which was
-   * a photograph of the sign with the black wall lifted out and a black halo
-   * left behind it. This one is clean-edged, and what actually happens on pale
-   * paper is that the white neon core stops reading as light and the letters
-   * hollow out to their pink outline. Checked at 28, 36 and 44px against the
-   * real --bg: it is thin at 28 and holds from 36 up, which is why the nav
-   * draws it at 36-40px and never smaller.
+   * One crest, one file: `navLogo` used to be a separately-exported wide crop
+   * of different source artwork, because the old neon mark could not survive
+   * on the nav's pale background at all. This mark can, so `navLogo` is now
+   * just `logo` again, and these two width/height pairs stay identical
+   * on purpose - keeping them as two constants (rather than collapsing to
+   * one) is what let the nav bar's own sizing classes stay untouched by a
+   * future change to the hero/footer size, and vice versa.
    */
-  navLogo: "/brand/crowned-by-nat-logo.png",
-  navLogoWidth: 480,
-  navLogoHeight: 160,
+  navLogo: "/brand/crowned-by-nat-mark.png",
+  navLogoWidth: 800,
+  navLogoHeight: 800,
 
   /**
    * THE BOOKING DESTINATION. One switch for the whole site.

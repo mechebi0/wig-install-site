@@ -47,13 +47,12 @@ const FOOTER_PAGES = [
  * ---------------------------------------------------------------------------
  * THE BRAND MARK
  * ---------------------------------------------------------------------------
- * Nat's own neon studio sign, lifted off the black it was photographed on so
- * it composites over the wine. The nav and the mobile sheet carry the brand as
- * type, so the real mark gets exactly one appearance per page below the fold,
- * which is how a mark keeps its weight.
- *
- * That is also why this band is wine rather than blush: the mark is a light
- * source and it only exists on a dark field. See the note on STUDIO.logo.
+ * The official crest (see the note on STUDIO.logo in lib/content.ts), on the
+ * wine band that closes every page. It also appears in the nav, so this is
+ * its second appearance rather than its only one; unlike the neon sign photo
+ * it replaced, it does not need a dark field to read, so this band stays
+ * wine for the same reason it always did otherwise - the closing note, not
+ * a rendering requirement.
  *
  * Extra bottom padding on small screens clears the sticky booking bar.
  *
@@ -105,7 +104,16 @@ export function SiteFooter() {
                 width={STUDIO.logoWidth}
                 height={STUDIO.logoHeight}
                 loading="lazy"
-                className="h-auto w-[13rem] max-w-full"
+                /*
+                  6rem (96px) square, not the old 13rem: that width was tuned
+                  for a wide lockup roughly a third as tall as it was wide, so
+                  the mark stayed compact in a footer this site deliberately
+                  shrank once already (see the note below on why it is short).
+                  The crest is square, so the same 13rem here would render
+                  208px tall - nearly the whole logo column - and undo that
+                  work. 96px keeps a comparable footprint to the old mark.
+                */
+                className="h-auto w-24 max-w-full"
               />
             ) : (
               <Wordmark className="text-2xl text-on-accent" />

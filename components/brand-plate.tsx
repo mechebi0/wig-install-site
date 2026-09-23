@@ -2,7 +2,7 @@ import { Wordmark } from "@/components/wordmark";
 import { STUDIO } from "@/lib/content";
 
 /**
- * A wine plate carrying Nat's neon mark, used where a photograph of NAT
+ * A wine plate carrying the official crest, used where a photograph of NAT
  * herself belongs and none has been supplied.
  *
  * ---------------------------------------------------------------------------
@@ -42,8 +42,10 @@ export function BrandPlate({
       {/*
         A rose bloom behind the mark, so the light appears to come from behind
         it rather than the mark sitting on a flat field. It is the one gradient
-        on the site and it earns its place by being what makes a neon sign read
-        as lit.
+        on the site, and it earns its place: it read as what makes a neon sign
+        look lit when that was the mark here, and now flatters the crest's own
+        metallic shading the same way - a glow this mark can stand in front of
+        rather than one it depends on.
       */}
       <div
         aria-hidden="true"
@@ -62,7 +64,15 @@ export function BrandPlate({
           width={STUDIO.logoWidth}
           height={STUDIO.logoHeight}
           loading="lazy"
-          className="h-auto w-[70%] max-w-[20rem]"
+          /*
+            16rem (256px) cap, not the old 20rem: that number was tuned for a
+            wide lockup about a third as tall as this square crest, so the
+            same cap here would draw a 320px-tall mark inside a 4:5 panel
+            (components/owner.tsx) that is often not much taller than that on
+            a phone. Capped smaller to keep the caption underneath it and the
+            plate from feeling like nothing but the mark.
+          */
+          className="h-auto w-[70%] max-w-[16rem]"
         />
       ) : (
         <Wordmark className="text-3xl text-on-accent" />

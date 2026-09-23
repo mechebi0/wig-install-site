@@ -2,14 +2,19 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { List, UserCircle, X } from "@phosphor-icons/react/dist/ssr";
+import {
+  InstagramLogo,
+  List,
+  UserCircle,
+  X,
+} from "@phosphor-icons/react/dist/ssr";
 import { buttonStyles } from "@/components/button";
 import { useAuthState } from "@/lib/auth/session";
 import { useBookingSelection } from "@/lib/booking-selection";
 import { installTypeForPath } from "@/lib/taxonomy";
-import { Wordmark } from "@/components/wordmark";
 import {
   CTA,
+  INSTAGRAM_URL_PLACEHOLDER,
   NAV_LINKS,
   REACH,
   REACH_SECONDARY,
@@ -110,6 +115,52 @@ function NavItem({
 function samePath(a: string, b: string) {
   const trim = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
   return trim(a) === trim(b);
+}
+
+/**
+ * The crest at nav scale, shared by the sticky bar and the mobile sheet's own
+ * header so the two can never end up with two different sizes of the same
+ * mark. Sized by height, not width: it is a square crest now rather than the
+ * old wide lockup, so constraining the box it sits in is what keeps it small
+ * regardless of how the source file's own pixel dimensions change later.
+ */
+function NavMark({ className = "" }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={STUDIO.navLogo}
+      alt={STUDIO.name}
+      width={STUDIO.navLogoWidth}
+      height={STUDIO.navLogoHeight}
+      fetchPriority="high"
+      className={`w-auto ${className}`}
+    />
+  );
+}
+
+/**
+ * The Instagram icon, shared by the desktop bar (beside Gallery / Before you
+ * book) and the mobile sheet header. One control, two call sites, never both
+ * visible at once (the breakpoints that show each are mutually exclusive),
+ * so this does not duplicate the link the way rendering it twice on the same
+ * screen would.
+ *
+ * `STUDIO.instagram || INSTAGRAM_URL_PLACEHOLDER`: the real handle the
+ * moment Nat confirms one (see lib/content.ts), Instagram's own homepage
+ * until then - never a guessed @handle, and never a dead link either.
+ */
+function InstagramLink({ className = "" }: { className?: string }) {
+  return (
+    <a
+      href={STUDIO.instagram || INSTAGRAM_URL_PLACEHOLDER}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${STUDIO.name} on Instagram`}
+      className={`tap group inline-flex shrink-0 items-center justify-center rounded-full text-muted transition-colors duration-200 hover:text-accent ${className}`}
+    >
+      <InstagramLogo size={19} weight="regular" aria-hidden="true" />
+    </a>
+  );
 }
 
 export function SiteNav() {
@@ -265,37 +316,45 @@ export function SiteNav() {
           aria-label="Primary"
           className="mx-auto grid h-16 max-w-[1400px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 sm:gap-5 sm:px-8 lg:h-[72px]"
         >
-          <ul className="col-start-1 hidden items-center gap-6 lg:flex xl:gap-9">
-            {NAV_LEFT.map((link) => (
-              <NavItem key={link.href} link={link} current={isCurrent(link.href)} />
-            ))}
-          </ul>
+          {/*
+            Instagram sits left of Gallery / Before you book, in the same
+            track as both: [Instagram] [Gallery] [Before you book], reading
+            left to right same as the mark reads centre and the rest of the
+            bar reads right. One icon plus the two-link list, not folded into
+            NAV_LEFT itself, because it is not a route on this site the way
+            they are.
+          */}
+          <div className="col-start-1 hidden items-center gap-5 lg:flex xl:gap-8">
+            <InstagramLink className="-ml-2.5" />
+            <ul className="flex items-center gap-6 xl:gap-9">
+              {NAV_LEFT.map((link) => (
+                <NavItem key={link.href} link={link} current={isCurrent(link.href)} />
+              ))}
+            </ul>
+          </div>
 
           {/*
             The brand mark, and the anchor the whole bar is composed around.
-
-            Drawn from 36px tall on a phone to 43px at desktop. That floor is
-            not arbitrary: this is a neon sign, so its white core stops reading
-            as light on pale paper and the letters fall back to their pink
-            outline. Checked against the real bar colour, it is thin at 28px and
-            holds from 36 up.
 
             A plain <img> with explicit dimensions rather than next/image: it is
             a fixed-size brand asset, and under the `unoptimized` static export
             next/image would add a wrapper and optimise nothing. The width and
             height attributes are the file's real pixels, so the bar reserves
             the space before the PNG lands and the links either side never jump.
+
+            Sized by HEIGHT now, not width: the crest is square, so a height
+            box is what keeps it compact in a 64-72px bar the way the old
+            wide lockup was kept compact by a width box. 40px tall on a phone
+            to 48px at desktop - a little taller than the old mark's 36-44px,
+            because this crest packs a crown, a monogram AND the full
+            wordmark into one square, and at nav scale only the crown and
+            monogram actually read; the wordmark line stays honestly present
+            (never cropped out, see the note on this asset in lib/content.ts)
+            but reads as texture rather than text at any size that still
+            belongs in a nav bar, the same way it does on the favicon.
           */}
           <a href="/" className="col-start-2 justify-self-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={STUDIO.navLogo}
-              alt={STUDIO.name}
-              width={STUDIO.navLogoWidth}
-              height={STUDIO.navLogoHeight}
-              fetchPriority="high"
-              className="h-auto w-[108px] sm:w-[120px] lg:w-[129px]"
-            />
+            <NavMark className="h-10 sm:h-11 lg:h-12" />
           </a>
 
           <div className="col-start-3 flex items-center justify-end gap-2 lg:gap-6 xl:gap-9">
@@ -394,15 +453,26 @@ export function SiteNav() {
         }}
       >
         <div className="flex h-16 shrink-0 items-center justify-between px-5 sm:px-8">
-          <Wordmark className="text-xl text-ink" />
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Close menu"
-            className="tap -mr-2 inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2"
-          >
-            <X size={24} weight="regular" />
-          </button>
+          {/*
+            The same crest as the sticky bar, not the typographic Wordmark
+            this used to fall back to: that fallback existed because the old
+            neon mark could not survive the sheet's pale background, and this
+            one can (see the note on STUDIO.logo in lib/content.ts).
+          */}
+          <a href="/" aria-label="Home">
+            <NavMark className="h-8" />
+          </a>
+          <div className="-mr-2 flex items-center gap-1">
+            <InstagramLink />
+            <button
+              type="button"
+              onClick={dismiss}
+              aria-label="Close menu"
+              className="tap inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2"
+            >
+              <X size={24} weight="regular" />
+            </button>
+          </div>
         </div>
 
         <ul className="flex flex-col px-5 pt-4 sm:px-8">
