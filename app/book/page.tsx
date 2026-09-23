@@ -29,8 +29,8 @@ export const metadata: Metadata = {
  * THE CHOICE, BETWEEN THE MENU AND THE FORM
  * ---------------------------------------------------------------------------
  * InstallSelector asks the two questions a booking is made of, one at a time:
- * which install (Frontal or Closure), and which finish (Curls, Wand Curls or
- * Crimps, optional). Its Book button then drops to the booking panel below,
+ * which install (Frontal, Closure or Wig Touch-up), and which finish (Curls,
+ * Wand Curls or Crimps). Its Book button then drops to the booking panel below,
  * which opens with both answers already filled in, and an install page's
  * Book button lands there directly with the same two answers in the URL.
  * Either way nothing picked along the way has to be picked twice; see

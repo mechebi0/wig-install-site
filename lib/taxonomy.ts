@@ -5,26 +5,38 @@ import {
 } from "@/lib/collections";
 
 /**
- * WHAT A CLIENT BOOKS: the install type, and the finish she adds to it.
+ * WHAT A CLIENT BOOKS: the primary service, and the finish she adds to it.
  *
  * ---------------------------------------------------------------------------
  * THE AXES, KEPT APART
  * ---------------------------------------------------------------------------
- * This site describes a wig install along independent axes, and the whole
+ * This site describes a wig appointment along independent axes, and the whole
  * point of this file is that they never share a list.
  *
- *   INSTALL TYPE   how the unit is fitted. Frontal or closure. This is the
+ *   INSTALL TYPE   which of the three primary services this is: a Frontal
+ *                  Install, a Closure Install, or a Wig Touch-up. This is the
  *                  booking / service classification, and it is defined HERE
- *                  and nowhere else. "What kind of install are you getting?"
+ *                  and nowhere else. "What are we doing?"
  *
- *   FINISH         how the install is styled on the day. Curls, Wand Curls
- *                  or Crimps. An add-on to an install type, never a service
- *                  of its own: there is no "Frontal Curls" appointment, there
- *                  is a Frontal Install with Curls. Also defined HERE.
- *                  "How would you like your install styled?" Required
- *                  whenever an install is being booked; the two non-install
- *                  services (Customization only, Reinstall and refresh) have
- *                  no finish to require.
+ *                  The name is inherited from when there were only two, both
+ *                  fresh installs. A touch-up lays no lace; it restyles a unit
+ *                  already installed, Nat's own work or someone else's. It
+ *                  sits in this same type rather than a parallel one because
+ *                  it shares the exact shape the other two do - one primary
+ *                  service, one required finish, one optional style note -
+ *                  and giving it a second axis would just be two lists for
+ *                  one choice. "Install" here means "the three things you can
+ *                  book", not "lace was laid".
+ *
+ *   FINISH         how the appointment is styled on the day. Curls, Wand
+ *                  Curls or Crimps. An add-on to an install type, never a
+ *                  service of its own: there is no "Frontal Curls" and no
+ *                  "Wig Touch-up Curls" appointment, there is a Frontal
+ *                  Install with Curls and a Wig Touch-up with Curls. Also
+ *                  defined HERE. "How would you like it styled?" Required
+ *                  whenever one of the three is being booked; the two
+ *                  services outside this type (Customization only, Reinstall
+ *                  and refresh) have no finish to require.
  *
  *   STYLE / LOOK   what the hair looks like: deep wave, sleek straight, bob,
  *                  body wave, colour. That lives in lib/collections.ts beside
@@ -36,11 +48,11 @@ import {
  * Melted Hairline and the rest). That one is a quality you can see in a
  * photograph; this one is something you ask for when you book.
  *
- * Every consumer that needs to say "frontal", "closure" or a finish name reads
- * it from here: the homepage install panel, the two install pages, the
- * booking flow on /book, the booking service names in lib/content.ts, the
- * install label on a gallery photograph, and the booking link builder.
- * Nothing else types the words, so the taxonomy cannot drift.
+ * Every consumer that needs to say "frontal", "closure", "wig touch-up" or a
+ * finish name reads it from here: the homepage install panel, the three
+ * install pages, the booking flow on /book, the booking service names in
+ * lib/content.ts, the install label on a gallery photograph, and the booking
+ * link builder. Nothing else types the words, so the taxonomy cannot drift.
  *
  * The install ids are the same words the `services` table and SERVICES in
  * lib/content.ts already use as slugs, so a booking row and an install type
@@ -49,18 +61,18 @@ import {
  * ---------------------------------------------------------------------------
  * WHERE ACUITY PLUGS IN, LATER
  * ---------------------------------------------------------------------------
- * Nat has no Acuity account yet, so `bookingUrl` is "" on both types and no
- * scheduler address is written down anywhere in this repo. When the account
- * exists, each install type becomes its own Acuity appointment type and its
- * scheduling link is supplied as a build-time environment variable (the two
- * names below). The finishes do NOT become appointment types of their own:
- * the chosen one travels with the install type's link as a query parameter,
- * and bookingTarget() in lib/content.ts is where that parameter is named.
- * Until then bookingTarget() sends every button to /book, which is today's
- * behaviour.
+ * Nat has no Acuity account yet, so `bookingUrl` is "" on all three types and
+ * no scheduler address is written down anywhere in this repo. When the
+ * account exists, each install type becomes its own Acuity appointment type
+ * and its scheduling link is supplied as a build-time environment variable
+ * (named at each entry below). The finishes do NOT become appointment types
+ * of their own: the chosen one travels with the install type's link as a
+ * query parameter, and bookingTarget() in lib/content.ts is where that
+ * parameter is named. Until then bookingTarget() sends every button to
+ * /book, which is today's behaviour.
  */
 
-export type InstallTypeId = "frontal" | "closure";
+export type InstallTypeId = "frontal" | "closure" | "wig-touch-up";
 
 export type FinishId = "curls" | "wand-curls" | "crimps";
 
@@ -176,12 +188,13 @@ export type Finish = {
 export const INSTALL_TYPE_LABELS: Record<InstallTypeId, string> = {
   frontal: "Frontal Install",
   closure: "Closure Install",
+  "wig-touch-up": "Wig Touch-up",
 };
 
-/** Every finish can be added to either install. */
+/** Every finish can be added to any of the three. */
 const ALL_FINISHES: readonly FinishId[] = ["curls", "wand-curls", "crimps"];
 
-/** The two, in the order every surface shows them. */
+/** The three, in the order every surface shows them. */
 export const INSTALL_TYPES: readonly InstallType[] = [
   {
     id: "frontal",
@@ -260,6 +273,50 @@ export const INSTALL_TYPES: readonly InstallType[] = [
     examplesNote: "",
     finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_CLOSURE_URL ?? "",
+  },
+  {
+    id: "wig-touch-up",
+    label: INSTALL_TYPE_LABELS["wig-touch-up"],
+    shortLabel: "Touch-up",
+    summary: "Professional wig touch-up and restyle performed by Nat.",
+    href: "/installs/wig-touch-up/",
+    tagline: "Same unit. Fresh finish. Ready again.",
+    description:
+      "A touch-up is for the style, not the install: Nat resets the pattern you already have, whether that means fresh curls, a new part, or bringing shape back to hair that has gone flat. Tell her the look you want and she will tell you straight whether the unit can get there.",
+    metaDescription:
+      "A style reset on a wig you already have, in the finish and look you choose, checked first by Nat.",
+    highlights: [
+      {
+        title: "A style reset",
+        body: "Curls dropped, waves gone soft, or a parting that has stopped sitting right: this appointment brings the shape back.",
+      },
+      {
+        title: "Your call on the look",
+        body: "Curls, Wand Curls or Crimps, plus anything else you describe when you book.",
+      },
+      {
+        title: "Nat does it herself",
+        body: "Same one pair of hands as every other appointment. No second chair, no assistant.",
+      },
+      {
+        title: "An honest check first",
+        body: "If the unit needs more than a restyle, Nat says so before she starts rather than after.",
+      },
+    ],
+    /*
+      No photograph of a touch-up exists yet, the same gap Closure had at
+      launch (see the note on INSTALL_PHOTOS in lib/collections.ts). This
+      borrows an existing look rather than inventing one: an illustration of
+      the kind of finish a touch-up brings back, captioned as exactly that,
+      not as a record of what this client booked.
+    */
+    image: INSTALL_PHOTOS["wig-touch-up"],
+    imageFocal: "center 43%",
+    imageCaption:
+      "A finished look: the kind of shape and shine a touch-up brings back.",
+    examplesNote: "",
+    finishes: ALL_FINISHES,
+    bookingUrl: process.env.NEXT_PUBLIC_ACUITY_TOUCHUP_URL ?? "",
   },
 ];
 

@@ -18,7 +18,7 @@ import { LOCATIONS, SERVICES as STATIC_SERVICES } from "@/lib/content";
  * HTML ships first and the query runs afterwards in the browser. If the
  * services list rendered empty until that query came back, /book would open on
  * a blank price panel and a search engine would index a page with no prices on
- * it. So the four services in lib/content.ts are the FIRST FRAME, matched to
+ * it. So the five services in lib/content.ts are the FIRST FRAME, matched to
  * the seed rows by slug, and the live rows replace them as soon as they land.
  * `live` says which of the two you are looking at.
  *

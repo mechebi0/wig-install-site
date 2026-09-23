@@ -177,9 +177,10 @@ export function BookingFlow() {
   const service = services.find((item) => item.id === serviceId) ?? null;
   const location = locations.find((item) => item.id === locationId) ?? null;
   /*
-    Finish is required, but only while the chosen service actually IS an
-    install (Frontal or Closure): Customization only and Reinstall and
-    refresh have no finish to style. Derived from the resolved service's slug
+    Finish is required, but only while the chosen service actually IS one of
+    the three install types (Frontal, Closure or Wig Touch-up): Customization
+    only and Reinstall and refresh have no finish to style. Derived from the
+    resolved service's slug
     rather than from `selection.installType` directly, so it agrees with
     `serviceId` above even in the one render where the two have not caught up
     with each other yet.

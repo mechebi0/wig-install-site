@@ -171,7 +171,7 @@ export function InstallSelector(props: InstallSelectorProps) {
               is navigation, and it is marked up as navigation. The finish
               goes along with it, so comparing the two costs nothing.
             */}
-            <ul className="grid w-full grid-cols-2 gap-1 rounded-full border border-line-strong bg-surface p-1 sm:inline-grid sm:w-auto">
+            <ul className="grid w-full grid-cols-3 gap-1 rounded-full border border-line-strong bg-surface p-1 sm:inline-grid sm:w-auto">
               {INSTALL_TYPES.map((type) => {
                 const current = type.id === props.installType;
                 return (
@@ -202,7 +202,13 @@ export function InstallSelector(props: InstallSelectorProps) {
                       {current ? (
                         <Check size={14} weight="bold" aria-hidden="true" />
                       ) : null}
-                      {type.label}
+                      {/*
+                        shortLabel, not label: three of these now share the
+                        pill, and this is exactly the case shortLabel exists
+                        for (see the note on it in lib/taxonomy.ts) - the page
+                        title above has already said which install this is.
+                      */}
+                      {type.shortLabel}
                     </a>
                   </li>
                 );
@@ -214,7 +220,7 @@ export function InstallSelector(props: InstallSelectorProps) {
             ref={installGroup}
             aria-labelledby={`${uid}-install`}
             aria-required="true"
-            className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:gap-8"
+            className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-8"
           >
             {INSTALL_TYPES.map((type) => (
               <div key={type.id} className="flex min-w-0 flex-col">
@@ -233,20 +239,20 @@ export function InstallSelector(props: InstallSelectorProps) {
                   />
                   <span className={`${CHOICE_SURFACE} flex-row sm:flex-col`}>
                     {/*
-                      Beside the words on a phone, so both installs fit on one
-                      screen and can be compared without scrolling; above them
-                      from `sm`, where the card is wide enough to lead with the
-                      picture.
+                      Beside the words on a phone, so all three installs fit
+                      on one screen and can be compared without scrolling;
+                      above them from `sm`, where the card is wide enough to
+                      lead with the picture.
                     */}
                     {/*
-                      Square from `lg`: at 4:5 the two cards stood taller
-                      than a laptop screen, so the second question fell
-                      below the fold before the first was answered.
+                      Square from `lg`: at 4:5 the cards stood taller than a
+                      laptop screen, so a later question fell below the fold
+                      before an earlier one was answered.
                     */}
                     <span className="relative aspect-[3/4] w-[38%] shrink-0 overflow-hidden bg-surface-3 sm:aspect-[4/5] sm:w-full lg:aspect-square">
                       <Photograph
                         photo={type.image}
-                        sizes="(min-width: 1024px) 42vw, (min-width: 640px) 45vw, 38vw"
+                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 38vw"
                         decorative
                         style={{ objectPosition: type.imageFocal }}
                         className="absolute inset-0 h-full w-full object-cover"

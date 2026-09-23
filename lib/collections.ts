@@ -224,10 +224,16 @@ export const HERO_PHOTOS = {
  * GALLERY_ITEMS, and the caption beside it on the page (`imageCaption` in
  * lib/taxonomy.ts) says what it shows rather than what it is. When Nat
  * confirms a real closure in the set, it belongs here instead.
+ *
+ * WIG TOUCH-UP is the same situation as closure, for the same reason: no
+ * photograph can prove a restyle happened, only Nat can. This borrows a look
+ * already in the set as an illustration of a finished style, untagged in
+ * GALLERY_ITEMS, captioned on the page for what it shows.
  */
 export const INSTALL_PHOTOS: Record<InstallTypeId, Photo> = {
   frontal: WORK.straightSideSwoop,
   closure: WORK.deepWaveMeltedPart,
+  "wig-touch-up": WORK.bodyWaveBlonde,
 };
 
 /**

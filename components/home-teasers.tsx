@@ -13,8 +13,8 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
  * and neither is allowed to grow past the size of a doorway. Editing them
  * side by side is what stops that happening one section at a time.
  *
- *   InstallTypes         the two services, frontal and closure, out to /book
- *                        and to each install's own page
+ *   InstallTypes         the three services, frontal, closure and wig
+ *                        touch-up, out to /book and to each install's own page
  *   CollectionShowcase   six style cards, out to /gallery
  *
  * They answer two different questions and are kept visibly apart. InstallTypes
@@ -42,7 +42,8 @@ function TextLink({ href, children }: { href: string; children: string }) {
 }
 
 /**
- * The primary service presentation: the two install types, and nothing else.
+ * The primary service presentation: the three install types, and nothing
+ * else.
  *
  * ---------------------------------------------------------------------------
  * WHY THERE ARE NO PRICES HERE
@@ -54,7 +55,7 @@ function TextLink({ href, children }: { href: string; children: string }) {
  * job this block has.
  *
  * ---------------------------------------------------------------------------
- * WHY TWO PANELS AND NOT A LIST
+ * WHY PANELS AND NOT A LIST
  * ---------------------------------------------------------------------------
  * This is the first place a visitor decides what to book, so each option gets
  * a surface big enough to tap without aiming and a button that says exactly
@@ -64,8 +65,9 @@ function TextLink({ href, children }: { href: string; children: string }) {
  * unmistakable.
  *
  * Names, descriptions, the per-type booking link and the link to each
- * install's own page (/installs/frontal/, /installs/closure/) all come from
- * lib/taxonomy.ts. Nothing here types "frontal" or "closure".
+ * install's own page (/installs/frontal/, /installs/closure/,
+ * /installs/wig-touch-up/) all come from lib/taxonomy.ts. Nothing here types
+ * "frontal", "closure" or "wig-touch-up".
  */
 export function InstallTypes() {
   return (
@@ -93,7 +95,7 @@ export function InstallTypes() {
           </Reveal>
         </div>
 
-        <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:mt-16 lg:gap-8">
+        <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8">
           {INSTALL_TYPES.map((type, index) => (
             <Reveal as="li" key={type.id} index={index} className="flex">
               <article className="flex w-full flex-col justify-between gap-10 rounded-3xl border border-line-strong bg-surface p-7 shadow-soft sm:p-9 lg:min-h-[22rem] lg:p-12">

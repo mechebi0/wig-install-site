@@ -26,25 +26,27 @@ import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
  *   2. how it works    four short facts
  *   3. the work        photographs that show this install, when there are any
  *   4. the choice      the finish, then the Book button (InstallSelector)
- *   5. the other one   the other install, so the page is never a dead end
+ *   5. the others      the other install types, so the page is never a dead end
  *
  * Explain, show, choose, book. The choice comes after the photographs on
  * purpose: someone picking between curls and crimps has usually just been
  * looking at hair.
  *
  * ---------------------------------------------------------------------------
- * WHY THE CLOSURE PAGE HAS NO GALLERY TODAY
+ * WHY THE CLOSURE AND TOUCH-UP PAGES HAVE NO GALLERY TODAY
  * ---------------------------------------------------------------------------
  * The work section lists only photographs whose frame establishes this
  * install type (see `installType` in lib/collections.ts). No photograph can
- * establish a closure, so on that page the section is left out entirely
- * rather than filled with pictures that merely look like one. It appears on
- * its own the day Nat marks a real closure in the set. The closure's lead
- * photograph is still shown, captioned for what it shows: the look a closure
- * is built around, not a record of what that client booked.
+ * establish a closure, and none can establish a touch-up either (nothing in
+ * a frame proves a restyle happened rather than a fresh style), so on those
+ * two pages the section is left out entirely rather than filled with
+ * pictures that merely look like one. Each appears on its own the day Nat
+ * marks a real example in the set. The lead photograph is still shown on
+ * both, captioned for what it shows: the look each is built around, not a
+ * record of what that client booked.
  */
 export function InstallPage({ type }: { type: InstallType }) {
-  const other = INSTALL_TYPES.find((candidate) => candidate.id !== type.id)!;
+  const others = INSTALL_TYPES.filter((candidate) => candidate.id !== type.id);
   const finishPhotos = FINISHES.flatMap((finish) =>
     finish.image ? [finish.image] : [],
   );
@@ -185,7 +187,7 @@ export function InstallPage({ type }: { type: InstallType }) {
         </div>
       </section>
 
-      {/* ----------------------------------------------- the other one --- */}
+      {/* ------------------------------------------------- the others --- */}
       <section
         aria-labelledby="other-heading"
         className="border-t border-line bg-surface-2/50"
@@ -200,49 +202,59 @@ export function InstallPage({ type }: { type: InstallType }) {
             </h2>
           </Reveal>
 
-          <Reveal index={1} className="mt-10 lg:mt-14">
-            {/*
-              One link for the whole card, the same rule as a collection card:
-              one destination is one tab stop. The photograph is decorative
-              here because the words beside it already name where it goes.
-            */}
-            <a
-              href={other.href}
-              className="group grid grid-cols-[38%_minmax(0,1fr)] overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-soft transition-colors duration-300 hover:border-accent sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]"
-            >
-              <div className="relative aspect-[3/4] overflow-hidden bg-surface-3 sm:aspect-auto sm:min-h-[20rem]">
-                <Photograph
-                  photo={other.image}
-                  sizes="(min-width: 1024px) 24vw, (min-width: 640px) 38vw, 38vw"
-                  decorative
-                  style={{ objectPosition: other.imageFocal }}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                />
-              </div>
-              <div className="flex min-w-0 flex-col justify-center p-5 sm:p-9 lg:p-12">
-                <h3 className="font-display text-2xl leading-tight tracking-tight text-ink sm:text-3xl lg:text-4xl">
-                  {other.label}
-                </h3>
-                <p className="mt-2 font-display text-base italic leading-snug text-muted sm:text-lg">
-                  {other.tagline}
-                </p>
-                <p className="mt-5 hidden max-w-[52ch] text-base leading-relaxed text-muted sm:block">
-                  {other.description}
-                </p>
-                <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-accent">
-                  {CTA.viewInstall} {other.label}
-                  <ArrowRight
-                    size={15}
-                    weight="regular"
-                    aria-hidden="true"
-                    className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 motion-reduce:transition-none"
-                  />
-                </span>
-              </div>
-            </a>
-          </Reveal>
+          {/*
+            One card per remaining install type, stacked: with three types
+            total this is always two cards, but the loop asks for none of
+            that to be assumed twice.
+          */}
+          <div className="mt-10 flex flex-col gap-6 lg:mt-14">
+            {others.map((other, index) => (
+              <Reveal key={other.id} index={index + 1}>
+                {/*
+                  One link for the whole card, the same rule as a collection
+                  card: one destination is one tab stop. The photograph is
+                  decorative here because the words beside it already name
+                  where it goes.
+                */}
+                <a
+                  href={other.href}
+                  className="group grid grid-cols-[38%_minmax(0,1fr)] overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-soft transition-colors duration-300 hover:border-accent sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]"
+                >
+                  <div className="relative aspect-[3/4] overflow-hidden bg-surface-3 sm:aspect-auto sm:min-h-[20rem]">
+                    <Photograph
+                      photo={other.image}
+                      sizes="(min-width: 1024px) 24vw, (min-width: 640px) 38vw, 38vw"
+                      decorative
+                      style={{ objectPosition: other.imageFocal }}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    />
+                  </div>
+                  <div className="flex min-w-0 flex-col justify-center p-5 sm:p-9 lg:p-12">
+                    <h3 className="font-display text-2xl leading-tight tracking-tight text-ink sm:text-3xl lg:text-4xl">
+                      {other.label}
+                    </h3>
+                    <p className="mt-2 font-display text-base italic leading-snug text-muted sm:text-lg">
+                      {other.tagline}
+                    </p>
+                    <p className="mt-5 hidden max-w-[52ch] text-base leading-relaxed text-muted sm:block">
+                      {other.description}
+                    </p>
+                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-accent">
+                      {CTA.viewInstall} {other.label}
+                      <ArrowRight
+                        size={15}
+                        weight="regular"
+                        aria-hidden="true"
+                        className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 motion-reduce:transition-none"
+                      />
+                    </span>
+                  </div>
+                </a>
+              </Reveal>
+            ))}
+          </div>
 
-          <Reveal index={2}>
+          <Reveal index={others.length + 1}>
             <a
               href="/gallery/"
               className="group mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"

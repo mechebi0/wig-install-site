@@ -86,9 +86,10 @@ const EMPTY: Fields = {
  * `service` and `finish` are passed separately because both are derived from
  * the shared booking selection rather than held in `fields`.
  *
- * `finish` is required only when the chosen service actually IS an install
- * (Frontal or Closure): Customization only and Reinstall and refresh have no
- * finish to style, so nothing here can be left unanswered for them.
+ * `finish` is required only when the chosen service actually IS one of the
+ * three install types (Frontal, Closure or Wig Touch-up): Customization only
+ * and Reinstall and refresh have no finish to style, so nothing here can be
+ * left unanswered for them.
  */
 function validate(
   fields: Fields,
@@ -362,12 +363,13 @@ export function Booking() {
           </div>
 
           {/*
-            The styling add-on. Required when the service above is an install
-            (Frontal or Closure), the same rule the flow at the top of /book
-            enforces; for the two non-install services there is no finish to
-            style, so the empty "No finish" choice stays valid there. It
-            writes to the same booking selection as the finish tiles above
-            the form, so changing either changes both.
+            The styling add-on. Required when the service above is one of the
+            three install types (Frontal, Closure or Wig Touch-up), the same
+            rule the flow at the top of /book enforces; for the two
+            non-install services there is no finish to style, so the empty
+            "No finish" choice stays valid there. It writes to the same
+            booking selection as the finish tiles above the form, so changing
+            either changes both.
           */}
           <div className="flex flex-col gap-2">
             <label

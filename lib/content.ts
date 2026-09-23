@@ -467,13 +467,13 @@ export const PAGES = {
  */
 export const HOME = {
   /**
-   * The primary service presentation: the two install types, and nothing
+   * The primary service presentation: the three install types, and nothing
    * else. Their names and one-line descriptions come from lib/taxonomy.ts.
    */
   installs: {
     kicker: "Choose your install",
-    heading: "Frontal or closure.",
-    body: "Two ways to book, and Nat performs both herself.",
+    heading: "Frontal, closure, or a touch-up.",
+    body: "Three ways to book, and Nat performs every one herself.",
     link: "See what is included",
   },
   collections: {
@@ -707,7 +707,7 @@ export const COLLECTION_PAGE = {
 export const SELECTION = {
   install: {
     heading: "Choose your install",
-    body: "Frontal or closure. Nat performs both herself.",
+    body: "Frontal, closure, or a touch-up on a wig you already have. Nat performs every appointment herself.",
   },
   finish: {
     heading: "Choose your finish",
@@ -744,7 +744,7 @@ export const SELECTION = {
     style: "Style",
     noInstall: "Not chosen yet",
     noFinish: "None chosen",
-    needInstall: "Choose Frontal Install or Closure Install first.",
+    needInstall: "Choose your service first.",
     needFinish: "Choose a finish first.",
     needBoth: "Choose your install and a finish first.",
   },
@@ -772,8 +772,11 @@ export const INSTALL_PAGE = {
   eyebrow: "Install type",
   toFinish: "Choose your finish",
   how: (shortLabel: string) => `How a ${shortLabel.toLowerCase()} works`,
-  examples: (shortLabel: string) => `${shortLabel} installs from the chair`,
-  other: "The other install",
+  // "looks" rather than "installs" so this also reads right for Touch-up,
+  // which lays no lace: "Touch-up looks from the chair", not "... installs".
+  examples: (shortLabel: string) => `${shortLabel} looks from the chair`,
+  /** Heading over the remaining install types. Reads fine whether one or two remain. */
+  other: "Other ways to book",
   gallery: "Browse every look in the gallery",
 } as const;
 
@@ -786,9 +789,10 @@ export const INSTALL_PAGE = {
  * the live rows arrive from the database. Keeping the two in step is the whole
  * reason the ids are stable words rather than numbers.
  *
- * "frontal" and "closure" are the two INSTALL TYPES (lib/taxonomy.ts), the
- * primary service classification, and their names are read from there. The
- * other two are secondary services on a unit rather than install types.
+ * "frontal", "closure" and "wig-touch-up" are the three INSTALL TYPES
+ * (lib/taxonomy.ts), the primary service classification, and their names are
+ * read from there. The other two are secondary services on a unit rather than
+ * install types.
  *
  * Money is held in CENTS and time in MINUTES rather than as the display
  * strings this file used to carry. The strings were fine while nothing but a
@@ -815,6 +819,13 @@ export const SERVICES = [
     priceCents: 14000,
     durationMinutes: 90,
     body: "Less lace to manage, lower upkeep, and gentler on a tender scalp.",
+  },
+  {
+    id: "wig-touch-up",
+    name: INSTALL_TYPE_LABELS["wig-touch-up"],
+    priceCents: 5500,
+    durationMinutes: 45,
+    body: "Curls reset, waves refreshed, or a new style on a unit you already have.",
   },
   {
     id: "custom",
