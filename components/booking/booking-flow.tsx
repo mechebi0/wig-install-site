@@ -178,7 +178,7 @@ export function BookingFlow() {
   const location = locations.find((item) => item.id === locationId) ?? null;
   /*
     Finish is required, but only while the chosen service actually IS one of
-    the three install types (Frontal, Closure or Wig Touch-up): Customization
+    the three install types (Frontal, Closure or Reinstalls): Customization
     only and Reinstall and refresh have no finish to style. Derived from the
     resolved service's slug
     rather than from `selection.installType` directly, so it agrees with

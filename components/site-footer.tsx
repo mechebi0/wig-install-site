@@ -7,7 +7,7 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
 /*
   The Pages list, in reading order. The three install pages sit straight
   after Gallery so the two-column grid below groups them together
-  ("Frontal Install | Closure Install", then Wig Touch-up alone), which reads
+  ("Frontal Install | Closure Install", then Reinstalls alone), which reads
   as the choice they are. NAV_LINKS[0] is Gallery by the same positional
   contract SiteNav uses to split the bar; the rest follow in nav order, then
   the booking link.

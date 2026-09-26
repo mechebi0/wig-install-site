@@ -577,7 +577,7 @@ export function BookInstallLink({
     return (
       <a href="#finish" className={`${buttonStyles.onPhoto} ${className}`}>
         <CalendarCheck size={16} weight="regular" aria-hidden="true" />
-        {CTA.bookInstall} {getInstallType(installType).label}
+        {CTA.bookInstall} {getInstallType(installType).bookLabel}
         <ArrowDown size={14} weight="regular" aria-hidden="true" />
       </a>
     );
@@ -590,7 +590,7 @@ export function BookInstallLink({
       className={className}
     >
       <CalendarCheck size={16} weight="regular" aria-hidden="true" />
-      {CTA.bookInstall} {getInstallType(installType).label}
+      {CTA.bookInstall} {getInstallType(installType).bookLabel}
     </ButtonLink>
   );
 }

@@ -276,16 +276,17 @@ export const CTA = {
   bookStyle: "Book",
   /**
    * The booking verb on an install-type block. Same first word as every other
-   * booking button, followed by the install type's own name at the call site
-   * ("Book Frontal Install"), so the visible label already says which of the
-   * two appointments it opens and needs no screen-reader suffix.
+   * booking button, followed by the install type's `bookLabel` at the call
+   * site ("Book Frontal Install", "Book Reinstall"), so the visible label
+   * already says which appointment it opens and needs no screen-reader
+   * suffix.
    */
   bookInstall: "Book",
   /**
    * The way into an install type's own page, from its card on the homepage
    * and in the booking flow. Followed by the install's name at the call site
-   * ("View Frontal Install"), the same shape as the Book button beside it, so
-   * the two read as a pair: learn about it, or book it.
+   * ("View Frontal Install", "View Reinstalls"), the same shape as the Book
+   * button beside it, so the two read as a pair: learn about it, or book it.
    */
   viewInstall: "View",
   /**
@@ -515,7 +516,7 @@ export const HOME = {
    */
   installs: {
     kicker: "Choose your install",
-    heading: "Frontal, closure, or a touch-up.",
+    heading: "Frontal, closure, or a reinstall.",
     body: "Three ways to book, and Nat performs every one herself.",
     link: "See what is included",
   },
@@ -750,7 +751,7 @@ export const COLLECTION_PAGE = {
 export const SELECTION = {
   install: {
     heading: "Choose your install",
-    body: "Frontal, closure, or a touch-up on a wig you already have. Nat performs every appointment herself.",
+    body: "Frontal, closure, or a reinstall on a wig you already have. Nat performs every appointment herself.",
   },
   finish: {
     heading: "Choose your finish",
@@ -815,8 +816,8 @@ export const INSTALL_PAGE = {
   eyebrow: "Install type",
   toFinish: "Choose your finish",
   how: (shortLabel: string) => `How a ${shortLabel.toLowerCase()} works`,
-  // "looks" rather than "installs" so this also reads right for Touch-up,
-  // which lays no lace: "Touch-up looks from the chair", not "... installs".
+  // "looks" rather than "installs" so this also reads right for Reinstalls,
+  // which lays no lace: "Reinstall looks from the chair", not "... installs".
   examples: (shortLabel: string) => `${shortLabel} looks from the chair`,
   /** Heading over the remaining install types. Reads fine whether one or two remain. */
   other: "Other ways to book",

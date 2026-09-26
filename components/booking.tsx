@@ -87,7 +87,7 @@ const EMPTY: Fields = {
  * the shared booking selection rather than held in `fields`.
  *
  * `finish` is required only when the chosen service actually IS one of the
- * three install types (Frontal, Closure or Wig Touch-up): Customization only
+ * three install types (Frontal, Closure or Reinstalls): Customization only
  * and Reinstall and refresh have no finish to style, so nothing here can be
  * left unanswered for them.
  */
@@ -364,7 +364,7 @@ export function Booking() {
 
           {/*
             The styling add-on. Required when the service above is one of the
-            three install types (Frontal, Closure or Wig Touch-up), the same
+            three install types (Frontal, Closure or Reinstalls), the same
             rule the flow at the top of /book enforces; for the two
             non-install services there is no finish to style, so the empty
             "No finish" choice stays valid there. It writes to the same

@@ -13,8 +13,9 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
  * and neither is allowed to grow past the size of a doorway. Editing them
  * side by side is what stops that happening one section at a time.
  *
- *   InstallTypes         the three services, frontal, closure and wig
- *                        touch-up, out to /book and to each install's own page
+ *   InstallTypes         the three services, frontal, closure and
+ *                        reinstalls, out to /book and to each install's own
+ *                        page
  *   CollectionShowcase   six style cards, out to /gallery
  *
  * They answer two different questions and are kept visibly apart. InstallTypes
@@ -126,7 +127,7 @@ export function InstallTypes() {
                     className="w-full sm:w-auto"
                   >
                     <CalendarCheck size={17} weight="regular" aria-hidden="true" />
-                    {CTA.bookInstall} {type.label}
+                    {CTA.bookInstall} {type.bookLabel}
                   </ButtonLink>
                   <TextLink href={type.href}>
                     {`${CTA.viewInstall} ${type.label}`}

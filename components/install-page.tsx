@@ -33,11 +33,11 @@ import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
  * looking at hair.
  *
  * ---------------------------------------------------------------------------
- * WHY THE CLOSURE AND TOUCH-UP PAGES HAVE NO GALLERY TODAY
+ * WHY THE CLOSURE AND REINSTALL PAGES HAVE NO GALLERY TODAY
  * ---------------------------------------------------------------------------
  * The work section lists only photographs whose frame establishes this
  * install type (see `installType` in lib/collections.ts). No photograph can
- * establish a closure, and none can establish a touch-up either (nothing in
+ * establish a closure, and none can establish a reinstall either (nothing in
  * a frame proves a restyle happened rather than a fresh style), so on those
  * two pages the section is left out entirely rather than filled with
  * pictures that merely look like one. Each appears on its own the day Nat
