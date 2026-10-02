@@ -344,17 +344,18 @@ export function SiteNav() {
 
             Sized by HEIGHT now, not width: the crest is square, so a height
             box is what keeps it compact in a 64-72px bar the way the old
-            wide lockup was kept compact by a width box. 40px tall on a phone
-            to 48px at desktop - a little taller than the old mark's 36-44px,
-            because this crest packs a crown, a monogram AND the full
-            wordmark into one square, and at nav scale only the crown and
-            monogram actually read; the wordmark line stays honestly present
-            (never cropped out, see the note on this asset in lib/content.ts)
-            but reads as texture rather than text at any size that still
-            belongs in a nav bar, the same way it does on the favicon.
+            wide lockup was kept compact by a width box. 56px tall on a phone
+            to 64px at desktop, inside the unchanged 64px / 72px bar (4px of
+            air above and below at the phone and desktop sizes). The crest
+            packs a crown, a monogram AND the full wordmark into one square,
+            and the bigger the box the more of the wordmark line survives as
+            actual lettering rather than texture; it is never cropped out, see
+            the note on this asset in lib/content.ts. The row is still a
+            centred grid track, so a bigger mark never pulls off the centre
+            line, and the side tracks have room to spare at 320px.
           */}
           <a href="/" className="col-start-2 justify-self-center">
-            <NavMark className="h-10 sm:h-11 lg:h-12" />
+            <NavMark className="h-14 md:h-[3.75rem] lg:h-16" />
           </a>
 
           <div className="col-start-3 flex items-center justify-end gap-2 lg:gap-6 xl:gap-9">
