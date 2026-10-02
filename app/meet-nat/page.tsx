@@ -19,8 +19,9 @@ export const metadata: Metadata = {
  * bolted under a hero.
  *
  * The whole page is built to take Nat's real words and her own photograph with
- * no layout change. Swap the copy in OWNER (lib/content.ts) and drop the photo
- * in by swapping BrandPlate for a Photograph in components/owner.tsx.
+ * no layout change. The copy lives in OWNER (lib/content.ts); the portrait
+ * lives in components/owner.tsx, which holds her own photograph now that it
+ * has arrived.
  */
 export default function MeetNatPage() {
   return (

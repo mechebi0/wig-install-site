@@ -1,17 +1,34 @@
 import { Check } from "@phosphor-icons/react/dist/ssr";
-import { BrandPlate } from "@/components/brand-plate";
+import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
+import type { Photo } from "@/lib/collections";
 import { OWNER, REACH, STUDIO } from "@/lib/content";
+
+/**
+ * Nat's own portrait, exported at the three widths every photograph on this
+ * site ships at (see the note in lib/collections.ts): 600 for phones, 1200 as
+ * the default, and the untouched original as the largest - the source is
+ * 1538x2048, so a wider export would be an upscale rather than a resize.
+ */
+const NAT_PORTRAIT: Photo = {
+  src: "/images/crowned-by-nat-ceo-nat.jpg",
+  small: "/images/crowned-by-nat-ceo-nat-600.jpg",
+  large: "/images/crowned-by-nat-ceo-nat-1600.jpg",
+  width: 1200,
+  height: 1598,
+  alt: "Nat, founder of Crowned by Nat",
+};
 
 /**
  * About Crowned by Nat. Portrait on the left, words on the right.
  *
  * This is the section the whole brief hangs on: one named person does the
- * work. The shape is built to take Nat's real biography and her own photograph
- * with no layout change. Swap the words in OWNER (lib/content.ts), and swap
- * BrandPlate for a <Photograph> when a picture of Nat arrives. See the note in
- * components/brand-plate.tsx for why the slot is not holding a stock portrait
- * in the meantime.
+ * work. The shape takes Nat's own words and her own photograph with no layout
+ * change: the copy is OWNER (lib/content.ts), and the portrait below is her
+ * own, in the slot that held the brand plate until it arrived. The container
+ * owns the 4:5 shape, the rounding and the shadow; the photograph fills it
+ * with object-cover, so nothing stretches and only the outer edges of the 3:4
+ * frame give way - never her face.
  */
 export function Owner() {
   return (
@@ -28,7 +45,12 @@ export function Owner() {
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">
           <div className="relative aspect-4/5 w-full overflow-hidden rounded-3xl bg-surface-2 shadow-lifted">
-            <BrandPlate />
+            <Photograph
+              photo={NAT_PORTRAIT}
+              sizes="(min-width: 1024px) 40vw, calc(100vw - 2.5rem)"
+              priority
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           </div>
         </Reveal>
 

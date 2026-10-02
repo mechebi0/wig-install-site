@@ -347,9 +347,10 @@ UPDATE, documented in `supabase/README.md`.
 - Confirmed service prices and durations.
 - Confirmed appointment policy. `policiesAreDraft` in `lib/content.ts` is `true`,
   which puts a visible "draft answers" notice on `/before-you-book`.
-- Her own biography, and a photograph of herself. Until one arrives, the portrait
-  slot on `/meet-nat` holds a brand plate rather than a stranger's face; see
-  `components/brand-plate.tsx`.
+- Her own biography, and a photograph of herself. The photograph has arrived and
+  now fills the portrait slot on `/meet-nat`
+  (`public/images/crowned-by-nat-ceo-nat.jpg`); the paragraphs in `OWNER` still
+  describe the service rather than her history.
 - Real client reviews. Until then `testimonialsArePlaceholder` stays `true`,
   which keeps the visible "sample wording" notice on `/reviews`. **Do not flip
   that flag while the words are still invented.**
