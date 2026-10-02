@@ -3,6 +3,7 @@ import {
   INSTALL_PHOTOS,
   type Photo,
 } from "@/lib/collections";
+import { type AddOnId } from "@/lib/booking/add-ons";
 
 /**
  * WHAT A CLIENT BOOKS: the primary service, and the finish she adds to it.
@@ -102,6 +103,18 @@ export type FinishId = "curls" | "wand-curls" | "crimps";
 export type BookingSelection = {
   installType: InstallTypeId | null;
   finish: FinishId | null;
+  /**
+   * The optional extras chosen for this appointment (After Hours, Early Bird,
+   * Same-Day Customization, Styling). Empty when none are selected. Carried
+   * alongside the other two so the booking flow's confirm step can price and
+   * time the whole appointment, and so the notes Nat receives name them.
+   *
+   * The two time-window add-ons are mutually exclusive; the booking flow
+   * enforces that, and parseAddOn is the one place an id is checked against
+   * the four, so a stale or hand-edited value can never select something that
+   * does not exist.
+   */
+  addOns: AddOnId[];
   styleDescription: string;
 };
 

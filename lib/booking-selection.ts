@@ -7,6 +7,7 @@ import {
   parseInstallType,
   type BookingSelection,
 } from "@/lib/taxonomy";
+import { parseAddOn, type AddOnId } from "@/lib/booking/add-ons";
 
 /**
  * THE BOOKING SELECTION: which install, which finish, and what she typed
@@ -35,9 +36,9 @@ import {
  * lib/taxonomy.ts). It lives in sessionStorage alone, which is still enough
  * to survive the same full page navigation everything else here survives.
  *
- * The three are merged field by field, so a homepage "Book Closure Install"
- * button (?install=closure) keeps the finish and the style notes chosen
- * earlier rather than wiping them.
+ * The fields are merged field by field, so a homepage "Book Closure Install"
+ * button (?install=closure) keeps the finish, the add-ons and the style notes
+ * chosen earlier rather than wiping them.
  *
  * sessionStorage rather than localStorage: a choice made today should not
  * preselect a booking a month from now. It ends with the tab. Every access is
@@ -79,6 +80,7 @@ const CHANGE_EVENT = "crownedbynat:booking-selection";
 type Stored = {
   install?: unknown;
   finish?: unknown;
+  addOns?: unknown;
   styleDescription?: unknown;
 };
 
@@ -95,6 +97,16 @@ function readStored(): Stored {
 /** Storage is untrusted text like the URL is, so it is parsed the same way. */
 const asText = (value: unknown) => (typeof value === "string" ? value : null);
 
+/**
+ * The add-ons are stored as an array of ids, so they are checked the same way
+ * the URL's install and finish are: each one against the four that exist, so a
+ * stale or hand-edited value can never select something that does not exist.
+ */
+function parseAddOns(value: unknown): AddOnId[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((id): id is AddOnId => parseAddOn(id) !== null);
+}
+
 function readSelection(): BookingSelection {
   const params = new URLSearchParams(window.location.search);
   const stored = readStored();
@@ -104,6 +116,7 @@ function readSelection(): BookingSelection {
       parseInstallType(asText(stored.install)),
     finish:
       parseFinish(params.get("finish")) ?? parseFinish(asText(stored.finish)),
+    addOns: parseAddOns(stored.addOns),
     // sessionStorage only; the URL never carries this one. See the note above.
     styleDescription: asText(stored.styleDescription) ?? "",
   };
@@ -112,6 +125,7 @@ function readSelection(): BookingSelection {
 const EMPTY_SELECTION: BookingSelection = {
   installType: null,
   finish: null,
+  addOns: [],
   styleDescription: "",
 };
 
@@ -174,6 +188,7 @@ export function setBookingSelection(change: Partial<BookingSelection>): void {
       JSON.stringify({
         install: next.installType,
         finish: next.finish,
+        addOns: next.addOns,
         styleDescription: next.styleDescription,
       }),
     );

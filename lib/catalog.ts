@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Location, Service } from "@/lib/supabase/types";
-import { LOCATIONS, SERVICES as STATIC_SERVICES } from "@/lib/content";
+import {
+  LOCATIONS,
+  SERVICES as STATIC_SERVICES,
+  SERVICE_CATEGORIES,
+  type ServiceEntry,
+} from "@/lib/content";
+import type { InstallTypeId } from "@/lib/taxonomy";
 
 /**
  * Locations and services: the two things the public site reads before anyone
@@ -41,6 +47,13 @@ export type CatalogService = {
   display_order: number;
   /** False while this is the built-in fallback rather than a database row. */
   live: boolean;
+  /** The category this service is filed under on the site. "" when unknown. */
+  category: string;
+  /**
+   * The finish axis this service belongs to, or null when it has no finish to
+   * choose. What decides whether the booking flow asks for a finish.
+   */
+  installType: InstallTypeId | null;
 };
 
 /**
@@ -63,10 +76,23 @@ export const FALLBACK_SERVICES: CatalogService[] = STATIC_SERVICES.map(
     active: true,
     display_order: index + 1,
     live: false,
+    category: service.category,
+    installType: service.installType,
   }),
 );
 
 function toCatalogService(row: Service): CatalogService {
+  /*
+    The database row carries no install type or category of its own, so both
+    are recovered from the compiled-in catalog by slug. The slugs are seeded
+    from this same array (see supabase/migrations), so a live row's slug is a
+    catalog id and the lookup matches. A service Nat adds from the dashboard
+    later has no catalog entry and reads as no-category, no-finish, which is
+    the honest default for something this file has never seen.
+  */
+  const entry: ServiceEntry | undefined = STATIC_SERVICES.find(
+    (service) => service.id === row.slug,
+  );
   return {
     id: row.id,
     slug: row.slug,
@@ -78,7 +104,33 @@ function toCatalogService(row: Service): CatalogService {
     active: row.active,
     display_order: row.display_order,
     live: true,
+    category: entry?.category ?? "",
+    installType: entry?.installType ?? null,
   };
+}
+
+/**
+ * Services grouped under the categories the customer sees, in SERVICE_CATEGORIES
+ * order, each keeping the catalog's own order inside it.
+ *
+ * Anything without a known category (a row Nat adds from the dashboard, or a
+ * live row from before migration 0005 renamed the slugs) goes in a trailing
+ * group with category "" rather than being dropped, so the menu can never
+ * quietly hide a service the database says is bookable.
+ */
+export function groupByCategory(
+  services: CatalogService[],
+): { category: string; items: CatalogService[] }[] {
+  const groups = SERVICE_CATEGORIES.map((category) => ({
+    category,
+    items: services.filter((service) => service.category === category),
+  }));
+  const other = services.filter(
+    (service) => !SERVICE_CATEGORIES.includes(service.category),
+  );
+  return [...groups, { category: "", items: other }].filter(
+    (group) => group.items.length > 0,
+  );
 }
 
 /**

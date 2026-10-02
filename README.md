@@ -126,9 +126,11 @@ alt text, then list it in whichever collections it belongs to.
   hand-off panel automatically. `bookingTarget({ install, finish, style })`
   builds the link; an install-type link (below) wins over this one when it is
   set.
-- `SERVICES` — names, prices, durations. Still stand-ins. `frontal` and
-  `closure` are the two install types and take their names from
-  `lib/taxonomy.ts`.
+- `SERVICES` — the seven services, their categories, prices and durations, from
+  the pricing reference. The one authoritative price list: the menu on `/book`,
+  the booking flow, the request form and the structured data all read it.
+  `frontal`, `closure` and `wig-touch-up` are also the install types in
+  `lib/taxonomy.ts`; each service carries the install type it belongs to.
 - `ANNOUNCEMENT` — the words in the stripe at the top of every page; see
   "The announcement stripe" below.
 - `PAGES`, `HOME`, `HERO`, `COLLECTION_PAGE` — page and section copy.
@@ -340,11 +342,14 @@ UPDATE, documented in `supabase/README.md`.
 - **Written consent from the clients in the photographs.** Every face on this
   site is a real customer. This is the one outstanding item that is not
   cosmetic.
-- A phone number, a street address, opening hours, and an Instagram handle.
-  Until then the site simply does not mention them.
+- A phone number, a street address, and an Instagram handle. Until then the
+  site simply does not mention them. Opening hours are now set (10:00 AM to
+  9:00 PM) and the booking window is 10:00 AM to 9:00 PM in the studio's own
+  timezone, America/New_York.
 - Confirmation that `crownedbynattt@gmail.com` is the right **public** contact.
   It is currently both the public address and the admin account.
-- Confirmed service prices and durations.
+- Confirmed durations for the four services the reference does not time
+  (the two reinstalls and the two colour services). The prices are confirmed.
 - Confirmed appointment policy. `policiesAreDraft` in `lib/content.ts` is `true`,
   which puts a visible "draft answers" notice on `/before-you-book`.
 - Her own biography, and a photograph of herself. The photograph has arrived and

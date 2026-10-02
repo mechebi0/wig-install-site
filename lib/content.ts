@@ -31,7 +31,6 @@
  */
 
 import {
-  INSTALL_TYPE_LABELS,
   getFinish,
   getInstallType,
   type FinishId,
@@ -68,10 +67,17 @@ const CONTACT = {
   instagram: "" as string,
   /** Not supplied. Chairs are described by town instead; see LOCATIONS. */
   street: "" as string,
-  /** Not supplied. The studio panel on /book omits the row while this is []. */
-  hours: [] as ReadonlyArray<{ days: string; time: string }>,
+  /**
+   * The booking window, as the studio displays it: 10:00 AM to 9:00 PM.
+   *
+   * This is the NORMAL_WINDOW in lib/booking/availability.ts and the grid the
+   * calendar offers by default. Early Bird and After Hours book either side of
+   * it (see lib/booking/add-ons.ts); this is the span the site advertises as
+   * its hours, and it is what the "Hours" row on /book prints. Kept in step
+   * with NORMAL_WINDOW, which is the one the booking flow actually offers.
+   */
+  hours: [{ days: "Tuesday to Saturday", time: "10:00 AM – 9:00 PM" }],
 } as const;
-
 /**
  * PLACEHOLDER. Not CONTACT.instagram, and deliberately never read by it.
  *
@@ -759,12 +765,23 @@ export const SELECTION = {
     /**
      * Still read where a finish genuinely IS optional: the plain request
      * form's own Finish menu, when the service chosen there is not an
-     * install (Customization only, Reinstall and refresh have no finish to
-     * style). Not used inside the required install -> finish flow any more.
+     * install (Wig Touch Up has no finish to style). Not used inside the
+     * required install -> finish flow any more.
      */
     optional: "Optional",
     /** The empty choice in the request form's finish menu. */
     none: "No finish",
+  },
+  /**
+   * The optional extras step. The four add-ons themselves (names, prices,
+   * durations, time windows) live in lib/booking/add-ons.ts; these are only
+   * the words that frame them. More than one can be added, and the two
+   * time-window ones (Early Bird, After Hours) are mutually exclusive.
+   */
+  addOns: {
+    heading: "Anything to add?",
+    body: "Optional extras for your appointment. Pick as many as you like, or skip this step.",
+    optional: "Optional",
   },
   /**
    * The free-text step between the finish and the booking panel: a specific
@@ -774,9 +791,9 @@ export const SELECTION = {
    */
   style: {
     heading: "Have a specific style in mind?",
-    body: "Tell Nat about the cut, colour or look you have in mind.",
+    body: "Tell Nat about the specific style, cut, color, length, or look you're interested in.",
     optional: "Optional",
-    placeholder: "The look, length, cut or colour you have in mind",
+    placeholder: "Tell us about the style you'd like...",
     /** Shown only once the textarea is close to maxStyleLength; see there. */
     charsLeft: (n: number) => `${n} character${n === 1 ? "" : "s"} left`,
   },
@@ -825,67 +842,140 @@ export const INSTALL_PAGE = {
 } as const;
 
 /**
- * PLACEHOLDER PRICES AND DURATIONS. Confirm both with Nat before launch.
+ * THE SERVICE MENU, AND THE ONE PLACE A PRICE IS WRITTEN DOWN.
  *
- * These four are also the seed rows in
- * supabase/migrations/0001_crown_by_nat_foundation.sql, matched by `id` to the
- * `slug` column there, and they are what the site shows in the moment before
- * the live rows arrive from the database. Keeping the two in step is the whole
- * reason the ids are stable words rather than numbers.
+ * Seven services, in the four categories the customer sees them in, at the
+ * prices from the pricing reference Nat supplied. This array is the
+ * authoritative pricing structure for the whole site: the services menu on
+ * /book, the booking flow, the request form, the LocalBusiness structured data
+ * and the admin dashboard's starting rows all read it, so a price she corrects
+ * is corrected everywhere from one edit.
  *
- * "frontal", "closure" and "wig-touch-up" are the three INSTALL TYPES
- * (lib/taxonomy.ts), the primary service classification, and their names are
- * read from there. The other two are secondary services on a unit rather than
- * install types.
+ * The four categories, in order:
  *
- * Money is held in CENTS and time in MINUTES rather than as the display
- * strings this file used to carry. The strings were fine while nothing but a
- * price list read them; they stopped being fine the moment a booking had to do
- * arithmetic on a duration to find out whether a slot was free. `formatPrice`
- * and `formatDuration` in lib/format.ts render them, so "$180" and "2 hours"
- * still appear on the page and are now derived rather than typed twice.
+ *   Wig Installs     Frontal Install, Closure Install
+ *   Reinstalls       Frontal Reinstall, Closure Reinstall
+ *   Color Services   Color Frontal Install, Color Closure Install
+ *   Services         Wig Touch Up
  *
- * They are seeded with pricing_confirmed = false, which is what makes the
- * admin dashboard badge them as placeholders. Do not present them as Nat's
- * real prices until she has said so.
+ * "Reinstalls" is the public category name and it stays that way. Wig Touch Up
+ * is a separate $35 service and is NOT a reinstall: the two are different
+ * appointments and the site must never file one under the other.
+ *
+ * Money is held in CENTS and time in MINUTES, rendered by formatPrice and
+ * formatDuration in lib/format.ts. Durations are preserved from the services
+ * they descend from where one existed (frontal 120, closure 90, wig-touch-up
+ * 45); the four services that are new have no confirmed duration yet and carry
+ * null rather than an invented one, which the booking flow reads as its 60
+ * minute default and the admin dashboard can fill in.
+ *
+ * `installType` is the finish axis (lib/taxonomy.ts) this service belongs to,
+ * or null when it has no finish to choose. It is what decides whether the
+ * booking flow asks for a finish: the six installs do, Wig Touch Up does not.
+ * The two color services are frontals and closures with colour, so they carry
+ * the frontal and closure finish. The two reinstalls carry the reinstall
+ * finish. It is read by the booking flow and by nothing else.
  */
-export const SERVICES = [
+export type ServiceEntry = {
+  id: string;
+  name: string;
+  category: string;
+  priceCents: number;
+  durationMinutes: number | null;
+  body: string;
+  installType: InstallTypeId | null;
+};
+
+export const SERVICES: readonly ServiceEntry[] = [
   {
-    id: "frontal",
-    name: INSTALL_TYPE_LABELS.frontal,
-    priceCents: 18000,
+    id: "frontal-install",
+    name: "Frontal Install",
+    category: "Wig Installs",
+    priceCents: 10000,
     durationMinutes: 120,
     body: "Lace tinted to your skin, knots bleached, hairline plucked and cut. Includes the style you leave in.",
+    installType: "frontal",
   },
   {
-    id: "closure",
-    name: INSTALL_TYPE_LABELS.closure,
-    priceCents: 14000,
+    id: "closure-install",
+    name: "Closure Install",
+    category: "Wig Installs",
+    priceCents: 9000,
     durationMinutes: 90,
     body: "Less lace to manage, lower upkeep, and gentler on a tender scalp.",
+    installType: "closure",
+  },
+  {
+    id: "frontal-reinstall",
+    name: "Frontal Reinstall",
+    category: "Reinstalls",
+    priceCents: 9000,
+    durationMinutes: null,
+    body: "A fresh lay on a unit you already have, with a frontal lace. The parting, melt and edges are all redone.",
+    installType: "wig-touch-up",
+  },
+  {
+    id: "closure-reinstall",
+    name: "Closure Reinstall",
+    category: "Reinstalls",
+    priceCents: 8000,
+    durationMinutes: null,
+    body: "A fresh lay on a unit you already have, with a closure. Quicker than a frontal, with less lace to redo.",
+    installType: "wig-touch-up",
+  },
+  {
+    id: "color-frontal-install",
+    name: "Color Frontal Install",
+    category: "Color Services",
+    priceCents: 13500,
+    durationMinutes: null,
+    body: "A frontal install with custom color, cut and finish. Bring a reference or describe the look you are after.",
+    installType: "frontal",
+  },
+  {
+    id: "color-closure-install",
+    name: "Color Closure Install",
+    category: "Color Services",
+    priceCents: 12500,
+    durationMinutes: null,
+    body: "A closure install with custom color, cut and finish. Bring a reference or describe the look you are after.",
+    installType: "closure",
   },
   {
     id: "wig-touch-up",
-    name: INSTALL_TYPE_LABELS["wig-touch-up"],
-    priceCents: 5500,
+    name: "Wig Touch Up",
+    category: "Services",
+    priceCents: 3500,
     durationMinutes: 45,
     body: "Curls reset, waves refreshed, or a new style on a unit you already have.",
-  },
-  {
-    id: "custom",
-    name: "Customization only",
-    priceCents: 9500,
-    durationMinutes: 75,
-    body: "Plucking, tinting, and bleaching on a unit you already own. Drop it off or wait for it.",
-  },
-  {
-    id: "refresh",
-    name: "Reinstall and refresh",
-    priceCents: 7000,
-    durationMinutes: 60,
-    body: "Full takedown, scalp cleanse, and a fresh lay on the same unit.",
+    installType: null,
   },
 ] as const;
+
+/**
+ * The four categories, in the order the customer sees them.
+ *
+ * Derived from SERVICES rather than typed again, so a service added to the
+ * right category lands in the right section without a second list to keep in
+ * step. The order is the order the entries appear above.
+ */
+export const SERVICE_CATEGORIES: readonly string[] = [
+  ...new Set(SERVICES.map((service) => service.category)),
+];
+
+/**
+ * The service an install type books by default.
+ *
+ * The booking flow offers all seven services, but an install type chosen
+ * elsewhere (the selection above it, an install page, a Book button's URL)
+ * arrives as a type, not a service, and has to land on one. This is that one:
+ * the first service carrying the type, which is the plain frontal, the plain
+ * closure and the frontal reinstall. The customer can switch to the colour or
+ * the closure variant from the flow's own service step.
+ */
+export function baseServiceForInstallType(installType: InstallTypeId): string {
+  return SERVICES.find((service) => service.installType === installType)?.id ?? "";
+}
 
 /** Verb labels, never "Step 1 / Stage 1". */
 export const PROCESS = [
@@ -1107,15 +1197,21 @@ export const ACCOUNT = {
 /**
  * The booking flow, step by step.
  *
- * Five steps, and each one asks for exactly one kind of thing. That is the
+ * Six steps, and each one asks for exactly one kind of thing. That is the
  * difference between a premium appointment and an enterprise scheduling form:
  * a form asks for everything at once because it is easier to build, and a
  * concierge asks one question at a time because it is easier to answer.
+ *
+ * The add-ons step is the optional one. The four extras (After Hours, Early
+ * Bird, Same-Day Customization, Styling) live in lib/booking/add-ons.ts and
+ * the step offers them as a set of toggles; the two time-window ones narrow
+ * the calendar in the "when" step to the window they book.
  */
 export const BOOKING_FLOW = {
   title: "Book your chair.",
   steps: [
     { id: "service", label: "Service", heading: "What are we doing?" },
+    { id: "add-ons", label: "Add-ons", heading: "Anything to add?" },
     { id: "location", label: "Location", heading: "Where are we meeting?" },
     { id: "when", label: "Date and time", heading: "When suits you?" },
     { id: "details", label: "Your details", heading: "How do we reach you?" },

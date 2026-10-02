@@ -20,8 +20,11 @@
  * no; the worst this file's absence would cost is a worse error message.
  *
  * The database also carries a coarse floor of its own (half-hour boundaries,
- * 08:00 to 19:00, closed Sunday and Monday) so that a forged request cannot
- * land at 03:17 on a Sunday even though the fine grid is only here.
+ * 08:00 to 23:00, closed Sunday and Monday) so that a forged request cannot
+ * land at 03:17 on a Sunday even though the fine grid is only here. The floor
+ * spans the full bookable day: the early-bird window opens at 08:00 and the
+ * after-hours window closes at 23:00, so a legitimate booking at either edge
+ * is not refused by the guard meant only to stop the absurd ones.
  *
  * ---------------------------------------------------------------------------
  * THE HONEST LIMITS OF THIS PHASE
@@ -58,20 +61,43 @@ export const BOOKING_WINDOW_DAYS = 42;
 export const MINIMUM_NOTICE_HOURS = 12;
 
 /**
- * Opening hours, indexed by JavaScript's getDay(): 0 = Sunday.
- * Kept in step with STUDIO.hours in lib/content.ts, which is what the public
- * pages print. Null means closed.
+ * A bookable span of the day, in minutes-since-midnight wall-clock strings.
+ * The normal booking window and the two add-on windows are all this shape,
+ * which is what lets slotsForDay() take any of them as an override.
  */
-type OpeningHours = { open: string; close: string } | null;
+export type TimeWindow = { open: string; close: string };
+
+/**
+ * The normal booking window: 10:00 AM to 9:00 PM.
+ *
+ * This is the span the studio displays as its booking hours and the default
+ * the calendar offers. The two add-on windows sit either side of it (see
+ * lib/booking/add-ons.ts): Early Bird books before it, After Hours books after
+ * it. All three are kept in step with STUDIO.hours in lib/content.ts, which is
+ * what the public pages print.
+ */
+export const NORMAL_WINDOW: TimeWindow = { open: "10:00", close: "21:00" };
+
+/**
+ * Opening hours, indexed by JavaScript's getDay(): 0 = Sunday.
+ * Kept in step with NORMAL_WINDOW above and STUDIO.hours in lib/content.ts,
+ * which is what the public pages print. Null means closed.
+ *
+ * One window for every open day. The old grid varied by weekday (Saturday
+ * opened at 08:00 and closed at 16:00); the booking reference sets a single
+ * standard availability, 10:00 AM - 9:00 PM, and a second grid that
+ * contradicted it was how the site ended up advertising hours it did not keep.
+ */
+type OpeningHours = TimeWindow | null;
 
 export const WEEKLY_HOURS: readonly OpeningHours[] = [
-  null,                             // Sunday, closed
-  null,                             // Monday, closed
-  { open: "09:00", close: "19:00" }, // Tuesday
-  { open: "09:00", close: "19:00" }, // Wednesday
-  { open: "09:00", close: "19:00" }, // Thursday
-  { open: "09:00", close: "19:00" }, // Friday
-  { open: "08:00", close: "16:00" }, // Saturday
+  null,            // Sunday, closed
+  null,            // Monday, closed
+  NORMAL_WINDOW,   // Tuesday
+  NORMAL_WINDOW,   // Wednesday
+  NORMAL_WINDOW,   // Thursday
+  NORMAL_WINDOW,   // Friday
+  NORMAL_WINDOW,   // Saturday
 ] as const;
 
 export function hoursForDate(iso: string): OpeningHours {
@@ -122,6 +148,13 @@ export type SlotOption = {
  *   too-soon  it is inside the minimum notice window
  *   closing   the service would run past closing time
  *
+ * The `window` override is how the time-window add-ons work. With it null the
+ * day's own normal hours are used; with Early Bird or After Hours selected it
+ * is that add-on's window, so the calendar offers the before-10 AM or
+ * after-9 PM slots the customer asked for and not the normal day. A closed day
+ * stays closed whatever the window: the override narrows an open day, it does
+ * not open a shut one.
+ *
  * The `taken` test walks existing bookings rather than comparing start times,
  * because a two-hour frontal at 2pm also consumes 2:30 and 3:00. That is the
  * same interval logic the database enforces, computed here only so the visitor
@@ -131,10 +164,12 @@ export function slotsForDay(
   iso: string,
   serviceMinutes: number,
   booked: BookedSlot[],
+  window?: TimeWindow | null,
 ): SlotOption[] {
-  const hours = hoursForDate(iso);
-  if (!hours) return [];
+  const day = hoursForDate(iso);
+  if (!day) return [];
 
+  const hours = window ?? day;
   const open = timeToMinutes(hours.open);
   const close = timeToMinutes(hours.close);
   const duration = Math.max(serviceMinutes, SLOT_STEP_MINUTES);

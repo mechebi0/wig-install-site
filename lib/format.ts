@@ -132,14 +132,19 @@ export function formatPrice(cents: number | null | undefined): string {
   }).format(cents / 100);
 }
 
-/** 120 -> "2 hours". 90 -> "90 minutes". Matches the copy already on /book. */
+/**
+ * 120 -> "2 hours". 90 -> "90 minutes". Matches the copy already on /book.
+ * Past two hours an add-on can leave an odd remainder, and "155 minutes" is
+ * arithmetic for the reader to do, so 155 -> "2 hours 35 minutes".
+ */
 export function formatDuration(minutes: number | null | undefined): string {
   if (!minutes) return "";
-  if (minutes % 60 === 0) {
-    const hours = minutes / 60;
-    return hours === 1 ? "1 hour" : `${hours} hours`;
-  }
-  return `${minutes} minutes`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  const hourLabel = hours === 1 ? "1 hour" : `${hours} hours`;
+  if (rest === 0) return hourLabel;
+  if (minutes <= 120) return `${minutes} minutes`;
+  return `${hourLabel} ${rest} minutes`;
 }
 
 /** True once the appointment's start time has passed at the studio. */

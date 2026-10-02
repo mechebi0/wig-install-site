@@ -8,7 +8,7 @@ import { BookingConfirmation } from "@/components/booking/confirmation";
 import { BookingSteps } from "@/components/booking/steps";
 import { TextAreaField, TextField, focusFirstError } from "@/components/ui/form";
 import { EmptyState, LoadingPanel, Notice, Spinner } from "@/components/ui/feedback";
-import { useActiveLocations, useServices, type CatalogService } from "@/lib/catalog";
+import { groupByCategory, useActiveLocations, useServices, type CatalogService } from "@/lib/catalog";
 import { useSession } from "@/lib/auth/session";
 import {
   bookAsCustomer,
@@ -21,7 +21,19 @@ import {
   slotReasonLabel,
   slotsForDay,
   MINIMUM_NOTICE_HOURS,
+  NORMAL_WINDOW,
 } from "@/lib/booking/availability";
+import {
+  ADD_ONS,
+  addOnMinutes,
+  getAddOn,
+  hasUnpricedAddOn,
+  toggleAddOn,
+  totalWithAddOns,
+  windowForAddOns,
+  type AddOn,
+  type AddOnId,
+} from "@/lib/booking/add-ons";
 import {
   formatDateLong,
   formatDuration,
@@ -30,12 +42,12 @@ import {
   parseDateOnly,
 } from "@/lib/format";
 import type { BookedSlot, GuestBookingReceipt } from "@/lib/supabase/types";
-import { BOOKING_FLOW, REACH, SELECTION } from "@/lib/content";
+import { BOOKING_FLOW, REACH, SELECTION, baseServiceForInstallType } from "@/lib/content";
 import {
   setBookingSelection,
   useBookingSelection,
 } from "@/lib/booking-selection";
-import { getFinish, parseInstallType } from "@/lib/taxonomy";
+import { getFinish } from "@/lib/taxonomy";
 
 /**
  * BOOK YOUR CHAIR. Five steps, one question each.
@@ -163,12 +175,33 @@ export function BookingFlow() {
     closed while the page was sitting open.
   */
   const selection = useBookingSelection();
-  const chosenService = selection.installType ?? draft.serviceId;
   const serviceId = useMemo(() => {
-    if (!chosenService) return "";
-    if (services.some((item) => item.id === chosenService)) return chosenService;
-    return services.find((item) => item.slug === chosenService)?.id ?? "";
-  }, [services, chosenService]);
+    // The draft holds a slug, which survives the fallback -> live swap.
+    const resolve = (key: string) =>
+      services.find((item) => item.id === key) ??
+      services.find((item) => item.slug === key);
+    /*
+      A service picked directly in this step wins, as long as it still agrees
+      with the install type in the selection. Several services share a type
+      (Frontal Install and Color Frontal Install are both frontals), so the
+      type alone cannot say which one was picked; the draft can. If the type
+      has since been changed above, the pick no longer agrees and the type's
+      base service takes over, so the two never show different answers.
+    */
+    const picked = draft.serviceId ? resolve(draft.serviceId) : undefined;
+    if (picked && picked.installType === selection.installType) {
+      return picked.id;
+    }
+    /*
+      Otherwise an install type from the selection (the InstallSelector above,
+      an install page, a Book button's URL) resolves to its base service: the
+      plain frontal, the plain closure or the frontal reinstall.
+    */
+    if (selection.installType) {
+      return resolve(baseServiceForInstallType(selection.installType))?.id ?? "";
+    }
+    return "";
+  }, [services, draft.serviceId, selection.installType]);
 
   const locationId =
     locations.find((item) => item.id === draft.locationId)?.id ??
@@ -178,14 +211,13 @@ export function BookingFlow() {
   const location = locations.find((item) => item.id === locationId) ?? null;
   /*
     Finish is required, but only while the chosen service actually IS one of
-    the three install types (Frontal, Closure or Reinstalls): Customization
-    only and Reinstall and refresh have no finish to style. Derived from the
-    resolved service's slug
-    rather than from `selection.installType` directly, so it agrees with
-    `serviceId` above even in the one render where the two have not caught up
-    with each other yet.
+    the install types (Frontal, Closure or Reinstalls): Wig Touch Up has no
+    finish to style. Derived from the resolved service's own installType rather
+    than from `selection.installType` directly, so it agrees with `serviceId`
+    above even in the one render where the two have not caught up with each
+    other yet.
   */
-  const isInstallService = parseInstallType(service?.slug) !== null;
+  const isInstallService = service?.installType != null;
 
   /*
     Fill the contact details in for a customer who is already signed in.
@@ -273,10 +305,27 @@ export function BookingFlow() {
     headingRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }, [step]);
 
+  /*
+    The add-ons change what the calendar offers and how long the appointment
+    runs, so both are derived here and read by the slot grid and the summary.
+
+    timeWindow: the two time-window add-ons each narrow the day to their own
+    window (before 10 AM, after 9 PM). With neither selected it is null and the
+    calendar uses the normal 10:00 AM - 9:00 PM grid.
+
+    totalDuration: the service's own chair time plus the two additive add-on
+    durations (+40 and +35 minutes). This is what reserves the slot, so a
+    frontal with Same-Day Customization blocks two hours and forty minutes.
+  */
+  const addOns = selection.addOns;
+  const timeWindow = useMemo(() => windowForAddOns(addOns), [addOns]);
+  const totalDuration = (service?.duration_minutes ?? 60) + addOnMinutes(addOns);
+  const totalCents = totalWithAddOns(service?.price_cents ?? 0, addOns);
+
   const slotOptions = useMemo(() => {
     if (!draft.date || !service) return [];
-    return slotsForDay(draft.date, service.duration_minutes ?? 60, slots);
-  }, [draft.date, service, slots]);
+    return slotsForDay(draft.date, totalDuration, slots, timeWindow);
+  }, [draft.date, service, slots, totalDuration, timeWindow]);
 
   /**
    * When a day comes back with nothing bookable, WHY decides what to say.
@@ -353,10 +402,12 @@ export function BookingFlow() {
       case 0:
         return Boolean(serviceId) && (!isInstallService || Boolean(selection.finish));
       case 1:
-        return Boolean(locationId);
+        return true; // add-ons are optional; there is nothing to complete
       case 2:
-        return Boolean(draft.date && draft.time);
+        return Boolean(locationId);
       case 3:
+        return Boolean(draft.date && draft.time);
+      case 4:
         return true; // validated on submit so the errors can be specific
       default:
         return true;
@@ -391,9 +442,10 @@ export function BookingFlow() {
   }
 
   function goNext() {
-    if (step === 3 && !validateDetails()) return;
-    setStep((current) => Math.min(current + 1, 4));
+    if (step === 4 && !validateDetails()) return;
+    setStep((current) => Math.min(current + 1, 5));
   }
+
 
   async function submit() {
     if (!service || !location) return;
@@ -412,6 +464,7 @@ export function BookingFlow() {
       selection.finish
         ? `${SELECTION.book.finish}: ${getFinish(selection.finish).label}`
         : "",
+      ...selection.addOns.map((id) => `Add-on: ${getAddOn(id).name}`),
       selection.styleDescription.trim()
         ? `${SELECTION.book.style}: ${selection.styleDescription.trim()}`
         : "",
@@ -504,30 +557,39 @@ export function BookingFlow() {
             ) : (
               <fieldset>
                 <legend className="sr-only">Choose your service</legend>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {services.map((item) => (
-                    <ChoiceCard
-                      key={item.id}
-                      name="service"
-                      value={item.id}
-                      checked={serviceId === item.id}
-                      onSelect={(value) => {
-                        // An install goes to the shared selection (see the
-                        // note on serviceId above); anything else stays here.
-                        const install = parseInstallType(
-                          services.find((row) => row.id === value)?.slug,
-                        );
-                        setBookingSelection({ installType: install });
-                        set("serviceId", install ? "" : value);
-                      }}
-                      title={item.name}
-                      meta={formatPrice(item.price_cents)}
-                    >
-                      <span className="block">{item.description}</span>
-                      <span className="mt-2 block text-xs uppercase tracking-[0.14em] text-muted/80">
-                        {formatDuration(item.duration_minutes)}
-                      </span>
-                    </ChoiceCard>
+                <div className="flex flex-col gap-7">
+                  {groupByCategory(services).map(({ category, items }) => (
+                    <div key={category || "other"}>
+                      {category ? (
+                        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-accent">
+                          {category}
+                        </p>
+                      ) : null}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {items.map((item) => (
+                          <ChoiceCard
+                            key={item.id}
+                            name="service"
+                            value={item.id}
+                            checked={serviceId === item.id}
+                            onSelect={() => {
+                              // The type goes to the shared selection (see the
+                              // note on serviceId above) and the exact service
+                              // to the draft, by slug.
+                              setBookingSelection({ installType: item.installType });
+                              set("serviceId", item.slug);
+                            }}
+                            title={item.name}
+                            meta={formatPrice(item.price_cents)}
+                          >
+                            <span className="block">{item.description}</span>
+                            <span className="mt-2 block text-xs uppercase tracking-[0.14em] text-muted/80">
+                              {formatDuration(item.duration_minutes)}
+                            </span>
+                          </ChoiceCard>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
 
@@ -553,8 +615,28 @@ export function BookingFlow() {
             )
           ) : null}
 
-          {/* ------------------------------------------------- 2 location --- */}
+          {/* -------------------------------------------------- 2 add-ons --- */}
           {step === 1 ? (
+            <fieldset>
+              <legend className="sr-only">Choose your add-ons</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {ADD_ONS.map((addOn) => (
+                  <AddOnCard
+                    key={addOn.id}
+                    addOn={addOn}
+                    selected={addOns.includes(addOn.id)}
+                    onToggle={() =>
+                      setBookingSelection({ addOns: toggleAddOn(addOns, addOn.id) })
+                    }
+                  />
+                ))}
+              </div>
+              <p className="mt-4 text-sm text-muted">{SELECTION.addOns.body}</p>
+            </fieldset>
+          ) : null}
+
+          {/* ------------------------------------------------- 3 location --- */}
+          {step === 2 ? (
             <fieldset>
               <legend className="sr-only">Choose your location</legend>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -580,8 +662,8 @@ export function BookingFlow() {
             </fieldset>
           ) : null}
 
-          {/* ----------------------------------------------------- 3 when --- */}
-          {step === 2 ? (
+          {/* ----------------------------------------------------- 4 when --- */}
+          {step === 3 ? (
             <div className="flex flex-col gap-9">
               <fieldset>
                 <legend className="text-sm font-medium text-ink">
@@ -611,7 +693,7 @@ export function BookingFlow() {
                     Pick a time
                     {service ? (
                       <span className="ml-2 font-normal text-muted">
-                        {formatDuration(service.duration_minutes)} in the chair
+                        {formatDuration(totalDuration)} in the chair
                       </span>
                     ) : null}
                   </legend>
@@ -639,7 +721,13 @@ export function BookingFlow() {
                       </div>
                       <p className="mt-4 text-sm text-muted">
                         Struck-through times are taken or inside the{" "}
-                        {MINIMUM_NOTICE_HOURS} hour notice window.
+                        {MINIMUM_NOTICE_HOURS} hour notice window.{" "}
+                        {timeWindow
+                          ? `Showing ${
+                              addOns.includes("early-bird") ? "Early Bird" : "After Hours"
+                            } times, ${formatTime(timeWindow.open)} to ${formatTime(timeWindow.close)}.`
+                          : `Booking hours are ${formatTime(NORMAL_WINDOW.open)} to ${formatTime(NORMAL_WINDOW.close)}.`}{" "}
+                        All times are Eastern.
                       </p>
                     </>
                   ) : dayClosedByNotice ? (
@@ -673,8 +761,8 @@ export function BookingFlow() {
             </div>
           ) : null}
 
-          {/* -------------------------------------------------- 4 details --- */}
-          {step === 3 ? (
+          {/* -------------------------------------------------- 5 details --- */}
+          {step === 4 ? (
             <div className="flex flex-col gap-7">
               {user ? (
                 <Notice tone="info" title={`Signed in as ${profile?.email ?? ""}`}>
@@ -748,8 +836,8 @@ export function BookingFlow() {
             </div>
           ) : null}
 
-          {/* -------------------------------------------------- 5 confirm --- */}
-          {step === 4 ? (
+          {/* -------------------------------------------------- 6 confirm --- */}
+          {step === 5 ? (
             <div className="flex flex-col gap-7">
               <Summary
                 service={service}
@@ -757,6 +845,9 @@ export function BookingFlow() {
                   selection.finish ? getFinish(selection.finish).label : ""
                 }
                 styleDescription={selection.styleDescription}
+                addOns={addOns}
+                totalCents={totalCents}
+                totalDuration={totalDuration}
                 locationLabel={location ? `${location.name}, ${location.state}` : ""}
                 date={draft.date}
                 time={draft.time}
@@ -793,7 +884,7 @@ export function BookingFlow() {
             <span className="hidden sm:block" />
           )}
 
-          {step < 4 ? (
+          {step < 5 ? (
             <button
               type="button"
               onClick={goNext}
@@ -831,8 +922,11 @@ export function BookingFlow() {
  *
  * Takes the RESOLVED service and location rather than reading them off the
  * draft, because a single open studio is auto-selected without ever being
- * written there. Reading the raw draft would leave step two permanently
- * unreachable for a visitor who never had a choice to make.
+ * written there. Reading the raw draft would leave the location step
+ * permanently unreachable for a visitor who never had a choice to make.
+ *
+ * The add-ons step (1) is optional and reachable with nothing but a service,
+ * which is why a missing location stops the draft at 1 and not 2.
  */
 function furthestReachable(
   hasService: boolean,
@@ -841,8 +935,8 @@ function furthestReachable(
 ): number {
   if (!hasService) return 0;
   if (!hasLocation) return 1;
-  if (!draft.date || !draft.time) return 2;
-  return 4;
+  if (!draft.date || !draft.time) return 3;
+  return 5;
 }
 
 function DateChip({
@@ -888,6 +982,9 @@ function Summary({
   service,
   finishLabel,
   styleDescription,
+  addOns,
+  totalCents,
+  totalDuration,
   locationLabel,
   date,
   time,
@@ -902,6 +999,11 @@ function Summary({
   finishLabel: string;
   /** "" when nothing was typed, and then the row is left out. */
   styleDescription: string;
+  addOns: AddOnId[];
+  /** Service price plus every add-on, in cents. */
+  totalCents: number;
+  /** Service duration plus every add-on's minutes. */
+  totalDuration: number;
   locationLabel: string;
   date: string;
   time: string;
@@ -915,7 +1017,8 @@ function Summary({
     `href` instead of `step` for the two rows this flow does not own: the
     finish and the style notes are both entered in the selection above the
     flow (#choose on /book), so their "Change" goes there rather than to a
-    step that has no matching control.
+    step that has no matching control. The add-ons are this flow's own step
+    (step 1), so theirs is a step jump like the rest.
   */
   const rows: { label: string; value: string; step: number; href?: string }[] = [
     { label: "Service", value: service?.name ?? "", step: 0 },
@@ -925,20 +1028,32 @@ function Summary({
     ...(styleDescription.trim()
       ? [{ label: SELECTION.book.style, value: styleDescription.trim(), step: 0, href: "#choose" }]
       : []),
-    { label: "Location", value: locationLabel, step: 1 },
+    ...addOns.map((id) => ({
+      label: getAddOn(id).name,
+      value: getAddOn(id).priceLabel || getAddOn(id).windowLabel,
+      step: 1,
+    })),
+    { label: "Location", value: locationLabel, step: 2 },
     {
       label: "When",
       value: date ? `${formatDateLong(date)} at ${formatTime(time)}` : "",
-      step: 2,
+      step: 3,
     },
-    { label: "In the chair", value: formatDuration(service?.duration_minutes), step: 0 },
+    { label: "In the chair", value: formatDuration(totalDuration), step: 0 },
     { label: "Price", value: formatPrice(service?.price_cents), step: 0 },
-    { label: "Name", value: name, step: 3 },
-    { label: "Email", value: email, step: 3 },
-    { label: "Mobile", value: phone, step: 3 },
+    {
+      label: "Total",
+      value: hasUnpricedAddOn(addOns)
+        ? `${formatPrice(totalCents)} + After Hours`
+        : formatPrice(totalCents),
+      step: 0,
+    },
+    { label: "Name", value: name, step: 4 },
+    { label: "Email", value: email, step: 4 },
+    { label: "Mobile", value: phone, step: 4 },
   ];
 
-  if (notes.trim()) rows.push({ label: "Notes", value: notes.trim(), step: 3 });
+  if (notes.trim()) rows.push({ label: "Notes", value: notes.trim(), step: 4 });
 
   return (
     <dl className="overflow-hidden rounded-3xl border border-line-strong bg-surface">
@@ -972,5 +1087,54 @@ function Summary({
         </div>
       ))}
     </dl>
+  );
+}
+
+/**
+ * One add-on on the add-ons step.
+ *
+ * A toggle, not a radio: several can be on at once, and the two time-window
+ * ones deselect each other (enforced in toggleAddOn). `aria-pressed` is what
+ * makes a screen reader say "Early Bird, toggle button, on" rather than
+ * "Early Bird, button", which is the whole difference between a choice and a
+ * command. The tick is redundant with the border and the ground, and is
+ * hidden from assistive technology for the same reason.
+ */
+function AddOnCard({
+  addOn,
+  selected,
+  onToggle,
+}: {
+  addOn: AddOn;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onToggle}
+      className={`flex items-center justify-between gap-4 rounded-3xl border p-5 text-left transition-[border-color,background-color,box-shadow] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent ${
+        selected
+          ? "border-accent bg-accent-soft shadow-soft"
+          : "border-line-strong bg-surface hover:border-accent"
+      }`}
+    >
+      <span className="min-w-0">
+        <span className="block font-display text-lg tracking-tight text-ink">
+          {addOn.name}
+        </span>
+        {addOn.windowLabel || addOn.durationLabel ? (
+          <span className="mt-1 block text-sm text-muted">
+            {addOn.windowLabel || addOn.durationLabel}
+          </span>
+        ) : null}
+      </span>
+      {addOn.priceLabel ? (
+        <span className="tabular shrink-0 font-display text-lg tracking-tight text-accent">
+          {addOn.priceLabel}
+        </span>
+      ) : null}
+    </button>
   );
 }

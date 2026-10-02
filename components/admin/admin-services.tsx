@@ -17,7 +17,10 @@ import type { Service } from "@/lib/supabase/types";
  * ---------------------------------------------------------------------------
  * The four services were seeded with the prices that were already on the
  * website, and those prices were invented as stand-ins by whoever built the
- * front end. Nobody has confirmed that a frontal install costs $180.
+ * front end. Nobody had confirmed that a frontal install costs $180.
+ * Migration 0005 replaces them with the seven services on Nat's own pricing
+ * reference and marks those confirmed; the badge still catches any service
+ * added later without a confirmed price.
  *
  * Quietly carrying them into a real database would launder a guess into a
  * fact: a price in a Postgres table looks authoritative in a way that a

@@ -2,47 +2,42 @@
 
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
-import { useServices, type CatalogService } from "@/lib/catalog";
+import { groupByCategory, useServices, type CatalogService } from "@/lib/catalog";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { SERVICE_IMAGE } from "@/lib/images";
 
 /**
- * Services bento.
+ * The service menu, grouped by the four categories the customer books within.
  *
- * WHAT CHANGED, AND WHY IT IS A CLIENT COMPONENT NOW
- * The four services used to be compiled in. They are now rows in the database
- * that Nat edits from her dashboard, and a price she has just corrected should
- * appear on the site without a redeploy. Under `output: "export"` there is no
- * server render to fetch during, so reading them means reading them in the
- * browser.
+ * ---------------------------------------------------------------------------
+ * WHY IT IS GROUPED BY CATEGORY NOW
+ * ---------------------------------------------------------------------------
+ * The seven services are filed under four headings (Wig Installs, Reinstalls,
+ * Color Services, Services), and the grouping is the point: a visitor deciding
+ * between a frontal and a frontal reinstall is choosing between two categories,
+ * not scanning one flat list of seven. The categories come from SERVICES in
+ * lib/content.ts, so a service added to the right category lands in the right
+ * section here without a second list to keep in step.
  *
- * This costs nothing at first paint. useServices() starts from the same static
- * list this component used to import, so Next prerenders the identical markup
- * into the HTML at build time and a search engine still finds four services
- * and four prices in the source. The live rows swap in on hydration. There is
- * no spinner and no empty state, because there is never a moment with nothing
- * to show.
+ * ---------------------------------------------------------------------------
+ * WHY THE FIRST SERVICE STILL CARRIES THE PHOTOGRAPH
+ * ---------------------------------------------------------------------------
+ * The featured cell with Nat's own frame is kept as the lead of the first
+ * category. It is the one picture in the menu and it sits on the service a
+ * visitor is most likely to book, which is the same reasoning the old bento
+ * used to put it first.
  *
- * THE LAYOUT NO LONGER ASSUMES FOUR
- * It used to destructure exactly four services and would have thrown the day
- * Nat added a fifth from her own dashboard. The bento is now derived:
- *
- *   featured   first service, 7 cols and 2 rows, carries the photograph
- *   pair       next two, 5 cols each, stacked beside it
- *   remainder  anything after that, full width
- *
- * With four services that is pixel-for-pixel what it was before. With three it
- * drops the full-width row, and with two the single side cell takes both rows
- * so no hole opens beside the photograph.
+ * ---------------------------------------------------------------------------
+ * THE LAYOUT NO LONGER ASSUMES A COUNT
+ * ---------------------------------------------------------------------------
+ * It used to destructure exactly four services. It is now derived from
+ * whatever the catalog holds, grouped by category, so a service added from the
+ * dashboard appears under its own heading without this file being touched.
  */
 export function Services() {
   const { services } = useServices();
 
-  const [featured, ...rest] = services;
-  const pair = rest.slice(0, 2);
-  const remainder = rest.slice(2);
-
-  if (!featured) return null;
+  if (services.length === 0) return null;
 
   return (
     <section
@@ -63,20 +58,65 @@ export function Services() {
         </p>
       </Reveal>
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-12">
-        <Reveal
-          as="article"
-          className="flex flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft lg:col-span-7 lg:row-span-2"
-        >
+      <div className="mt-12 flex flex-col gap-12">
+        {groupByCategory(services).map(({ category, items: group }, categoryIndex) => {
+          return (
+            <Reveal key={category || "other"} index={categoryIndex + 1}>
+              <div>
+                {category ? (
+                  <h3 className="font-display text-xl tracking-tight text-accent">
+                    {category}
+                  </h3>
+                ) : null}
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {group.map((service, serviceIndex) => (
+                    <ServiceCard
+                      key={service.id}
+                      service={service}
+                      featured={categoryIndex === 0 && serviceIndex === 0}
+                    />
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The heading counts the services rather than hardcoding "Four ways", so
+ * adding an eighth from the dashboard does not leave the page contradicting
+ * itself. Past six it stops counting, because "Seven ways to sit in the chair"
+ * is a menu, not a line of copy.
+ */
+function headingFor(count: number): string {
+  const words = ["", "One way", "Two ways", "Three ways", "Four ways", "Five ways", "Six ways"];
+  const opener = words[count] ?? "Every way";
+  return `${opener} to sit in the chair.`;
+}
+
+function ServiceCard({
+  service,
+  featured = false,
+}: {
+  service: CatalogService;
+  featured?: boolean;
+}) {
+  if (featured) {
+    return (
+      <article className="flex flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft sm:col-span-2">
+        <div className="grid sm:grid-cols-2">
           {/*
             Nat's own frame, through the same component as every other
             photograph on the site, so it gets the 600/1200/1600 srcSet rather
             than one fixed file. `priority` because this cell is the first
             picture on /book and sits in the opening screen at every width,
-            which makes it the page's likely LCP; the stock shot it replaced
-            was lazy, which only delayed it.
+            which makes it the page's likely LCP.
           */}
-          <div className="relative aspect-16/10 w-full overflow-hidden bg-surface-2">
+          <div className="relative aspect-16/10 w-full overflow-hidden bg-surface-2 sm:aspect-auto sm:min-h-[16rem]">
             <Photograph
               photo={SERVICE_IMAGE.photo}
               sizes="(min-width: 1024px) 55vw, calc(100vw - 2.5rem)"
@@ -85,73 +125,31 @@ export function Services() {
               className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
-          <div className="flex flex-1 flex-col p-7 lg:p-9">
-            <ServiceHead service={featured} large />
-            <p className="mt-1 text-sm text-muted">
-              {formatDuration(featured.duration_minutes)}
-            </p>
-            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">
-              {featured.description}
-            </p>
-          </div>
-        </Reveal>
-
-        {pair.map((service, index) => (
-          <Reveal
-            key={service.id}
-            as="article"
-            index={index + 1}
-            className={`rounded-3xl p-7 lg:col-span-5 lg:p-9 ${
-              index === 0
-                ? "border border-accent/20 bg-accent-soft"
-                : "border border-line bg-surface shadow-soft"
-            } ${pair.length === 1 ? "lg:row-span-2" : ""}`}
-          >
-            <ServiceHead service={service} />
+          <div className="flex flex-col justify-center p-7 lg:p-9">
+            <ServiceHead service={service} large />
             <p className="mt-1 text-sm text-muted">
               {formatDuration(service.duration_minutes)}
             </p>
-            <p className="mt-4 max-w-[42ch] text-base leading-relaxed text-muted">
+            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">
               {service.description}
             </p>
-          </Reveal>
-        ))}
+          </div>
+        </div>
+      </article>
+    );
+  }
 
-        {remainder.map((service, index) => (
-          <Reveal
-            key={service.id}
-            as="article"
-            index={index + 3}
-            className="rounded-3xl border border-line bg-surface-2 p-7 lg:col-span-12 lg:p-9"
-          >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <ServiceHead service={service} />
-                <p className="mt-1 text-sm text-muted">
-                  {formatDuration(service.duration_minutes)}
-                </p>
-              </div>
-              <p className="max-w-[46ch] text-base leading-relaxed text-muted">
-                {service.description}
-              </p>
-            </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
+  return (
+    <article className="flex flex-col rounded-3xl border border-line bg-surface p-7 shadow-soft">
+      <ServiceHead service={service} />
+      <p className="mt-1 text-sm text-muted">
+        {formatDuration(service.duration_minutes)}
+      </p>
+      <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted">
+        {service.description}
+      </p>
+    </article>
   );
-}
-
-/**
- * The heading counts the services rather than hardcoding "Four ways", so
- * adding a fifth from the dashboard does not leave the page contradicting
- * itself. Past six it stops counting, because "Seven ways to sit in the chair"
- * is a menu, not a line of copy.
- */
-function headingFor(count: number): string {
-  const words = ["", "One way", "Two ways", "Three ways", "Four ways", "Five ways", "Six ways"];
-  const opener = words[count] ?? "Every way";
-  return `${opener} to sit in the chair.`;
 }
 
 function ServiceHead({

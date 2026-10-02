@@ -15,9 +15,28 @@ import {
   REACH,
   SELECTION,
   SERVICES,
+  SERVICE_CATEGORIES,
   STUDIO,
+  baseServiceForInstallType,
 } from "@/lib/content";
-import { formatPrice } from "@/lib/format";
+import {
+  formatDuration,
+  formatPrice,
+  formatTime,
+  minutesToTime,
+  timeToMinutes,
+  todayInStudio,
+} from "@/lib/format";
+import {
+  ADD_ONS,
+  addOnMinutes,
+  getAddOn,
+  hasUnpricedAddOn,
+  toggleAddOn,
+  totalWithAddOns,
+  windowForAddOns,
+} from "@/lib/booking/add-ons";
+import { NORMAL_WINDOW, SLOT_STEP_MINUTES } from "@/lib/booking/availability";
 import {
   setBookingSelection,
   useBookingSelection,
@@ -26,7 +45,6 @@ import {
   FINISHES,
   getFinish,
   parseFinish,
-  parseInstallType,
   type FinishId,
 } from "@/lib/taxonomy";
 
@@ -52,9 +70,9 @@ import {
  * in the request, named in full.
  *
  * FINISH IS REQUIRED, but only while the service is actually an install: this
- * form's own Service menu also offers Customization only and Reinstall and
- * refresh, which have no finish to style, so the requirement (and its "Choose
- * a finish before sending" error) applies exactly when it means something.
+ * form's own Service menu also offers Wig Touch Up, which has no finish to
+ * style, so the requirement (and its "Choose a finish before sending" error)
+ * applies exactly when it means something.
  */
 const BOOKING_ENDPOINT = process.env.NEXT_PUBLIC_BOOKING_ENDPOINT ?? "";
 
@@ -64,6 +82,7 @@ type Fields = {
   phone: string;
   service: string;
   date: string;
+  time: string;
   notes: string;
 };
 
@@ -79,6 +98,7 @@ const EMPTY: Fields = {
   // stands in until they do.
   service: "",
   date: "",
+  time: "",
   notes: "",
 };
 
@@ -87,9 +107,8 @@ const EMPTY: Fields = {
  * the shared booking selection rather than held in `fields`.
  *
  * `finish` is required only when the chosen service actually IS one of the
- * three install types (Frontal, Closure or Reinstalls): Customization only
- * and Reinstall and refresh have no finish to style, so nothing here can be
- * left unanswered for them.
+ * three install types (Frontal, Closure or Reinstalls): Wig Touch Up has no
+ * finish to style, so nothing here can be left unanswered for it.
  */
 function validate(
   fields: Fields,
@@ -125,9 +144,11 @@ function validate(
   }
 
   // Date is optional, but a past one is always a mistake. Resolved at submit
-  // time on the client, so a static build never bakes in its own build day.
+  // time on the client, so a static build never bakes in its own build day,
+  // and in the studio's own timezone rather than UTC, which would refuse
+  // "today" every evening after 8 PM in Maryland.
   if (fields.date) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayInStudio();
     if (fields.date < today) {
       errors.date = "That date has passed. Pick one from today onward.";
     }
@@ -150,7 +171,7 @@ export function Booking() {
                          Closure here moves the flow above the form too, and
                          whatever was picked there (or on an install page, or
                          in a Book button's URL) shows here without an effect.
-      any other service  this form's own state, since "Customization only" is
+      any other service  this form's own state, since "Wig Touch Up" is
                          not an install and the flow above does not offer it.
                          Picking one clears the install from the selection so
                          the two never disagree.
@@ -162,10 +183,46 @@ export function Booking() {
     without one.
   */
   const selection = useBookingSelection();
-  const service = selection.installType ?? fields.service;
+  // The exact service picked here wins while it agrees with the install type in
+  // the selection; several services share a type (Frontal Install and Color
+  // Frontal Install are both frontals), so the type alone cannot say which.
+  const picked = SERVICES.find((item) => item.id === fields.service);
+  const service =
+    picked && picked.installType === selection.installType
+      ? picked.id
+      : selection.installType
+        ? baseServiceForInstallType(selection.installType)
+        : "";
   const isInstallService = selection.installType !== null;
   const finish = selection.finish;
   const styleDescription = selection.styleDescription;
+  const addOns = selection.addOns;
+
+  /*
+    The preferred-time choices follow the add-ons: the normal 10:00 AM - 9:00 PM
+    window, or the Early Bird or After Hours window when one is picked. A time
+    picked in one window and stranded by switching to another reads as no
+    preference rather than being sent outside the window it was asked for.
+  */
+  const timeWindow = windowForAddOns(addOns) ?? NORMAL_WINDOW;
+  const timeOptions: string[] = [];
+  for (
+    let minutes = timeToMinutes(timeWindow.open);
+    minutes < timeToMinutes(timeWindow.close);
+    minutes += SLOT_STEP_MINUTES
+  ) {
+    timeOptions.push(minutesToTime(minutes));
+  }
+  const time = timeOptions.includes(fields.time) ? fields.time : "";
+
+  const chosen = SERVICES.find((item) => item.id === service);
+  const totalCents = chosen ? totalWithAddOns(chosen.priceCents, addOns) : 0;
+  const totalMinutes = chosen?.durationMinutes
+    ? chosen.durationMinutes + addOnMinutes(addOns)
+    : null;
+  const totalLabel = chosen
+    ? `${formatPrice(totalCents)}${hasUnpricedAddOn(addOns) ? " + After Hours" : ""}`
+    : "";
 
   const update = (key: keyof Fields) => (value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
@@ -178,9 +235,9 @@ export function Booking() {
   };
 
   const chooseService = (value: string) => {
-    const install = parseInstallType(value);
+    const install = SERVICES.find((item) => item.id === value)?.installType ?? null;
     setBookingSelection({ installType: install });
-    update("service")(install ? "" : value);
+    update("service")(value);
   };
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -204,6 +261,7 @@ export function Booking() {
     // missing line does not already say, unlike Finish, whose "No finish" is
     // itself a real answer.
     const styleNote = styleDescription.trim();
+    const addOnNames = addOns.map((id) => getAddOn(id).name);
 
     if (!BOOKING_ENDPOINT) {
       const body = [
@@ -212,8 +270,11 @@ export function Booking() {
         `Phone: ${fields.phone}`,
         `Service: ${serviceName}`,
         `Finish: ${finishName || SELECTION.finish.none}`,
+        `Add-ons: ${addOnNames.join(", ") || "None"}`,
         ...(styleNote ? [`${SELECTION.book.style}: ${styleNote}`] : []),
         `Preferred date: ${fields.date || "No preference"}`,
+        `Preferred time: ${time ? formatTime(time) : "No preference"}`,
+        `Estimated total: ${totalLabel}`,
         "",
         fields.notes || "No notes.",
       ].join("\n");
@@ -237,6 +298,10 @@ export function Booking() {
           serviceName,
           finish: finish ?? "",
           finishName,
+          addOns,
+          addOnNames,
+          time,
+          estimatedTotalCents: totalCents,
           styleDescription: styleNote,
         }),
       });
@@ -322,7 +387,7 @@ export function Booking() {
 
           {/*
             Full width: the options carry their prices, and the longest,
-            "Reinstall and refresh ($70)", clips in a half-width column at
+            "Color Frontal Install ($135)", clips in a half-width column at
             desktop, where the form has seven of twelve columns. The finish
             and the date then share the next row.
           */}
@@ -349,10 +414,16 @@ export function Booking() {
               <option value="" disabled>
                 Choose a service
               </option>
-              {SERVICES.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} ({formatPrice(item.priceCents)})
-                </option>
+              {SERVICE_CATEGORIES.map((category) => (
+                <optgroup key={category} label={category}>
+                  {SERVICES.filter((item) => item.category === category).map(
+                    (item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} ({formatPrice(item.priceCents)})
+                      </option>
+                    ),
+                  )}
+                </optgroup>
               ))}
             </select>
             {errors.service ? (
@@ -361,6 +432,66 @@ export function Booking() {
               </p>
             ) : null}
           </div>
+
+          {/*
+            The appointment add-ons, the same four and the same rules as the
+            booking flow (lib/booking/add-ons.ts), written to the same shared
+            selection. Toggles rather than checkboxes so they read as the
+            finish tiles above do; aria-pressed carries the state.
+          */}
+          <fieldset className="flex flex-col gap-3 sm:col-span-2">
+            <legend className="text-sm font-medium text-ink">
+              {SELECTION.addOns.heading}{" "}
+              <span className="font-normal text-muted">
+                {SELECTION.addOns.optional}
+              </span>
+            </legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ADD_ONS.map((addOn) => {
+                const selected = addOns.includes(addOn.id);
+                const detail = [addOn.windowLabel, addOn.durationLabel]
+                  .filter(Boolean)
+                  .join(" · ");
+                return (
+                  <button
+                    key={addOn.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() =>
+                      setBookingSelection({ addOns: toggleAddOn(addOns, addOn.id) })
+                    }
+                    className={`flex min-h-12 items-center justify-between gap-3 rounded-3xl border px-4 py-3 text-left transition-[border-color,background-color] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent ${
+                      selected
+                        ? "border-accent bg-accent-soft"
+                        : "border-line-strong bg-bg hover:border-accent"
+                    }`}
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-base text-ink">{addOn.name}</span>
+                      {detail ? (
+                        <span className="block text-sm text-muted">{detail}</span>
+                      ) : null}
+                    </span>
+                    {addOn.priceLabel ? (
+                      <span className="tabular shrink-0 text-base text-accent">
+                        {addOn.priceLabel}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+            {chosen ? (
+              <p className="text-sm text-muted" aria-live="polite">
+                Estimated total{" "}
+                <span className="tabular font-medium text-ink">{totalLabel}</span>
+                {totalMinutes ? ` · ${formatDuration(totalMinutes)} in the chair` : ""}
+                {hasUnpricedAddOn(addOns)
+                  ? ". Nat confirms the After Hours price when she replies."
+                  : ""}
+              </p>
+            ) : null}
+          </fieldset>
 
           {/*
             The styling add-on. Required when the service above is one of the
@@ -423,6 +554,34 @@ export function Booking() {
             error={errors.date}
             help="Optional. Tuesday through Saturday."
           />
+
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor={`${formId}-time`}
+              className="text-sm font-medium text-ink"
+            >
+              Preferred time
+            </label>
+            <select
+              id={`${formId}-time`}
+              name="time"
+              value={time}
+              onChange={(event) => update("time")(event.target.value)}
+              aria-describedby={`${formId}-time-help`}
+              className="w-full rounded-3xl border border-line-strong bg-bg px-4 py-3.5 min-h-12 text-base text-ink transition-colors duration-200 hover:border-accent"
+            >
+              <option value="">No preference</option>
+              {timeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {formatTime(option)}
+                </option>
+              ))}
+            </select>
+            <p id={`${formId}-time-help`} className="text-sm text-muted">
+              Optional. Booking hours are {formatTime(NORMAL_WINDOW.open)} to{" "}
+              {formatTime(NORMAL_WINDOW.close)}, Eastern time.
+            </p>
+          </div>
 
           <div className="flex flex-col gap-2 sm:col-span-2">
             <label
@@ -533,7 +692,7 @@ function BookingShell({ children }: { children: React.ReactNode }) {
 
               {STUDIO.hours.length > 0 ? (
                 <div>
-                  <dt className="text-sm text-muted">Hours</dt>
+                  <dt className="text-sm text-muted">Booking hours</dt>
                   <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
                     {STUDIO.hours.map((slot) => (
                       <span key={slot.days}>
