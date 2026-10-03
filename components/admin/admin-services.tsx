@@ -15,9 +15,8 @@ import type { Service } from "@/lib/supabase/types";
  * ---------------------------------------------------------------------------
  * THE PLACEHOLDER BADGE IS THE POINT OF THIS SCREEN
  * ---------------------------------------------------------------------------
- * The four services were seeded with the prices that were already on the
- * website, and those prices were invented as stand-ins by whoever built the
- * front end. Nobody had confirmed that a frontal install costs $180.
+ * The services were seeded with placeholder prices invented as stand-ins by
+ * whoever built the front end, and a frontal install was never really $180.
  * Migration 0005 replaces them with the seven services on Nat's own pricing
  * reference and marks those confirmed; the badge still catches any service
  * added later without a confirmed price.

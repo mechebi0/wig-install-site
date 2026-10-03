@@ -119,8 +119,8 @@ export function formatDateMedium(iso: string): string {
 }
 
 /**
- * 18000 -> "$180". Whole dollars stay whole: a price list reading "$180.00"
- * beside "$95.00" is a checkout, and this is a service menu.
+ * 10000 -> "$100". Whole dollars stay whole: a price list reading "$100.00"
+ * beside "$90.00" is a checkout, and this is a service menu.
  */
 export function formatPrice(cents: number | null | undefined): string {
   if (cents === null || cents === undefined) return "On request";

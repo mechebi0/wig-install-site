@@ -370,12 +370,58 @@ UPDATE, documented in `supabase/README.md`.
 - **A photograph of Wand Curls.** None of the set is described as one, so that
   option shows a plain swatch. Add it to `FINISH_PHOTOS` in
   `lib/collections.ts` and the option picks it up.
-- Confirmation that Curls, Wand Curls and Crimps are the finishes she offers,
-  on both installs, and what, if anything, they add to the price or the time.
+- Confirmation that Curls, Wand Curls and Crimps are the finishes she offers.
+  They are free styling choices; the paid Styling add-on (+$15, +35 minutes) is
+  a separate optional extra, and the two time-window add-ons (Early Bird +30%,
+  After Hours) book either side of the 10:00 AM to 9:00 PM window.
 - The Acuity account: the two appointment types (Frontal Install, Closure
   Install), their links, and a "Finish" intake question. See the table under
   `lib/taxonomy.ts` above for where each goes.
 - Supabase project credentials. See `supabase/README.md`.
+
+## Square configuration (still manual)
+
+The website pricing is done. Square is not connected to this repo — there is no
+Square API integration, no credentials and no service IDs anywhere in it — so
+nothing here changes Square automatically. When Nat has her Square Appointments
+account, the following must be set up by hand to match the site:
+
+**Services** (Square Appointments → Services). One service per website service,
+at these exact prices:
+
+| Website service | Price |
+| --- | --- |
+| Frontal Install | $100 |
+| Closure Install | $90 |
+| Frontal Reinstall | $90 |
+| Closure Reinstall | $80 |
+| Color Frontal Install | $135 |
+| Color Closure Install | $125 |
+| Wig Touch Up | $35 |
+
+Do not create one service per add-on combination (no "Frontal Install +
+Styling"). The add-ons are modifiers on the appointment, not services.
+
+**Add-ons** (Square appointment modifiers / extras, where supported):
+
+| Add-on | Price | Duration |
+| --- | --- | --- |
+| Early Bird (before 10:00 AM) | +30% | — |
+| Same-Day Customization | +$25 | +40 minutes |
+| Styling | +$15 | +35 minutes |
+| After Hours (after 9:00 PM) | **no price supplied** | — |
+
+After Hours has no price on the pricing reference, so the site does not
+invent one. If Square requires a price to save the modifier, leave it as a
+time-window label only and confirm the amount with Nat before entering it.
+
+**Availability** (Square Appointments → Availability / Hours). Set the booking
+window to 10:00 AM - 9:00 PM, Tuesday to Saturday, closed Sunday and Monday,
+in the America/New_York timezone. The site's own calendar offers the same
+window, so the two must agree.
+
+**Locations**. Both Towson, MD and Laurel, MD are bookable. If Square is set up
+with multiple locations, enable both.
 
 ## Photography and licence
 

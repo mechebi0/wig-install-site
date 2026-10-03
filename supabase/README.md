@@ -281,8 +281,9 @@ Written down rather than glossed over:
 - **Opening hours are a fixed weekly grid** in `lib/booking/availability.ts`,
   not per-day settings Nat can edit. There is no holiday calendar and no way to
   close a single afternoon from the dashboard. The database enforces a coarse
-  floor (half-hour boundaries, 08:00–19:00, closed Sunday and Monday); the fine
-  grid is in the app.
+  floor (half-hour boundaries, 08:00–23:00, closed Sunday and Monday); the fine
+  grid is in the app. The booking window is 10:00–21:00, with the Early Bird
+  and After Hours add-ons booking either side of it.
 - **No payments.** None were asked for and none are implied anywhere in the UI.
 
 ---
