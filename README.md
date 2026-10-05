@@ -36,7 +36,7 @@ own page.
 | `/gallery/natural-lace`     | as above                                                          |
 | `/installs/frontal`        | The Frontal Install: what it is, how it works, Nat's frontal work, choose a finish, book |
 | `/installs/closure`        | The Closure Install, same layout                                   |
-| `/book`                    | Every service and price, choose install then finish, the booking flow |
+| `/book`                    | Every service and price, then the Square Appointments scheduler    |
 | `/before-you-book`         | The appointment step by step, and the FAQ                          |
 | `/reviews`                 | Client quotes                                                      |
 | `/meet-nat`                | Introduction, credentials, three assurances                        |
@@ -315,13 +315,24 @@ and do not care what the subtree did.
 ## Admin and customer accounts: what exists, what is pending
 
 **Built and working today.** Customer signup, login, password reset, the
-account dashboard, guest booking, the five-step booking flow, and the admin
-dashboard with locations, appointments, customers and services. All of it is
-real code against a real schema, and all of it degrades honestly when there is
-no Supabase project: the nav hides the account control, `/login` and `/admin`
-say plainly that the booking system is not connected, and `/book` falls back to
-an email request form. **The production build does not need any Supabase
+account dashboard, and the admin dashboard with locations, appointments,
+customers and services. All of it is real code against a real schema, and all
+of it degrades honestly when there is no Supabase project: the nav hides the
+account control, and `/login` and `/admin` say plainly that the booking system
+is not connected. **The production build does not need any Supabase
 environment variable.**
+
+**No longer linked from any page.** `components/booking.tsx` (the email/POST
+request form) and `components/booking/booking-flow.tsx` (the five-step guest
+or account booking flow, with `choice.tsx`, `confirmation.tsx` and `steps.tsx`
+beneath it) are not imported anywhere since Square became `/book`'s scheduler.
+They still compile and the Supabase schema and admin/account dashboards are
+unaffected, but nothing on the site can create a new Supabase `appointments`
+row any more; the account dashboard's "Upcoming appointments" will only ever
+show rows added some other way. They were left in place rather than deleted,
+since whether to keep, repurpose or remove that subsystem is a product
+decision, not a booking-integration one. Delete them once that decision is
+made.
 
 **Schema ready, not yet wired.** `supabase/migrations/0002_gallery_reviews_settings.sql`
 adds `gallery_items`, `gallery_categories`, `gallery_item_categories`,
@@ -374,17 +385,45 @@ UPDATE, documented in `supabase/README.md`.
   They are free styling choices; the paid Styling add-on (+$15, +35 minutes) is
   a separate optional extra, and the two time-window add-ons (Early Bird +30%,
   After Hours) book either side of the 10:00 AM to 9:00 PM window.
-- The Acuity account: the two appointment types (Frontal Install, Closure
-  Install), their links, and a "Finish" intake question. See the table under
-  `lib/taxonomy.ts` above for where each goes.
+- The manual Square Appointments setup below. The embed itself is live; the
+  schedule behind it is still Nat's own to configure.
 - Supabase project credentials. See `supabase/README.md`.
 
-## Square configuration (still manual)
+## Square Appointments embed
 
-The website pricing is done. Square is not connected to this repo — there is no
-Square API integration, no credentials and no service IDs anywhere in it — so
-nothing here changes Square automatically. When Nat has her Square Appointments
-account, the following must be set up by hand to match the site:
+`/book` renders the official Square buyer-widget script directly
+(`components/square-booking.tsx`), supplied by Nat:
+
+```
+https://square.site/appointments/buyer/widget/90mlhehr81npoq/LB873P50HQF76.js
+```
+
+It is loaded with a plain DOM call into a ref'd container rather than through
+`next/script`: Square's script positions its own iframe relative to its
+`<script>` tag (inserting the iframe as a sibling, or redirecting the whole
+page if that tag's parent is `<head>`/`<html>`), and `next/script` always
+appends scripts to the end of `document.body` regardless of where the
+component sits, which would strand the widget below the footer instead of
+inside the booking card. See the comment at the top of that file for the
+full reasoning. A loading spinner and a graceful "Booking is temporarily
+unavailable" message cover the time before it loads and the case where it
+fails to.
+
+This is a client-side widget only. There is no Square API integration, no
+credentials and no service IDs anywhere in this repo, so nothing here changes
+Square's own schedule automatically.
+
+**Do not set `NEXT_PUBLIC_ACUITY_BOOKING_URL` (or the per-install Acuity
+variables) while Square is the live scheduler.** `STUDIO.bookingUrl` is a
+single switch: if it is ever set, every "Book Your Chair" CTA on the site
+opens that URL in a new tab instead of `/book`, which would bypass this
+embed entirely. Leave all of them unset, exactly as `.env.example` ships.
+
+### Square configuration (still manual)
+
+The website pricing is done. Setting up Natalie's actual schedule in Square is
+not something this website can do by embedding a script; the following must
+still be set up by hand, inside Square, to match the site:
 
 **Services** (Square Appointments → Services). One service per website service,
 at these exact prices:
@@ -419,6 +458,30 @@ time-window label only and confirm the amount with Nat before entering it.
 window to 10:00 AM - 9:00 PM, Tuesday to Saturday, closed Sunday and Monday,
 in the America/New_York timezone. The site's own calendar offers the same
 window, so the two must agree.
+
+**Breaks and time off** (Square Appointments → Availability). Any recurring
+break (a lunch block, travel between the two towns) and any one-off closure
+(a holiday, a day off) has to be entered in Square directly. Nothing in this
+repo knows about either; an appointment the site does not know is blocked can
+otherwise be offered right up until the embed's own calendar is checked.
+
+**Service durations**. Frontal Install (120 min) and Closure Install (90 min)
+are confirmed. Frontal Reinstall, Closure Reinstall, Color Frontal Install and
+Color Closure Install have no confirmed duration yet (`durationMinutes: null`
+in `lib/content.ts`); pick a real duration for each in Square rather than
+leaving it at whatever the dashboard defaults to.
+
+**Customer intake questions**. The site's own "Have a specific style in mind?"
+field (a free-text cut/length/colour/look description) is not sent to Square;
+there is no supported way to pass frontend state into this embed. If Nat wants
+that question asked, add it as a Square intake question on the booking page
+itself, in Square's own dashboard.
+
+**Confirmation and notification settings** (Square Appointments → Notifications).
+Decide whether confirmation is automatic or requires Nat's approval, and turn
+on the email/text confirmation and reminder messages buyers should receive.
+This site sends none of its own; whatever Square is configured to send is the
+only confirmation a customer gets.
 
 **Locations**. Both Towson, MD and Laurel, MD are bookable. If Square is set up
 with multiple locations, enable both.

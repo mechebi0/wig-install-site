@@ -490,7 +490,7 @@ export const PAGES = {
   book: {
     kicker: "Book",
     title: "Book your chair.",
-    lede: "Choose your install and your finish, pick a day that suits you, and Nat will text back to confirm. Usually the same day.",
+    lede: "Choose your service, add-ons, and an available day and time using the scheduler below.",
   },
   beforeYouBook: {
     kicker: "Before you book",
@@ -1122,8 +1122,8 @@ export const QUESTIONS = [
 ] as const;
 
 export const BOOKING = {
-  heading: "Send a request.",
-  body: "Send the form and Nat will text back with two or three slots, usually the same day. Tuesday through Saturday.",
+  heading: "Choose your time.",
+  body: "Pick your service, any add-ons, and a day and time that works for you using the scheduler below.",
 } as const;
 
 /**
