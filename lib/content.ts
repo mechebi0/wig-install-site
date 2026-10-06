@@ -1037,8 +1037,9 @@ export const PROCESS = [
 export const OWNER = {
   heading: "One pair of hands, start to finish.",
   paragraphs: [
-    "Nat works one chair, one client at a time. She customizes the unit, lays the lace, and cuts the hairline to your face in the same appointment, so nothing is handed off half finished and nobody else picks up where she left off.",
-    "That means fewer appointments in the week and a wait for a Saturday. It also means the person who answers your message is the person doing your hair, and that she is still there when you look in the mirror at the end.",
+    "Hey babes! I’m Natalie, but you can call me Nat, the stylist behind Crowned by Nat! I specialize in wig installs and reinstalls, helping you feel beautiful and confident with every look.",
+    "My goal is to make sure you feel comfortable in my chair and leave loving your hair. Whether we’re trying a new style or refreshing your favorite look, I’m excited to bring your vision to life!",
+    "Thank you for supporting Crowned by Nat and trusting me with your hair. I can’t wait to have you in my chair!",
   ],
   /**
    * True by construction, not claimed on her behalf. Add real qualifications
