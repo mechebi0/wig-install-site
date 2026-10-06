@@ -86,10 +86,12 @@ import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
  * WHAT THE SCREEN READER GETS
  * ---------------------------------------------------------------------------
  * Six copies of a moving line would be read six times. The whole track is
- * aria-hidden and one plain sentence stands in for it: "Now booking in Towson
- * & Laurel, MD. Lace wig installs at Crowned by Nat." It is the same element
- * that becomes visible under reduced motion, so the two audiences that do not
- * see the motion get exactly the same words.
+ * aria-hidden and one plain sentence stands in for it: "Now booking in
+ * Towson, MD. Also serving Laurel, MD. Lace wig installs at Crowned by Nat."
+ * It is the same element that becomes visible under reduced motion, so the
+ * two audiences that do not see the motion get exactly the same words, and
+ * the current/additional distinction is spelled out in text for both rather
+ * than carried only by the bold weight on the moving track.
  *
  * ---------------------------------------------------------------------------
  * THE STATES, INHERITED FROM THE BAND THIS REPLACED
@@ -108,13 +110,23 @@ import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
  *                 than no location.
  *
  * It never falls back to a town name when the chair is closed. Sending
- * someone to Towson on a week Nat is in Laurel is the exact failure this
+ * someone to a town that is not actually open is the exact failure this
  * component exists to prevent.
+ *
+ * ---------------------------------------------------------------------------
+ * CURRENT LOCATION, AND WHY ONLY ONE TOWN GETS IT
+ * ---------------------------------------------------------------------------
+ * Towson is the fixed primary chair (confirmed 2026-10-05); Laurel is the
+ * additional town. `locations` is read in the order useAnnouncedLocations
+ * hands back (LOCATIONS/the admin's display_order), so index 0 is always the
+ * current location and gets the stronger weight below. The distinction is
+ * also spelled out in words in `sentence` ("Also serving ..."), not carried by
+ * weight alone, for the screen reader and reduced-motion audience.
  */
 const COPIES = 6;
 
 const SEGMENT_TYPE =
-  "font-display text-[0.6875rem] font-medium uppercase tracking-[0.2em] sm:text-xs lg:text-[0.8125rem] lg:tracking-[0.22em]";
+  "font-display text-[0.6875rem] uppercase tracking-[0.2em] sm:text-xs lg:text-[0.8125rem] lg:tracking-[0.22em]";
 
 export function AnnouncementMarquee() {
   const { locations, status } = useAnnouncedLocations();
@@ -124,21 +136,31 @@ export function AnnouncementMarquee() {
   const open = status === "ready" && locations.length > 0;
   const closed = status === "ready" && locations.length === 0;
 
-  const segments: string[] = open
+  const segments: { text: string; current?: boolean }[] = open
     ? [
-        ANNOUNCEMENT.lead,
-        ...locations.map((location) => `${location.name}, ${location.state}`),
-        ANNOUNCEMENT.service,
-        STUDIO.name,
-        CTA.book,
+        { text: ANNOUNCEMENT.lead },
+        ...locations.map((location, index) => ({
+          text: `${location.name}, ${location.state}`,
+          current: index === 0,
+        })),
+        { text: ANNOUNCEMENT.service },
+        { text: STUDIO.name },
+        { text: CTA.book },
       ]
     : closed
-      ? [...ANNOUNCEMENT.closed, ANNOUNCEMENT.service, STUDIO.name]
-      : [ANNOUNCEMENT.service, STUDIO.name, CTA.book];
+      ? [
+          ...ANNOUNCEMENT.closed.map((text) => ({ text })),
+          { text: ANNOUNCEMENT.service },
+          { text: STUDIO.name },
+        ]
+      : [{ text: ANNOUNCEMENT.service }, { text: STUDIO.name }, { text: CTA.book }];
 
+  const [primaryLocation, ...otherLocations] = locations;
   const sentence = `${
     open
-      ? `${ANNOUNCEMENT.lead} in ${formatLocationList(locations)}. `
+      ? otherLocations.length > 0
+        ? `${ANNOUNCEMENT.lead} in ${primaryLocation.name}, ${primaryLocation.state}. Also serving ${formatLocationList(otherLocations)}. `
+        : `${ANNOUNCEMENT.lead} in ${formatLocationList(locations)}. `
       : closed
         ? `${ANNOUNCEMENT.closed.join(". ")}. `
         : ""
@@ -159,10 +181,14 @@ export function AnnouncementMarquee() {
           >
             {Array.from({ length: COPIES }, (_, copy) => (
               <span key={copy} className="flex shrink-0 items-center">
-                {segments.map((text, index) => (
+                {segments.map((segment, index) => (
                   <span key={index} className="flex items-center">
-                    <span className={`${SEGMENT_TYPE} whitespace-nowrap leading-none`}>
-                      {text}
+                    <span
+                      className={`${SEGMENT_TYPE} whitespace-nowrap leading-none ${
+                        segment.current ? "font-semibold" : "font-medium"
+                      }`}
+                    >
+                      {segment.text}
                     </span>
                     <Ornament />
                   </span>
@@ -171,7 +197,7 @@ export function AnnouncementMarquee() {
             ))}
           </div>
 
-          <p className={`marquee-static ${SEGMENT_TYPE} leading-snug`}>{sentence}</p>
+          <p className={`marquee-static ${SEGMENT_TYPE} font-medium leading-snug`}>{sentence}</p>
 
           <button
             type="button"

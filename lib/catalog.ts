@@ -30,9 +30,9 @@ import type { InstallTypeId } from "@/lib/taxonomy";
  *
  * Locations get no such fallback, and the asymmetry is deliberate. A stale
  * service description is cosmetic. A stale LOCATION is the site telling
- * someone to drive to Towson on a week Nat is in Laurel, which is exactly the
- * failure the brief asks to eliminate. Where the location is unknown the UI
- * shows nothing rather than a guess.
+ * someone a town is open when it is not, which is exactly the failure the
+ * brief asks to eliminate. Where the location is unknown the UI shows nothing
+ * rather than a guess.
  */
 
 export type CatalogService = {
@@ -259,9 +259,9 @@ export function formatLocationList(
 
    The announcement stripe above the nav bar is not one of those callers. It
    books nothing. Its whole job is to say where Nat is currently taking
-   appointments, and today the honest answer to that is known (Towson and
-   Laurel, both) while the database that will eventually own the answer is not
-   connected yet.
+   appointments, and today the honest answer to that is known (Towson as the
+   primary chair, Laurel as the additional one) while the database that will
+   eventually own the answer is not connected yet.
 
    So the two are split rather than compromised:
 

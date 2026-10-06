@@ -1,7 +1,13 @@
 import { InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/wordmark";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { LOCATIONS, NAV_LINKS, REACH, STUDIO } from "@/lib/content";
+import {
+  ADDITIONAL_LOCATION_LABELS,
+  NAV_LINKS,
+  PRIMARY_LOCATION_LABEL,
+  REACH,
+  STUDIO,
+} from "@/lib/content";
 import { INSTALL_TYPES } from "@/lib/taxonomy";
 
 /*
@@ -127,9 +133,12 @@ export function SiteFooter() {
                 </>
               ) : null}
               Now booking in{" "}
-              {LOCATIONS.map((location) => `${location.name}, ${location.region}`).join(
-                " × ",
-              )}
+              <strong className="font-semibold text-on-accent">
+                {PRIMARY_LOCATION_LABEL}
+              </strong>
+              {ADDITIONAL_LOCATION_LABELS.length > 0
+                ? ` × ${ADDITIONAL_LOCATION_LABELS.join(" × ")}`
+                : null}
               .
             </p>
           </div>

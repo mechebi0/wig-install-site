@@ -3,7 +3,14 @@ import { PageHeader } from "@/components/page-header";
 import { Services } from "@/components/services";
 import { SquareBooking } from "@/components/square-booking";
 import { Reveal } from "@/components/reveal";
-import { BOOKING, LOCATIONS, PAGES, REACH, STUDIO } from "@/lib/content";
+import {
+  ADDITIONAL_LOCATION_LABELS,
+  BOOKING,
+  PAGES,
+  PRIMARY_LOCATION_LABEL,
+  REACH,
+  STUDIO,
+} from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Book your chair",
@@ -53,15 +60,22 @@ function BookingPanel() {
 
               <dl className="mt-10 flex flex-col gap-5 border-t border-line pt-8">
                 <div>
-                  <dt className="text-sm text-muted">Where</dt>
-                  <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
-                    {LOCATIONS.map((location) => (
-                      <span key={location.name}>
-                        {location.name}, {location.region}
-                      </span>
-                    ))}
+                  <dt className="text-sm text-muted">Current location</dt>
+                  <dd className="mt-1 text-base font-medium text-ink">
+                    {PRIMARY_LOCATION_LABEL}
                   </dd>
                 </div>
+
+                {ADDITIONAL_LOCATION_LABELS.length > 0 ? (
+                  <div>
+                    <dt className="text-sm text-muted">Also serving</dt>
+                    <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
+                      {ADDITIONAL_LOCATION_LABELS.map((label) => (
+                        <span key={label}>{label}</span>
+                      ))}
+                    </dd>
+                  </div>
+                ) : null}
 
                 {STUDIO.hours.length > 0 ? (
                   <div>

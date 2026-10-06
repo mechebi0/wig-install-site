@@ -5,7 +5,11 @@ import { AnnouncementMarquee } from "@/components/announcement-marquee";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBookBar } from "@/components/mobile-book-bar";
-import { SERVICE_AREA, STUDIO } from "@/lib/content";
+import {
+  ADDITIONAL_LOCATION_LABELS,
+  PRIMARY_LOCATION_LABEL,
+  STUDIO,
+} from "@/lib/content";
 import { HERO_PHOTOS } from "@/lib/collections";
 
 /*
@@ -62,16 +66,20 @@ export const metadata: Metadata = {
     page and never has to be typed twice.
   */
   /*
-    SERVICE_AREA rather than STUDIO.city on its own. `city` is the town names
-    joined ("Towson and Laurel"), which read as an incomplete address in a search result;
-    a local search needs the state on it. Both halves still come from LOCATIONS
-    in lib/content.ts, so a change of town is still a one-line change there.
+    PRIMARY_LOCATION_LABEL ("Towson, MD") carries the title and the og:title,
+    since Towson is Nat's fixed primary chair (confirmed 2026-10-05) and a
+    search title is read as the one place to be, not a directory. SERVICE_AREA
+    (both towns, "Towson and Laurel, MD") still appears in the body
+    description, where there is room to say Laurel is also served without it
+    reading as two addresses crammed into one line. Both derive from LOCATIONS
+    in lib/content.ts, so a change of town, in either direction, is still a
+    one-line change there.
   */
   title: {
-    default: `${STUDIO.name} | Lace wig installs in ${SERVICE_AREA}`,
+    default: `${STUDIO.name} | Lace wig installs in ${PRIMARY_LOCATION_LABEL}`,
     template: `%s | ${STUDIO.name}`,
   },
-  description: `Lace frontal and closure wig installs in ${SERVICE_AREA}, performed personally by ${STUDIO.owner}. Six style collections, custom-tinted lace, bleached knots, and a hairline cut to your face.`,
+  description: `Lace frontal and closure wig installs in ${PRIMARY_LOCATION_LABEL}, also serving ${ADDITIONAL_LOCATION_LABELS.join(", ")}, performed personally by ${STUDIO.owner}. Six style collections, custom-tinted lace, bleached knots, and a hairline cut to your face.`,
   applicationName: STUDIO.name,
   keywords: [
     "wig install",
@@ -84,10 +92,11 @@ export const metadata: Metadata = {
     "wig customization",
     "medical wig fitting",
     STUDIO.name,
-    SERVICE_AREA,
+    PRIMARY_LOCATION_LABEL,
+    ...ADDITIONAL_LOCATION_LABELS,
   ],
   openGraph: {
-    title: `${STUDIO.name} | Lace wig installs in ${SERVICE_AREA}`,
+    title: `${STUDIO.name} | Lace wig installs in ${PRIMARY_LOCATION_LABEL}`,
     description: `Every install performed personally by ${STUDIO.owner}. One chair, one client, two hours.`,
     type: "website",
     locale: "en_US",

@@ -116,21 +116,37 @@ export const INSTAGRAM_URL_PLACEHOLDER = "https://www.instagram.com/";
  * back is one line here and nothing else. Do not re-type a town name into copy;
  * that is how the site ends up advertising a chair that is not open.
  *
- * Laurel, MD was paused on 2026-09-02 and confirmed again on 2026-09-22: Nat
- * now takes appointments in both towns, and which one a given week falls to
- * varies rather than being fixed. The row was never deleted from the
- * `locations` table, only marked inactive, so this is a config flip rather
- * than new work, and she can switch either town off from the admin dashboard
+ * Laurel, MD was paused on 2026-09-02 and confirmed again on 2026-09-22. As of
+ * 2026-10-05 the two towns are no longer an either/or alternation: Towson is
+ * Nat's fixed primary chair and Laurel is a secondary town she also serves.
+ * The row was never deleted from the `locations` table, only marked inactive,
+ * so a future change in either direction is still a config flip rather than
+ * new work, and she can switch either town off from the admin dashboard
  * without a deploy. Everything below reads active rows first once a Supabase
  * project exists; until then this array is the whole answer.
  *
- * Keep the order deliberate. It is the order the announcement stripe reads them
- * out in when there is more than one.
+ * Keep the order deliberate. Index 0 is read as the current/primary location
+ * everywhere that distinction is shown (PRIMARY_LOCATION below, the
+ * announcement stripe, the footer, /book); moving a town to index 0 is how a
+ * future change of primary location is made.
  */
 export const LOCATIONS = [
   { name: "Towson", region: "MD" },
   { name: "Laurel", region: "MD" },
 ] as const;
+
+/**
+ * Towson, MD: the current/primary location. Laurel, MD: the additional one.
+ * Both derived from LOCATIONS so there is exactly one place to flip which
+ * town is primary.
+ */
+export const PRIMARY_LOCATION = LOCATIONS[0];
+export const ADDITIONAL_LOCATIONS = LOCATIONS.slice(1);
+
+export const PRIMARY_LOCATION_LABEL = `${PRIMARY_LOCATION.name}, ${PRIMARY_LOCATION.region}`;
+export const ADDITIONAL_LOCATION_LABELS = ADDITIONAL_LOCATIONS.map(
+  (location) => `${location.name}, ${location.region}`,
+);
 
 export const STUDIO = {
   /** Confirmed brand name. Used verbatim everywhere it appears. */
@@ -551,7 +567,7 @@ export const HOME = {
   },
   closing: {
     heading: "Your chair is waiting.",
-    body: "One client at a time, in Towson or Laurel, MD. Send a request and Nat comes back to you with two or three slots.",
+    body: "One client at a time, currently in Towson, MD, also serving Laurel, MD. Send a request and Nat comes back to you with two or three slots.",
   },
 } as const;
 
@@ -1085,7 +1101,7 @@ export const policiesAreDraft = true;
 export const QUESTIONS = [
   {
     q: "Where does the appointment happen?",
-    a: "Nat takes appointments in Towson or Laurel, MD, depending on the week. The full address comes with your confirmation, and the strip at the top of the site always shows where she is currently booking.",
+    a: "Nat's current location is Towson, MD. She also takes appointments in Laurel, MD. The full address comes with your confirmation, and the strip at the top of the site always shows where she is currently booking.",
   },
   {
     q: "Who actually does my install?",
