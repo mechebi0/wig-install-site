@@ -1129,7 +1129,11 @@ export const QUESTIONS = [
   },
   {
     q: "How do I move or cancel an appointment?",
-    a: "Get in touch as early as you can. Moving an appointment more than 24 hours out costs nothing. Inside 24 hours, half the service price holds your next slot rather than being lost.",
+    a: "Get in touch as early as you can. Appointments must be canceled at least 24 hours before the scheduled appointment, and the same notice moves an appointment to a new time.",
+  },
+  {
+    q: "What is your cancellation policy?",
+    a: "Appointments must be canceled at least 24 hours before the scheduled appointment.",
   },
   {
     q: "What should I bring, and how should I turn up?",
