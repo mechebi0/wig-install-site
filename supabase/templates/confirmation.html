@@ -1,0 +1,19 @@
+<!--
+  Supabase email template: Authentication -> Emails -> "Confirm signup".
+  Subject: Confirm your email for Crowned by Nat
+
+  Two different people receive this one:
+    - a customer who made an account at /signup/ (they use the button)
+    - the studio owner the very first time she signs in at /admin/login/,
+      before her account exists (she types the code)
+  so it offers both, and the wording has to make sense to either.
+-->
+<div style="max-width:480px;margin:0 auto;padding:32px 24px;font-family:Georgia,'Times New Roman',serif;color:#3d0f22;background:#fdf8fa;">
+  <p style="margin:0 0 24px;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:#b01050;font-family:Helvetica,Arial,sans-serif;">Crowned by Nat</p>
+  <h1 style="margin:0 0 16px;font-size:26px;font-weight:normal;">Confirm your email</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.6;font-family:Helvetica,Arial,sans-serif;color:#8a5a6e;">Tap the button to confirm this address and finish setting up your account.</p>
+  <p style="margin:0 0 28px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;border-radius:999px;background:#b01050;color:#fff7fa;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:14px;">Confirm my email</a></p>
+  <p style="margin:0 0 8px;font-size:15px;line-height:1.6;font-family:Helvetica,Arial,sans-serif;color:#8a5a6e;">If the page you came from is asking for a code, type this instead:</p>
+  <p style="margin:0 0 28px;font-size:34px;letter-spacing:0.25em;font-family:Helvetica,Arial,sans-serif;font-weight:bold;color:#3d0f22;">{{ .Token }}</p>
+  <p style="margin:0;font-size:13px;line-height:1.6;font-family:Helvetica,Arial,sans-serif;color:#8a5a6e;">The button and the code work once and expire after an hour. If you did not ask for this, ignore this email.</p>
+</div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   CalendarBlank,
   Gauge,
+  Images,
   MapPin,
   Scissors,
   SignOut,
@@ -17,7 +18,7 @@ import { AdminLocations } from "@/components/admin/admin-locations";
 import { AdminServices } from "@/components/admin/admin-services";
 import { AdminCustomers } from "@/components/admin/admin-customers";
 import { signOut } from "@/lib/auth/session";
-import { ADMIN_PATH, leaveTo } from "@/lib/auth/redirect";
+import { ADMIN_PATH, ADMIN_PHOTOS_PATH, leaveTo } from "@/lib/auth/redirect";
 import { formatLocationList, useActiveLocations } from "@/lib/catalog";
 
 /**
@@ -202,6 +203,20 @@ function Portal() {
                   </li>
                 );
               })}
+              {/*
+                A real link rather than a tab: the photo manager is its own
+                page (/admin/photos/), so it gets its own address and history
+                entry like any other page.
+              */}
+              <li className="shrink-0">
+                <a
+                  href={ADMIN_PHOTOS_PATH}
+                  className="flex min-h-11 w-full items-center gap-2.5 whitespace-nowrap rounded-full px-4 text-sm text-muted transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+                >
+                  <Images size={17} weight="regular" aria-hidden="true" />
+                  Photos
+                </a>
+              </li>
             </ul>
 
             {/*

@@ -856,9 +856,3 @@ export function relatedCollections(slug: string, count = 3): StyleCollection[] {
     return all[(start + 1 + i) % all.length];
   });
 }
-
-/** "6 looks" / "1 look". Used on the cards. */
-export function lookCount(collection: StyleCollection): string {
-  const n = collection.items.length;
-  return `${n} ${n === 1 ? "look" : "looks"}`;
-}

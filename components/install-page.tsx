@@ -4,9 +4,9 @@ import {
   BookInstallLink,
   InstallSelector,
 } from "@/components/install-selector";
+import { InstallExamples } from "@/components/install-examples";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
-import { StyleGallery } from "@/components/style-gallery";
 import { COLLECTION_PAGE, CTA, INSTALL_PAGE } from "@/lib/content";
 import { installExamples } from "@/lib/gallery";
 import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
@@ -41,7 +41,9 @@ import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
  * a frame proves a restyle happened rather than a fresh style), so on those
  * two pages the section is left out entirely rather than filled with
  * pictures that merely look like one. Each appears on its own the day Nat
- * marks a real example in the set. The lead photograph is still shown on
+ * marks a real example in the set, or uploads one from the photo manager
+ * labelled with that install (components/install-examples.tsx). The lead
+ * photograph is still shown on
  * both, captioned for what it shows: the look each is built around, not a
  * record of what that client booked.
  */
@@ -149,36 +151,15 @@ export function InstallPage({ type }: { type: InstallType }) {
       </section>
 
       {/* ---------------------------------------------------- the work --- */}
-      {examples.length > 0 ? (
-        <section
-          aria-labelledby="examples-heading"
-          className="border-t border-line bg-surface-2/50"
-        >
-          <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
-            <Reveal>
-              <h2
-                id="examples-heading"
-                className="font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl"
-              >
-                {INSTALL_PAGE.examples(type.shortLabel)}
-              </h2>
-              <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-muted">
-                {type.examplesNote} {COLLECTION_PAGE.galleryHint}
-              </p>
-            </Reveal>
-
-            <div className="mt-10 lg:mt-14">
-              {/* Every one of these is this install, so the per-photograph
-                  install tag would only repeat the page's own title. */}
-              <StyleGallery
-                items={examples}
-                label={`${type.label} gallery`}
-                showInstallType={false}
-              />
-            </div>
-          </div>
-        </section>
-      ) : null}
+      {/* Built-in examples in the first frame, plus any of Nat's uploads
+          labelled with this install; absent when there are neither. */}
+      <InstallExamples
+        installType={type.id}
+        examples={examples}
+        heading={INSTALL_PAGE.examples(type.shortLabel)}
+        note={`${type.examplesNote} ${COLLECTION_PAGE.galleryHint}`.trim()}
+        galleryLabel={`${type.label} gallery`}
+      />
 
       {/* -------------------------------------------------- the choice --- */}
       <section id="finish" className="scroll-mt-24 border-t border-line bg-bg">

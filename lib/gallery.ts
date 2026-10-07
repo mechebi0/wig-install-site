@@ -25,9 +25,11 @@
  *
  * So the constants are the right answer until there is a reason to move, and
  * the reason will be a specific one: Nat wanting to add a look without a
- * deploy. When that day comes the migration path is already written, in
- * supabase/migrations/0002_gallery_reviews_settings.sql, and the swap is
- * inside the four functions below.
+ * deploy. That reason has now arrived, and it was met WITHOUT moving these:
+ * photographs Nat uploads from /admin/photos/ are fetched in the browser and
+ * appended after the compiled-in ones (lib/uploaded-photos.ts, used by
+ * StyleGallery and the look counts). The constants stay the first frame, so
+ * every collection page still prerenders full of photographs.
  *
  * The pattern is the one lib/catalog.ts already uses for services: compiled-in
  * rows are the first frame, live rows replace them, and a `live` flag says

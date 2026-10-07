@@ -7,9 +7,10 @@
  * ---------------------------------------------------------------------------
  * THE OPEN REDIRECT THIS PREVENTS
  * ---------------------------------------------------------------------------
- * The gated routes bounce a signed-out visitor to /login/?next=/admin/ so that
- * logging in returns them where they were going. That parameter is in the URL,
- * which means it is attacker-controlled, and the naive implementation is
+ * The gated routes bounce a signed-out visitor to /login/?next=/account/ (or
+ * /admin/login/?next=/admin/photos/) so that logging in returns them where
+ * they were going. That parameter is in the URL, which means it is
+ * attacker-controlled, and the naive implementation is
  * `location.assign(params.get("next"))`.
  *
  * That one line is an open redirect. A link to
@@ -42,9 +43,12 @@
 export const ACCOUNT_PATH = "/account/";
 export const ADMIN_PATH = "/admin/";
 export const LOGIN_PATH = "/login/";
+/** The owner's passwordless sign-in. Customers keep using LOGIN_PATH. */
+export const ADMIN_LOGIN_PATH = "/admin/login/";
+export const ADMIN_PHOTOS_PATH = "/admin/photos/";
 
 /** The only destinations a `next` parameter may name. */
-const ALLOWED_NEXT = [ACCOUNT_PATH, ADMIN_PATH, "/book/"] as const;
+const ALLOWED_NEXT = [ACCOUNT_PATH, ADMIN_PATH, ADMIN_PHOTOS_PATH, "/book/"] as const;
 
 export function safeNextPath(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -76,6 +80,11 @@ export function readNextParam(): string | null {
 /** Builds the login URL that will come back to `path` afterwards. */
 export function loginUrlFor(path: string): string {
   return `${LOGIN_PATH}?next=${encodeURIComponent(path)}`;
+}
+
+/** The same, for the owner's sign-in in front of the /admin/ pages. */
+export function adminLoginUrlFor(path: string): string {
+  return `${ADMIN_LOGIN_PATH}?next=${encodeURIComponent(path)}`;
 }
 
 /**

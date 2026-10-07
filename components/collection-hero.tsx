@@ -1,13 +1,10 @@
 import { ArrowLeft, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
+import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { COLLECTION_PAGE, CTA, bookingTarget } from "@/lib/content";
-import {
-  focalFor,
-  lookCount,
-  type StyleCollection,
-} from "@/lib/collections";
+import { focalFor, type StyleCollection } from "@/lib/collections";
 
 /**
  * The opening of a collection page: a way back, the name, the three-beat line,
@@ -141,7 +138,7 @@ export function CollectionHero({
             </div>
 
             <p className="label mt-9 text-on-accent/55">
-              {lookCount(collection)} in this collection
+              <LookCount slug={collection.slug} builtIn={collection.items.length} /> in this collection
             </p>
           </Reveal>
         </div>

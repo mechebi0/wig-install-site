@@ -137,11 +137,12 @@ export type AdminStats = {
 /* ===========================================================================
    PHASE TWO: GALLERY, REVIEWS AND SETTINGS
    ===========================================================================
-   These four tables do not exist yet. Nothing in the site reads them, and no
-   component branches on them. They are defined here, and created in
-   supabase/migrations/0002_gallery_reviews_settings.sql, so that the shape the
-   admin dashboard will eventually manage is decided ONCE and decided now,
-   while the content it mirrors is still in front of us.
+   Created in supabase/migrations/0002_gallery_reviews_settings.sql. The
+   gallery tables are now in use: the photo manager at /admin/photos/ writes
+   gallery_items and gallery_item_categories (columns added in 0006), and the
+   public galleries read them through lib/uploaded-photos.ts. Reviews and
+   business settings are still unread. The shapes were decided ONCE, up
+   front, while the content they mirror was still in front of us.
 
    Each one mirrors something that is currently a compiled-in constant:
 
@@ -156,12 +157,11 @@ export type AdminStats = {
    the same field with the same meaning, so the day the data moves it is a
    query swap in lib/gallery.ts rather than a redesign.
 
-   WHY NOTHING READS THEM YET. A compiled-in constant renders instantly, cannot
-   fail, and is in git. A table read from the browser after hydration is none of
-   those things. The portfolio is the whole point of this site, so it stays in
-   the bundle until there is a reason for it to move, and the reason will be
-   Nat wanting to add a photograph without a deploy. See the note at the top of
-   lib/gallery.ts.
+   WHY THE BUILT-IN PHOTOGRAPHS STAYED IN THE BUNDLE. A compiled-in constant
+   renders instantly, cannot fail, and is in git. A table read from the browser
+   after hydration is none of those things. So the built-in photographs are
+   still the first frame of every gallery, and Nat's uploads are added after
+   them once they load. See the note at the top of lib/gallery.ts.
    ========================================================================= */
 
 /** One of the six style collections. Mirrors a StyleCollection. */
@@ -198,15 +198,24 @@ export type GalleryCategory = {
  */
 export type GalleryItem = {
   id: string;
-  /** Path under public/images/work/, or a storage key once uploads exist. */
+  /**
+   * A key in the `website-photos` Storage bucket (gallery/<uuid>.webp), with
+   * the -600 and -1600 widths beside it, or a site path starting with "/".
+   */
   src: string;
   alt: string;
+  /** Short display name, shown over the photograph in the gallery. */
+  title: string | null;
+  /** Of the 1200w file. */
   width: number;
   height: number;
   /** Optional short caption. Not currently rendered anywhere. */
   caption: string | null;
   /** When the install was done, if Nat wants to record it. */
   taken_on: string | null;
+  /** lib/taxonomy.ts InstallTypeId, or null when not established. */
+  install_type: "frontal" | "closure" | "wig-touch-up" | null;
+  /** Published. Only active rows are readable by the public. */
   active: boolean;
   display_order: number;
   created_at: string;

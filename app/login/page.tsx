@@ -4,14 +4,15 @@ import { LoginForm } from "@/components/auth/login-form";
 import { ACCOUNT } from "@/lib/content";
 
 /**
- * The one login for the whole site.
+ * The customer login.
  *
- * There is no separate admin login and there deliberately is not going to be
- * one. A /admin-login route is a sign saying "an admin account exists and it
- * signs in here", which is free reconnaissance and buys nothing: Nat and every
- * customer authenticate through the same form, and what differs afterwards is
- * a role in the database, not a URL. See the note in components/auth/login-form.tsx
- * on how the destination is chosen.
+ * Nat does not sign in here. Her account has no password at all: she signs in
+ * at /admin/login/ with a code emailed to the studio address (see
+ * components/auth/owner-sign-in.tsx). That page existing tells nobody
+ * anything useful, because what makes an account the owner's is a role in the
+ * database, not a URL, and every admin request is checked against that role.
+ * See the note in components/auth/login-form.tsx on how the destination is
+ * chosen after a customer logs in.
  *
  * noindex, because a login form in search results is only ever useful to
  * somebody looking for one to attack.

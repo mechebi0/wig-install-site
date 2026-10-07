@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ArrowsOut } from "@phosphor-icons/react/dist/ssr";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
-import { FINISH_LABELS, type GalleryItem } from "@/lib/collections";
+import { FINISH_LABELS } from "@/lib/collections";
 import { getInstallType } from "@/lib/taxonomy";
+import {
+  useUploadedPhotos,
+  type GalleryCell,
+  type UploadedFilter,
+} from "@/lib/uploaded-photos";
 
 /**
  * The gallery on a collection page. One component, all six collections.
@@ -37,9 +42,17 @@ import { getInstallType } from "@/lib/taxonomy";
  * that only opens under a mouse is a gallery half the point of which is
  * missing. The expand glyph appears on hover as a hint, and is decoration
  * only: the accessible name never depends on it.
+ *
+ * ---------------------------------------------------------------------------
+ * NAT'S UPLOADS
+ * ---------------------------------------------------------------------------
+ * `uploads` names what to add from the photo manager: one collection's
+ * photographs, or one install type's. They are appended after `items` once
+ * they arrive, never before, so nothing already painted moves. See
+ * lib/uploaded-photos.ts.
  */
 export function StyleGallery({
-  items,
+  items: builtIn,
   /** Names the lightbox. "Deep Wave Glam gallery". */
   label,
   /**
@@ -48,11 +61,18 @@ export function StyleGallery({
    * only repeat the page's own title.
    */
   showInstallType = true,
+  uploads,
 }: {
-  items: GalleryItem[];
+  items: GalleryCell[];
   label: string;
   showInstallType?: boolean;
+  uploads?: UploadedFilter;
 }) {
+  const uploaded = useUploadedPhotos(uploads);
+  const items = useMemo(
+    () => (uploaded.length > 0 ? [...builtIn, ...uploaded] : builtIn),
+    [builtIn, uploaded],
+  );
   const [open, setOpen] = useState<number | null>(null);
   const photos = items.map((item) => item.image);
 
@@ -137,22 +157,26 @@ export function StyleGallery({
                 is decoration for assistive technology - the button's own
                 label already carries the full description - so the finish
                 names here are never the only way to reach that information.
+                An upload with no title and no finish has nothing to caption,
+                so it gets no empty band either.
               */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-[rgb(var(--scrim)/0.85)] via-[rgb(var(--scrim)/0.45)] to-transparent p-4 pt-10 text-left opacity-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:transition-none"
-              >
-                <span className="block font-display text-sm leading-tight text-on-accent sm:text-base">
-                  {item.title}
-                </span>
-                {item.finishAttributes.length > 0 ? (
-                  <span className="mt-1.5 block text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-on-accent/70">
-                    {item.finishAttributes
-                      .map((finish) => FINISH_LABELS[finish])
-                      .join(" · ")}
+              {item.title || item.finishAttributes.length > 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-[rgb(var(--scrim)/0.85)] via-[rgb(var(--scrim)/0.45)] to-transparent p-4 pt-10 text-left opacity-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                >
+                  <span className="block font-display text-sm leading-tight text-on-accent sm:text-base">
+                    {item.title}
                   </span>
-                ) : null}
-              </span>
+                  {item.finishAttributes.length > 0 ? (
+                    <span className="mt-1.5 block text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-on-accent/70">
+                      {item.finishAttributes
+                        .map((finish) => FINISH_LABELS[finish])
+                        .join(" · ")}
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
             </button>
           </Reveal>
         ))}

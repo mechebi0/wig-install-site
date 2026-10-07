@@ -5,8 +5,14 @@ import type { User } from "@supabase/supabase-js";
 import { buttonStyles } from "@/components/button";
 import { LoadingPanel, Notice } from "@/components/ui/feedback";
 import { SupabaseOffline } from "@/components/auth/supabase-offline";
-import { useSession } from "@/lib/auth/session";
-import { leaveTo, loginUrlFor } from "@/lib/auth/redirect";
+import { signOut, useSession } from "@/lib/auth/session";
+import { isOwnerEmail } from "@/lib/auth/owner";
+import {
+  ADMIN_LOGIN_PATH,
+  adminLoginUrlFor,
+  leaveTo,
+  loginUrlFor,
+} from "@/lib/auth/redirect";
 import type { Profile } from "@/lib/supabase/types";
 
 /**
@@ -54,11 +60,14 @@ export function Guarded({
    * own h1 once they mount, so this one only ever appears on the gate.
    */
   heading,
+  /** What to show when no Supabase project is configured. */
+  offline = <SupabaseOffline />,
   children,
 }: {
   requireAdmin?: boolean;
   returnTo: string;
   heading: string;
+  offline?: ReactNode;
   children: (session: GuardedSession) => ReactNode;
 }) {
   const { status, user, profile, isAdmin } = useSession();
@@ -67,17 +76,19 @@ export function Guarded({
     Bounce a signed-out visitor to the login form, carrying where they were
     going. `replace` so the back button does not land them here again and
     bounce them straight back, which is the classic redirect ping-pong.
+
+    The admin pages use the owner's emailed-code sign-in rather than the
+    customer password form, because the owner account has no password (see
+    promote_studio_owner() in supabase/migrations/0006).
   */
   useEffect(() => {
-    if (status === "signed-out") leaveTo(loginUrlFor(returnTo), true);
-  }, [status, returnTo]);
+    if (status === "signed-out") {
+      leaveTo(requireAdmin ? adminLoginUrlFor(returnTo) : loginUrlFor(returnTo), true);
+    }
+  }, [status, returnTo, requireAdmin]);
 
   if (status === "unconfigured") {
-    return (
-      <Shell heading={heading}>
-        <SupabaseOffline />
-      </Shell>
-    );
+    return <Shell heading={heading}>{offline}</Shell>;
   }
 
   if (status === "loading") {
@@ -105,15 +116,41 @@ export function Guarded({
     to the place they should be.
   */
   if (requireAdmin && !isAdmin) {
+    /*
+      The one exception to the neutral wording: the owner herself, signed in
+      before the one-time promotion has been run. She already knows the admin
+      area exists, and "not available on your account" would send her looking
+      for a fault rather than for the step that is left.
+    */
+    const owner = isOwnerEmail(user.email);
     return (
       <Shell heading={heading}>
-        <Notice tone="error" title="This page is not available on your account.">
-          If you were looking for your appointments, they are in your account.
-        </Notice>
+        {owner ? (
+          <Notice tone="info" title="Owner access is not switched on yet.">
+            You are signed in, but one setup step is still to be done in
+            Supabase. Your developer runs it once (docs/photo-manager.md,
+            &ldquo;Make Nat the owner&rdquo;); then sign in again.
+          </Notice>
+        ) : (
+          <Notice tone="error" title="This page is not available on your account.">
+            If you were looking for your appointments, they are in your account.
+          </Notice>
+        )}
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-          <a href="/account/" className={buttonStyles.primary}>
-            Go to my account
-          </a>
+          {owner ? null : (
+            <a href="/account/" className={buttonStyles.primary}>
+              Go to my account
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              void signOut().then(() => leaveTo(ADMIN_LOGIN_PATH, true));
+            }}
+            className={buttonStyles.secondary}
+          >
+            Sign out
+          </button>
           <a href="/" className={buttonStyles.secondary}>
             Back to the site
           </a>

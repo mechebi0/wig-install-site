@@ -45,9 +45,13 @@ nothing pretends to work.
 2. Paste the entire contents of
    `supabase/migrations/0001_crown_by_nat_foundation.sql`
 3. **Run**
+4. Repeat for every later file in `supabase/migrations/`, in order, through
+   `0006_owner_photo_manager.sql` (the photo manager's storage bucket,
+   policies and owner functions; see `docs/photo-manager.md`).
 
-It should finish with no errors. It is written to be re-runnable, so if you have
-to run it twice nothing breaks.
+Each should finish with no errors. They are written to be re-runnable, so if
+you have to run one twice nothing breaks. (If you ever re-run 0001 after 0006,
+run 0006 again afterwards: 0006 replaces two functions 0001 defines.)
 
 **What it creates**
 
@@ -112,16 +116,29 @@ https://<your-custom-domain>/**
 being an open redirect: Supabase refuses to send anyone to a URL that is not on
 it. If a reset link "does nothing", the origin is missing from this list.
 
-### Email templates (optional but worth ten minutes)
+### Email templates (required for the photo manager)
 
-Dashboard → **Authentication** → **Email Templates**. The defaults say
-"Supabase". Change the sender name to Crowned by Nat and the wording to match the
-site's voice.
+Dashboard → **Authentication** → **Email Templates**. Replace these two with
+the branded versions in `supabase/templates/`:
 
-Supabase's built-in email service is rate-limited to a handful of messages per
-hour and is meant for development. Before launch, set up a real SMTP provider
-under **Project Settings → Authentication → SMTP Settings**, or password resets
-will start silently failing on a busy day.
+| Template | Subject | Body |
+| --- | --- | --- |
+| Magic Link | `Your Crowned by Nat sign-in code` | `templates/magic-link.html` |
+| Confirm signup | `Confirm your email for Crowned by Nat` | `templates/confirmation.html` |
+
+Nat signs in to the photo manager with a 6-digit code, and the default
+templates do not contain one (`{{ .Token }}`). Both new templates keep the
+link as well, so customer sign-up confirmation works exactly as before.
+
+### Email delivery (required)
+
+Supabase's built-in email service **only delivers to members of the Supabase
+organization's team** ("Email address not authorized" for anyone else), and is
+rate-limited to a handful of messages per hour. Before launch, set up a real
+SMTP provider under **Authentication → Emails → SMTP Settings**, or customer
+confirmations, password resets and Nat's sign-in codes will fail. As a
+stop-gap for Nat alone, invite `crownedbynattt@gmail.com` to the organization
+(**Organization settings → Team**).
 
 ---
 
@@ -169,31 +186,42 @@ an admin is for someone with database access to say so.
 
 In order:
 
-1. Go to `https://<your-site>/signup/` and sign up as
-   **`crownedbynattt@gmail.com`**.
-2. Open the confirmation email and click the link.
-3. Dashboard → **SQL Editor**, and run:
+1. Nat goes to `https://<your-site>/admin/login/`, enters
+   **`crownedbynattt@gmail.com`**, and types the code from the
+   *"Confirm your email"* message. (Needs the templates and email delivery
+   from §3.) She sees *"Owner access is not switched on yet"*; that is
+   expected.
+2. Dashboard → **SQL Editor**, and run:
 
 ```sql
-update public.profiles
-   set role = 'admin', updated_at = now()
- where lower(email) = lower('crownedbynattt@gmail.com');
+select public.promote_studio_owner('crownedbynattt@gmail.com');
 ```
 
-4. Confirm it took:
+3. Confirm it took:
 
 ```sql
 select email, role from public.profiles where role = 'admin';
 ```
 
-You should get exactly one row. Nat can now open `/admin`.
+You should get exactly one row. Nat signs in again at `/admin/login/` and can
+use `/admin/photos/` and `/admin/`.
 
-> The migration in §2 runs that same `update` at the end, so if the account
-> already existed when you applied it, this is already done and step 3 is a
-> harmless no-op. If you applied the migration first (the normal order), you do
-> need to run the statement above afterwards.
+`promote_studio_owner()` (migration 0006) refuses an account whose email has
+not been confirmed, replaces any password on it with a random one nobody knows
+(the owner signs in with emailed codes only, and an impostor could otherwise
+have pre-registered her address with a password of their own), and ends every
+existing sign-in so the role only ever belongs to a session that starts
+afterwards. It cannot be called from the website.
 
-To remove an admin later, set `role = 'customer'` the same way.
+> **Before 0006 the documented step did not work.** The old instruction was a
+> plain `update public.profiles set role = 'admin' ...`, and
+> `protect_profile_columns()` rejected it from the SQL editor with "Account
+> role cannot be changed" (verified against a local Supabase stack). 0006 lets
+> trusted sessions with no end-user JWT (the SQL editor, migrations) change a
+> role; browser requests are unaffected.
+
+To remove an admin later:
+`update public.profiles set role = 'customer' where email = '...';`
 
 ---
 
@@ -215,6 +243,9 @@ To remove an admin later, set `role = 'customer'` the same way.
 Step 9 is the one worth doing carefully. It is the guarantee that an
 appointment keeps its own history rather than inheriting whatever the site
 currently says.
+
+The photo manager has its own end-to-end checklist in
+`docs/photo-manager.md` (§7).
 
 ---
 
@@ -239,6 +270,13 @@ the UI does. Hiding a button is a courtesy. The policies are the control.
 | Change a date or time | no | **no** — request only | yes |
 | Change a `role` | no | **no** — trigger raises | yes |
 | Change locations / services | no | no | yes |
+| Read published gallery photos | yes | yes | yes (plus hidden) |
+| Upload, edit or delete photos (`gallery_*` tables, `website-photos` bucket) | no | no | yes |
+| List the `website-photos` bucket | no | no | yes |
+
+Since 0006, `is_admin()` also requires the sign-in behind the request to still
+exist (`auth.sessions`), so Nat's admin rights end the moment she logs out or
+her sessions are revoked, rather than when her access token expires.
 
 ### The five things that carry the weight
 
@@ -297,13 +335,20 @@ were added. See §4.
 **A password reset link does nothing**
 The origin is not in Supabase's Redirect URLs allowlist. See §3.
 
-**Nat sees "This page is not available on your account" at `/admin`**
-The promotion in §5 has not been run, or was run before the account existed.
-Re-run the `update` and check the `select` returns a row.
+**Nat sees "Owner access is not switched on yet" at `/admin/` or `/admin/photos/`**
+The promotion in §5 has not been run, or was refused because her account did
+not exist or was not confirmed yet. Run `promote_studio_owner()` again and
+check the `select` returns a row; then she signs in again.
 
 **"row-level security policy" errors when Nat saves something**
-Same cause: the account is not actually an admin yet. Every admin policy calls
-`is_admin()`, which reads the `profiles.role` column.
+Same cause: the account is not actually an admin yet, or her sign-in has ended.
+Every admin policy calls `is_admin()`, which reads the `profiles.role` column
+and checks the session still exists.
+
+**Nat's sign-in email never arrives, or the page says "not allowed to email
+this address"**
+Email delivery in §3. The built-in service only emails members of the Supabase
+team.
 
 **A booking fails with "Someone just took that slot"**
 Working as designed — the `EXCLUDE` constraint refused an overlap. Pick another

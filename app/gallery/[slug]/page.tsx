@@ -104,6 +104,7 @@ export default async function CollectionPage({
             <StyleGallery
               items={collectionItems(collection)}
               label={`${collection.title} gallery`}
+              uploads={{ collection: collection.slug }}
             />
           </div>
         </div>

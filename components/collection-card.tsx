@@ -1,11 +1,8 @@
 import { ArrowRight, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
+import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
-import {
-  focalFor,
-  lookCount,
-  type StyleCollection,
-} from "@/lib/collections";
+import { focalFor, type StyleCollection } from "@/lib/collections";
 import { CTA, bookingTarget } from "@/lib/content";
 
 /**
@@ -149,7 +146,7 @@ export function CollectionCard({
           />
 
           <p className="absolute bottom-5 left-6 z-[1] font-display text-sm italic text-on-accent/85">
-            {lookCount(collection)}
+            <LookCount slug={collection.slug} builtIn={collection.items.length} />
           </p>
 
           {/*

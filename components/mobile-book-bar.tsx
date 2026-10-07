@@ -84,7 +84,8 @@ export function MobileBookBar() {
   */
   const HIDDEN_ON = ["/book", "/admin", "/login", "/signup", "/forgot-password", "/reset-password"];
   const current = pathname.replace(/\/$/, "") || "/";
-  const hidden = HIDDEN_ON.includes(current);
+  // Every page under /admin/ too: the owner sign-in and the photo manager.
+  const hidden = HIDDEN_ON.includes(current) || current.startsWith("/admin/");
   const shown = past && !hidden;
 
   if (hidden) return null;

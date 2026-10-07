@@ -42,6 +42,8 @@ own page.
 | `/meet-nat`                | Introduction, credentials, three assurances                        |
 | `/login` `/signup` `/account` | Customer accounts and appointments                              |
 | `/admin`                   | Nat's dashboard. Deliberately absent from all public navigation    |
+| `/admin/login`             | Nat's sign-in: a code emailed to the studio address, no password   |
+| `/admin/photos`            | Nat's photo manager: add, edit, reorder, hide and remove gallery photos. See `docs/photo-manager.md` |
 
 The six collection pages are generated from one file, `app/gallery/[slug]/page.tsx`,
 via `generateStaticParams`, so the build emits six real HTML files and the six
@@ -225,12 +227,16 @@ existing links do not break; the style is now labelled "Body Wave".
 ### `lib/gallery.ts` — the read path
 
 Every component that shows a collection reads it through here, not out of
-`lib/collections.ts` directly. Today these functions return the compiled-in
-constants; when Nat has a Supabase project and an admin screen, they return
-rows and no component changes. See the note at the top of that file for why the
-gallery is still in the bundle (short version: a static export has no server
-render to fetch during, so a database-backed gallery would ship six pages of
-empty grids).
+`lib/collections.ts` directly. These functions return the compiled-in
+constants, which stay the first frame of every gallery. See the note at the top
+of that file for why the gallery is still in the bundle (short version: a
+static export has no server render to fetch during, so a database-backed
+gallery would ship six pages of empty grids).
+
+Photos Nat uploads from the photo manager are added on top in the browser by
+`lib/uploaded-photos.ts`: appended after the built-in photos on each
+collection page and install page, and counted in the "N looks" labels. See
+`docs/photo-manager.md`.
 
 ### `lib/images.ts` — the hero rotation and the services picture
 
@@ -340,19 +346,26 @@ since whether to keep, repurpose or remove that subsystem is a product
 decision, not a booking-integration one. Delete them once that decision is
 made.
 
-**Schema ready, not yet wired.** `supabase/migrations/0002_gallery_reviews_settings.sql`
-adds `gallery_items`, `gallery_categories`, `gallery_item_categories`,
-`reviews` and `business_settings`, with row level security and an admin-only
-write policy on each. Row types are in `lib/supabase/types.ts`. Nothing reads
-them yet; they exist so the admin screens Nat eventually gets (manage gallery
-photos, categories, featured images, ordering, reviews, and which town is open)
-have a decided shape to be built against.
+**The photo manager, built, waiting on the same Supabase setup.**
+`/admin/photos/` lets Nat upload, edit, reorder, hide and remove gallery
+photos; they are stored in the Supabase Storage bucket `website-photos` and the
+`gallery_items` / `gallery_item_categories` tables from 0002, and appear in the
+public galleries without a deploy. Nat signs in at `/admin/login/` with a code
+emailed to the studio address; her account has no password. Migration
+`0006_owner_photo_manager.sql` adds the bucket, its policies and the owner
+functions. Everything needed to switch it on, and how Nat uses it, is in
+`docs/photo-manager.md`.
+
+**Schema ready, not yet wired.** `reviews` and `business_settings` (also from
+0002) have row level security and an admin-only write policy each, and nothing
+reads them yet.
 
 **Authorization is in the database, not the frontend.** Admin rights come from
-`profiles.role` checked by `is_admin()` inside Postgres. The admin email
-appearing anywhere in client code grants nothing: anyone can read the bundle and
-call the API, so a check in the browser is decoration. Granting Nat admin is one
-UPDATE, documented in `supabase/README.md`.
+`profiles.role` checked by `is_admin()` inside Postgres (and, since 0006, only
+for a sign-in that still exists). The admin email appearing anywhere in client
+code grants nothing: anyone can read the bundle and call the API, so a check in
+the browser is decoration. Granting Nat admin is one function call,
+`promote_studio_owner()`, documented in `supabase/README.md`.
 
 ## Things still needed from Nat
 
@@ -393,7 +406,9 @@ UPDATE, documented in `supabase/README.md`.
   After Hours) book either side of the 10:00 AM to 9:00 PM window.
 - The manual Square Appointments setup below. The embed itself is live; the
   schedule behind it is still Nat's own to configure.
-- Supabase project credentials. See `supabase/README.md`.
+- Supabase project credentials. See `supabase/README.md`. The photo manager
+  also needs an email provider (or Nat added to the Supabase team) so her
+  sign-in codes can be delivered; see `docs/photo-manager.md`.
 
 ## Square Appointments embed
 
