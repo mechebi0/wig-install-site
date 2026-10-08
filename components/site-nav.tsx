@@ -13,6 +13,7 @@ import { useAuthState } from "@/lib/auth/session";
 import { useBookingSelection } from "@/lib/booking-selection";
 import { installTypeForPath } from "@/lib/taxonomy";
 import {
+  ADMIN_LINK,
   CTA,
   INSTAGRAM_URL_PLACEHOLDER,
   NAV_LINKS,
@@ -24,7 +25,7 @@ import {
 
 /**
  * Sticky nav, z-10. 64px on mobile, 72px at desktop, inside the 80px cap, and
- * the desktop row never wraps: four short links plus one CTA.
+ * the desktop row never wraps: four short links, Admin, and one CTA.
  *
  * It stays an opaque blush bar rather than going transparent over the hero.
  * A transparent nav on a carousel means the link contrast is decided by
@@ -52,11 +53,14 @@ import {
  * Book Your Chair; two filled pills side by side would make neither of them
  * the point.
  *
- * There is NO admin link here, and there is not going to be one. Nat reaches
- * her dashboard by typing /admin or bookmarking it. Putting it in the public
- * navigation would advertise to every visitor that an admin account exists,
- * and it would be the only item in this bar that is useless to all but one
- * person.
+ * THE ADMIN LINK
+ * Nat's shortcut to her sign-in (ADMIN_LINK in lib/content.ts). On desktop it
+ * is the last plain link, immediately before Book Your Chair, in the same
+ * quiet type as Reviews and Meet Nat, so it reads as one more link and never
+ * as a second action. The mobile sheet does not give it a display-size row:
+ * "Admin" at the size of Gallery would be the loudest thing in a menu that
+ * only one person needs it from, so it is a small muted line under the list,
+ * still ahead of the booking button in reading and tab order.
  */
 /**
  * `trailingSlash: true` in next.config.ts means the browser URL is "/work/"
@@ -88,7 +92,7 @@ function NavItem({
   link,
   current,
 }: {
-  link: (typeof NAV_LINKS)[number];
+  link: (typeof NAV_LINKS)[number] | typeof ADMIN_LINK;
   current: boolean;
 }) {
   return (
@@ -363,6 +367,7 @@ export function SiteNav() {
               {NAV_RIGHT.map((link) => (
                 <NavItem key={link.href} link={link} current={isCurrent(link.href)} />
               ))}
+              <NavItem link={ADMIN_LINK} current={isCurrent(ADMIN_LINK.href)} />
             </ul>
 
             {/*
@@ -519,6 +524,19 @@ export function SiteNav() {
               </a>
             </li>
           ) : null}
+
+          {/* Small on purpose; see THE ADMIN LINK at the top of this file. */}
+          <li>
+            <a
+              href={ADMIN_LINK.href}
+              aria-current={isCurrent(ADMIN_LINK.href) ? "page" : undefined}
+              className={`flex min-h-11 items-center pt-2 text-sm ${
+                isCurrent(ADMIN_LINK.href) ? "text-accent" : "text-muted"
+              }`}
+            >
+              {ADMIN_LINK.label}
+            </a>
+          </li>
         </ul>
 
         {/*
