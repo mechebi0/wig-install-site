@@ -42,24 +42,14 @@ export const metadata: Metadata = {
     export with no request context to infer a host from, so it has to be
     stated. Change it here if the production domain changes.
 
-    THIS MUST BE A HOST THAT RESOLVES, and it is the one thing about this value
-    that is easy to get wrong, because nothing on the site links to it and no
-    build step checks it. It read `crownedbynat.pages.dev` until now, which is
-    the name the project WOULD have had if it had been created after the brand
-    rather than after the repository. That hostname has never existed: a
-    *.pages.dev subdomain only resolves for a Pages project of that exact name,
-    the project is named `wig-install-site` after the GitHub repo, and a lookup
-    of the old value returns NXDOMAIN. So every og:image on the deployed site
-    pointed at a host no client could reach, and every share of any page - the
-    Instagram bio link included - rendered as a bare text card with no
-    photograph. The value below is the live deployment, checked with a real
-    request rather than assumed.
-
-    When Nat has a real domain, this becomes that domain, and the two things to
-    do at the same time are to point the Pages project at it and to confirm the
+    THIS MUST BE A HOST THAT RESOLVES: nothing on the site links to it and no
+    build step checks it, so a wrong value silently breaks every share preview.
+    It is the production domain, https://crownedbynat.com (live on Cloudflare,
+    confirmed 2026-10-08). It read the Pages address, wig-install-site.pages.dev,
+    before that, and `crownedbynat.pages.dev` (NXDOMAIN) before that. Confirm the
     og:image URL loads in a browser before trusting a share preview again.
   */
-  metadataBase: new URL("https://wig-install-site.pages.dev"),
+  metadataBase: new URL("https://crownedbynat.com"),
   /*
     The template gives every inner page "<Page> | Crowned by Nat" from a one-line
     `title` in its own metadata, so the brand name can never be forgotten on a
