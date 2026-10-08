@@ -1,35 +1,34 @@
 "use client";
 
 import { Reveal } from "@/components/reveal";
+import { useSiteView } from "@/components/site-photos";
 import { StyleGallery } from "@/components/style-gallery";
-import { useUploadedPhotos, type GalleryCell } from "@/lib/uploaded-photos";
+import { installExamples } from "@/lib/gallery";
 import type { InstallTypeId } from "@/lib/taxonomy";
 
 /**
  * "The work" on an install page: the photographs that show this install.
  *
- * The built-in examples render in the first frame exactly as before. On the
- * Closure and Reinstalls pages there are none (no frame in the bundle can
- * prove either; see the note in components/install-page.tsx), so until now
- * the section was left out. It now also appears there the moment Nat uploads
- * a photograph and labels it with that install type, which is the first way
- * those two pages can ever show real work without a code change.
+ * Up to six photographs Nat has labelled with this install in the photo
+ * manager, a mix of styles, earliest in her order first (installExamples in
+ * lib/gallery.ts). On the Closure and Reinstalls pages there are none until
+ * she labels one (no frame can prove either; see the note in
+ * components/install-page.tsx), and the section is left out rather than
+ * shown empty.
  */
 export function InstallExamples({
   installType,
-  examples,
   heading,
   note,
   galleryLabel,
 }: {
   installType: InstallTypeId;
-  examples: GalleryCell[];
   heading: string;
   note: string;
   galleryLabel: string;
 }) {
-  const uploaded = useUploadedPhotos({ installType });
-  if (examples.length === 0 && uploaded.length === 0) return null;
+  const examples = installExamples(useSiteView(), installType);
+  if (examples.length === 0) return null;
 
   return (
     <section
@@ -50,12 +49,7 @@ export function InstallExamples({
         <div className="mt-10 lg:mt-14">
           {/* Every one of these is this install, so the per-photograph
               install tag would only repeat the page's own title. */}
-          <StyleGallery
-            items={examples}
-            label={galleryLabel}
-            showInstallType={false}
-            uploads={{ installType }}
-          />
+          <StyleGallery items={examples} label={galleryLabel} showInstallType={false} />
         </div>
       </div>
     </section>

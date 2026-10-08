@@ -1,7 +1,9 @@
 # The photo manager
 
-Nat's private page for adding, editing, reordering and removing the photos in
-the website's gallery, without anyone editing code.
+Nat's private page for managing every photo on the Crowned by Nat website:
+adding, replacing, editing, hiding, reordering and removing them, and
+choosing which photo fills each spot on the site (the homepage slideshow,
+the collection covers, the install pages), without anyone editing code.
 
 | | |
 | --- | --- |
@@ -13,14 +15,13 @@ the website's gallery, without anyone editing code.
 Neither page is linked from the public site. Bookmark them. (The same paths
 also work on the Cloudflare Pages address, `https://wig-install-site.pages.dev`.)
 
-> **Status (2026-10-08):** the code is finished and deployed. A Supabase
-> project now exists with email sign-in and custom SMTP switched on, but the
-> live site was built without its two environment variables (checked on
-> 2026-10-08: the JavaScript served by crownedbynat.com contains no Supabase
-> address), so both pages still say *"The photo manager is not connected
-> yet."* Whether the migrations, URL configuration and email templates are in
-> place cannot be seen from this repository; work through
-> [One-time setup](#one-time-setup-for-the-developer) and skip what is done.
+> **Status (2026-10-08):** the live site is connected to Supabase (its
+> JavaScript carries the project address) and the owner sign-in works. The
+> photos the site launched with become manageable once
+> `supabase/migrations/0007_website_photos.sql` has been run in the Supabase
+> project; until then the photo manager shows only uploads and the website
+> keeps using the launch photos exactly as before. See
+> [One-time setup](#one-time-setup-for-the-developer), step 1.
 
 ---
 
@@ -37,57 +38,107 @@ also work on the Cloudflare Pages address, `https://wig-install-site.pages.dev`.
 The code works once and expires after an hour. You stay signed in on that
 device until you tap **Log out**.
 
-The very first time, the email says *"Confirm your email"* instead. Type its
-code the same way. You will then see *"Owner access is not switched on yet"*;
-that is expected. Your developer runs one setup step, and from then on you go
-straight to the photo manager.
+### What is on the page
+
+**Website photos** lists every photo on the website, in the order every
+gallery shows them: the photos the site launched with and everything you have
+added since. They all work the same way. Each one says which collections it
+is in, its install type if it has one, everywhere else it appears ("Also on:
+Homepage slideshow, slide 2 · Sleek Straight cover"), and whether it is
+showing or hidden.
+
+**Where photos appear** lists each fixed spot on the website and the photo in
+it now: the six homepage slides, each collection's cover and second photo,
+the three install pages, the finish swatches, the booking page and the
+sign-in page.
 
 ### Adding photos
 
-1. Tap **Choose photos** and pick up to 12 from your phone or computer.
-   Big photos are resized for the web automatically. Tall (portrait) photos
-   fit the gallery best.
+1. Tap **Add photos** and pick up to 12 from your phone or computer. Big
+   photos are resized for the web automatically. Tall (portrait) photos fit
+   the gallery best.
 2. For each photo, write a short **description** of the hair, for visitors
    who use a screen reader. For example: *"A long body-wave install with a
    side part and laid edges."* A **title** is optional; it shows over the
    photo in the gallery.
-3. Choose the **collections** it belongs to (the gallery pages: Deep Wave
-   Glam, Sleek Straight, and so on). At least one.
+3. Choose the **collections** it belongs to (Deep Wave Glam, Sleek Straight,
+   and so on). At least one.
 4. If you are sure which install it is, choose the **install type** (Frontal
-   Install, Closure Install or Reinstalls). The photo then also appears on that
-   install's page. Leave it on *Not specified* if you are not sure.
-5. Leave **Show on the website** ticked to publish now, or untick it to keep
+   Install, Closure Install or Reinstalls). The photo can then also appear on
+   that install's page, which shows up to six, earliest in your order first.
+   Leave it on *Not specified* if you are not sure.
+5. Choose **where they go in each gallery**: after the photos already there
+   (the usual choice) or first in line.
+6. Leave **Show on the website** ticked to publish now, or untick it to keep
    the photos hidden until you are ready.
-6. Tap **Upload**. Keep the page open until it says the photos are uploaded.
+7. Tap **Upload**. Keep the page open until it says the photos are uploaded.
 
-New photos appear on the website straight away, after the photos already in
-each gallery.
+### Replacing a photo
+
+Use this to swap a picture for a better one, while everything else about it
+stays: its collections, tags, place in the order, and every spot it fills.
+
+1. Tap **Replace** under the photo. The window lists everywhere it appears,
+   so you know where the new picture will show.
+2. Tap **Choose the new photo**. It appears beside the current one, under
+   **New**, so you can compare them.
+3. The title and description are kept from the current photo. Change the
+   description if it no longer fits the new picture.
+4. Tap **Replace photo**.
+
+Nothing changes until the new photo has uploaded and loads from the website.
+If anything goes wrong on the way, the current photo stays exactly as it was.
 
 ### Editing, hiding and reordering
 
-Under **Your photos**, every upload is listed in the order the gallery shows
-them.
-
-- **Edit** changes the title, description, collections, install type, or
-  whether it is shown. Untick *Show on the website* to hide a photo without
-  deleting it.
-- The **up and down arrows** move a photo earlier or later. The new order is
-  saved immediately.
+- **Edit** changes the title, description, collections, install type, lace
+  details (Melted Hairline, HD Lace, Custom Hairline, shown when someone looks
+  closer in the gallery), whether it is in **Recent work** on the homepage,
+  and whether it is shown.
+- **Hide** takes a photo off the website without deleting it. **Show** puts it
+  back. Both save straight away.
+- The **up and down arrows** move a photo earlier or later in every gallery.
+  The new order is saved immediately.
 
 ### Removing a photo
 
-Tap **Remove** under the photo. The site asks *"Remove this photo?"*; tap
-**Remove Photo** to confirm, or **Cancel** to keep it. Removing deletes the
-photo from the website and from storage. It cannot be undone, so hide it
-instead if you might want it back.
+Tap **Remove** under the photo. The site asks *"Remove this photo?"* and, if
+the photo also fills spots on the site, says what will show there instead
+(for example *"Homepage slideshow, slide 3: shows Blunt Bob instead"*). Tap
+**Remove Photo** to confirm, **Hide instead** to keep it but take it off the
+website, or **Cancel**. Removing cannot be undone.
 
-### The photos built into the website
+### Choosing the photo for a spot
 
-The 17 photos the site launched with are part of its design: some are also
-the homepage slideshow, the install pages' main photos and the picture shown
-when the site is shared. They are listed at the bottom of the photo manager
-for reference, but they are changed by your developer rather than from there.
-Your uploads appear after them in each gallery.
+Under **Where photos appear**, tap **Change** beside a spot, pick a photo and
+tap **Use this photo**. Only photos showing on the website are offered; a
+collection's cover can only be a photo in that collection. A finish swatch
+can also be set to *No photo*, which shows a plain swatch.
+
+You cannot break the site from here. If the photo you chose for a spot is
+later hidden or removed, the spot shows another one by itself, and the list
+says so in rose-coloured text ("Your choice is hidden or removed, so this one
+stands in"). Which photo stands in:
+
+| Spot | Stands in |
+| --- | --- |
+| Collection cover | The first photo in the collection |
+| Collection second photo | The next photo in it; none if it only has one (the card simply does not fade) |
+| Homepage slide | The first photo in that slide's collection that no other slide is showing; the slide is left out if there is none |
+| Install page | The first photo with that install type; otherwise the page shows its words without a photo |
+| Finish swatch | Nothing: a plain swatch |
+| Booking page | The first Frontal Install photo |
+| Sign-in page | The first photo |
+| Link previews | Whatever the first homepage slide shows |
+
+### When changes show
+
+Straight away, for everyone visiting: every page checks for your latest photos
+as it opens. The copy of the site that search engines read and that link
+previews (iMessage, Instagram, Facebook) use is refreshed when the site is
+next rebuilt: within a few minutes of your last change once your developer has
+switched on automatic rebuilds (setup step 7), otherwise at the next update of
+the site. Link previews are also cached by each app, sometimes for days.
 
 ---
 
@@ -97,29 +148,58 @@ Your uploads appear after them in each gallery.
 
 | What | Where |
 | --- | --- |
-| The image files | Supabase Storage, bucket **`website-photos`**, folder `gallery/`. Each photo is three WebP (or JPEG) files: `<id>.webp` (1200px wide), `<id>-600.webp` and `<id>-1600.webp`. |
-| Title, description, install type, shown/hidden, order | Table **`gallery_items`** |
-| Which collections a photo is in | Table **`gallery_item_categories`**, joined to **`gallery_categories`** (the six collections, seeded in migration 0002) |
+| Photos you add, and every replacement | Supabase Storage, bucket **`website-photos`**, folder `gallery/`. Each photo is three files: `<id>.webp` (1200px wide), `<id>-600.webp` and `<id>-1600.webp`. |
+| The photos the site launched with | Still the files in `public/images/work/`, served by Cloudflare. Migration 0007 made each one a row pointing at its file, so nothing moved and nothing a visitor sees changed. A launch photo moves to Storage the moment it is replaced. |
+| Title, description, install type, lace details, Recent work, crop, shown/hidden, order | Table **`gallery_items`** (columns added in 0006 and 0007) |
+| Which collections a photo is in | Table **`gallery_item_categories`**, joined to **`gallery_categories`** (the six collections, seeded in 0002) |
+| Each collection's cover and second photo | **`gallery_categories.hero_item_id`** and **`hover_item_id`** (0002) |
+| Which photo fills each other spot | Table **`site_photo_slots`** (0007): `home-1`..`home-6`, `install-frontal`, `install-closure`, `install-wig-touch-up`, `finish-curls`, `finish-wand-curls`, `finish-crimps`, `book`, `sign-in` |
 
 The browser resizes every photo before uploading it (largest side 1600px),
 turns it upright, and saves it as WebP. That also strips the phone's location
 and camera details from the file. Files are named with a random id and cached
-for a year.
+for a year. Uploads are refused if they are not a photo, are over 30 MB, or
+are under 600 pixels across.
 
 ### How the public site shows them
 
-The site is still a static export on Cloudflare Pages. The built-in photos are
-in the HTML exactly as before, so nothing about the existing pages changed.
-After a gallery page loads, the browser asks Supabase for published uploads
-and adds them after the built-in photos: on each collection page, on the
-install pages (by install type), and in the "N looks" counts. If Supabase is
-not configured or does not answer, visitors simply see the built-in photos.
+The site is still a static export on Cloudflare Pages, and the database is
+the source of truth for every photo on it:
 
-Removing a photo deletes its database row first (so it leaves the website
-immediately) and then its three files. If the files cannot be deleted at that
-moment, the photo manager removes any file that no photo points to the next
-time it opens (files under a day old are left alone, in case an upload is
-still running somewhere).
+1. **At each deployment** the build reads the published photos from Supabase
+   (`lib/site-photos-server.ts`) and writes them into the HTML, including the
+   link-preview pictures. It asks Supabase directly, not through Next's
+   fetch cache, so every build sees the database as it is then.
+2. **In the browser**, each page with photos asks Supabase once for the
+   current set (`components/site-photos.tsx`) and redraws only if something
+   changed since the deployment.
+3. **`lib/gallery.ts`** turns the set into what each part of the site shows
+   (collections, slideshow, install pages, finish swatches, the booking and
+   sign-in pages, Recent work), including the stand-ins above. The build and
+   the browser use the same function, and so does the photo manager when it
+   lists where a photo appears.
+
+If Supabase is not configured (a clean clone, a preview without the
+variables) or does not have 0007 yet, the build uses the launch photos in
+`lib/collections.ts`, which are exactly what 0007 seeds. If Supabase is
+configured but does not answer, **the build fails** rather than publish an
+out-of-date set (which could bring back a photo Nat removed); Cloudflare keeps
+the previous deployment live. Retry the deployment once Supabase answers.
+
+### When files are deleted
+
+Replacing or removing a photo switches the website over straight away, but
+its old Storage files are only deleted once nothing can still show them. The
+deployed pages were written at the last deployment and may still point at
+them; deleting them early would leave a broken image in that saved copy. So:
+
+- files the current deployment never used (a photo added and removed since
+  the last rebuild) are deleted at once;
+- the rest are deleted the next time the photo manager opens after a
+  deployment that no longer uses them, provided they are over a day old.
+
+Launch photos have no Storage files. Their files stay in
+`public/images/work/` (see Developer-only operations).
 
 ### Who can do what
 
@@ -129,18 +209,23 @@ accept from them.
 
 | | Public visitor | Any other signed-in account | Nat |
 | --- | --- | --- | --- |
-| See published photos | yes | yes | yes |
+| See published photos, and the spots they fill | yes | yes | yes |
 | See hidden photos | no | no | yes |
 | List the storage bucket | no | no | yes |
-| Upload, change or delete photos and files | **no** | **no** | yes |
+| Upload, replace, edit, reorder, hide or delete photos | **no** | **no** | yes |
+| Choose the photo for a spot | **no** | **no** | yes |
+| Start a rebuild of the site | **no** | **no** | only by changing photos (with 0008) |
 
-- Every write is checked by **row level security** on `gallery_items` and
-  `gallery_item_categories`, and by **Storage policies** on the
-  `website-photos` bucket. Both call `public.is_admin()`, the same check the
-  booking dashboard already used: it reads `profiles.role = 'admin'` in the
-  database, and (since migration 0006) also requires the sign-in that the
-  request comes from to still exist. Logging out therefore ends admin access
-  immediately, not when the token expires.
+- Every write is checked by **row level security** on `gallery_items`,
+  `gallery_item_categories`, `gallery_categories` and `site_photo_slots`, and
+  by **Storage policies** on the `website-photos` bucket. All of them call
+  `public.is_admin()`: it reads `profiles.role = 'admin'` in the database and
+  requires the sign-in the request comes from to still exist, so logging out
+  ends admin access immediately. Verified against a local Supabase on
+  2026-10-08 for the public, a signed-in customer, the owner, and the owner's
+  token after logging out.
+- The database itself refuses malformed values (a crop that is not a
+  position, an unknown spot or collection), whatever sends them.
 - The owner email appears in the browser code only to stop the sign-in page
   emailing codes to strangers. It grants nothing.
 - Nobody becomes an admin by signing up. The role is granted once, by hand,
@@ -148,42 +233,55 @@ accept from them.
   website.
 - The browser only ever has the project URL and the **anon/publishable** key,
   which are designed to be public. The **service role / secret key** is not
-  used anywhere and must never be added to this project or to Cloudflare.
-- Uploads are limited by the bucket itself to WebP/JPEG, 5 MB, inside
-  `gallery/`.
+  used anywhere and must never be added to this project or to Cloudflare. The
+  same goes for the database password, the SMTP password and any Resend key:
+  they live in the Supabase dashboard only.
 
 ---
 
 ## One-time setup (for the developer)
 
-Do these in order. Steps 1 to 3 are shared with the booking system; skip any
-already done (see `supabase/README.md` for those in more detail).
+Steps 2 to 6 were done for crownedbynat.com on 2026-10-08. Step 1 (0007) and
+step 7 are what is left. Skip anything already done; `supabase/README.md` has
+the shared steps in more detail.
 
 ### 1. Apply the migrations
 
-Before the environment variables, so the site never asks for tables that do
-not exist yet (the stripe above the nav would lose its town names until they
-did).
-
-Supabase dashboard → **SQL Editor**. First find out what is already there; this
-only reads:
+Supabase dashboard → **SQL Editor**. First find out what is already there;
+this only reads:
 
 ```sql
 select
   to_regclass('public.appointments')  is not null                  as "0001",
   to_regclass('public.gallery_items') is not null                  as "0002",
-  to_regprocedure('public.promote_studio_owner(text)') is not null as "0006";
+  to_regprocedure('public.promote_studio_owner(text)') is not null as "0006",
+  to_regclass('public.site_photo_slots') is not null               as "0007",
+  to_regprocedure('private.request_site_rebuild()') is not null    as "0008";
 ```
 
 - All `false`: a fresh project. Run every file in `supabase/migrations/`, in
-  order, `0001` through `0006`, each in its own query.
+  order, `0001` through `0007` (and `0008` for step 7), each in its own query.
 - Anything `true`: some were run before. Do **not** run them all again; see
   "Which migrations to run" in `supabase/README.md` §2, which shows how to
   tell 0003-0005 apart and why re-running an older file over a newer one
   does damage.
 
-0006 is the photo manager: the storage bucket, its policies, the extra photo
-columns and the owner functions. 0006 on its own is safe to run again.
+**0007** turns the site's own photos into rows the photo manager can manage
+and records which photo fills each spot. It seeds them once, ever: running it
+again never brings back a photo Nat has removed, and any photos uploaded
+before it keep their order, after the launch photos. It does not move any
+files and changes nothing a visitor sees. After running it, **redeploy** the
+site (Cloudflare → Deployments → Retry deployment) so the pages are built from
+the database. Check it took:
+
+```sql
+select count(*) from public.gallery_items where src like '/images/work/%';  -- 18
+select count(*) from public.site_photo_slots;                               -- 13
+```
+
+The deployed site checks for 0007 each time it is built: until it is there,
+the build log says *"Supabase does not have migration 0007 yet"* and the site
+is built from the launch photos, exactly as before.
 
 ### 2. Environment variables
 
@@ -199,16 +297,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<the anon / publishable key>
 
 Both values are in the project's **Connect** panel and under **Project
 Settings**. The legacy anon key and the newer `sb_publishable_...` key both
-work (both were tested against a local Supabase on 2026-10-08).
-No other variable is needed. They are listed, without values, in
+work. No other variable is needed. They are listed, without values, in
 `.env.example`. Never add the service role or `sb_secret_...` key.
 
-Connecting the project does not change the public pages: the gallery adds
-Nat's uploads after the built-in photos; the location stripe and the /book
-prices start reading the `locations` and `services` tables, which after 0005
-hold the same towns and prices the site shows today; and the nav and footer
-still leave out customer "Log in" links (`customerAccountsLinked` in
-`lib/supabase/client.ts`).
+The build also reads the published photos with these two values, so with them
+set, every Cloudflare build needs Supabase to answer (see *How the public site
+shows them*).
 
 ### 3. Authentication settings
 
@@ -231,41 +325,22 @@ still leave out customer "Log in" links (`customerAccountsLinked` in
   (and `http://localhost:3000/**` for local work), or the three exact URLs
   per address if you prefer exact entries, e.g.
   `https://crownedbynat.com/admin/login/`. The trailing slash is part of each
-  path. `www.crownedbynat.com` did not resolve on 2026-10-08, so it needs no
-  entry unless it is set up later.
-
-  Nat's 6-digit code does not depend on this list at all; only the link in
-  the email does. A link to an address missing from the list is sent to the
-  Site URL instead.
+  path.
 
 **Authentication → Emails → Templates**: Nat needs the *code* in her emails.
-Supabase's default templates only contain a link, which on a phone often opens
-in a different browser and fails. Replace two templates:
+Replace two templates:
 
 | Template | Subject | Body |
 | --- | --- | --- |
 | Magic Link | `Your Crowned by Nat sign-in code` | `supabase/templates/magic-link.html` |
 | Confirm signup | `Confirm your email for Crowned by Nat` | `supabase/templates/confirmation.html` |
 
-Both include `{{ .Token }}` (the code) and keep the confirmation link, so
-customer sign-ups keep working.
-
 ### 4. Email delivery
 
-**Required.** Supabase's built-in email service only delivers to members of
-the Supabase organization's team; anything else fails with *"Email address not
-authorized"*, and it is limited to a handful of emails per hour. Do one of:
-
-- **Recommended:** connect a real email provider under **Authentication →
-  Emails → SMTP Settings** (Resend, Postmark, SendGrid, Amazon SES, ...). This
-  is also needed for customer sign-up and password-reset emails.
-- **Stop-gap:** invite `crownedbynattt@gmail.com` to the Supabase
-  organization (**Organization settings → Team**) so the built-in service will
-  email her.
-
-Custom SMTP was set up for this project on 2026-10-08. Its password or API
-key lives only in the Supabase dashboard; it never goes in this repository,
-in `.env*` files, or in Cloudflare.
+Supabase's built-in email service only delivers to members of the Supabase
+organization's team. Custom SMTP was set up for this project on 2026-10-08.
+Its password or API key lives only in the Supabase dashboard; it never goes in
+this repository, in `.env*` files, or in Cloudflare.
 
 ### 5. Nat signs in once
 
@@ -281,17 +356,10 @@ In the **SQL Editor**:
 select public.promote_studio_owner('crownedbynattt@gmail.com');
 ```
 
-It answers *"crownedbynattt@gmail.com is now the studio owner..."*. It refuses
-an address that does not exist yet or has not been confirmed (step 5). It also:
-
-- replaces any password on the account with a random one nobody knows, so the
-  owner account can only be entered with an emailed code. (This closes a known
-  gap: someone could have registered Nat's address with their own password
-  before she first signed in.)
-- ends every existing sign-in on the account, so admin rights only ever
-  belong to a sign-in made afterwards.
-
-Nat then signs in again at `/admin/login/` and lands in the photo manager.
+It refuses an address that does not exist yet or has not been confirmed
+(step 5). It also replaces any password on the account with a random one, so
+the owner account can only be entered with an emailed code, and ends every
+existing sign-in. Nat then signs in again and lands in the photo manager.
 
 Check it took (exactly one row):
 
@@ -302,25 +370,109 @@ select email, role from public.profiles where role = 'admin';
 To remove owner access later:
 `update public.profiles set role = 'customer' where email = 'crownedbynattt@gmail.com';`
 
-### 7. Check it end to end
+### 7. Automatic rebuilds (recommended)
+
+So that search results, link previews and the first moment of each page catch
+up with Nat's changes by themselves, and old photo files are cleaned up soon
+after, without anyone redeploying:
+
+1. **Cloudflare** → Workers & Pages → `wig-install-site` → Settings →
+   Builds → **Deploy hooks** → Add deploy hook. Name *Photo manager*, branch
+   `main`. Copy the URL.
+2. **Supabase SQL Editor**: run
+   `supabase/migrations/0008_rebuild_site_on_photo_change.sql`, then store the
+   URL in Vault (paste it in place of the example):
+
+   ```sql
+   select vault.create_secret(
+     'https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/...',
+     'cloudflare_pages_deploy_hook',
+     'Rebuilds crownedbynat.com after a photo change (migration 0008)'
+   );
+   ```
+
+From then on, two minutes after Nat's last change the database asks
+Cloudflare to rebuild the site, once per editing session. Only real changes by
+the owner count: a refused request from anyone else changes no rows and starts
+nothing. The URL lives only in Vault; never put it in the repository, the
+site, or Cloudflare's environment variables. To switch it off:
+`delete from vault.secrets where name = 'cloudflare_pages_deploy_hook';`
+
+Check it after a change (a minute or two later):
+
+```sql
+select changed_at, requested_at from private.site_rebuild;
+select status_code, created from net._http_response order by created desc limit 3;
+```
+
+### 8. Check it end to end
 
 | # | Do this | Expect |
 | --- | --- | --- |
 | 1 | Open `/admin/photos/` in a private window | Sent to `/admin/login/` |
-| 2 | Sign in as Nat | The photo manager, with the owner email in the header |
-| 3 | Upload a photo into *Body Wave* | "uploaded and showing on the website now" |
-| 4 | Open `/gallery/body-wave-glam/` in a private window | The photo is last in the grid; the count went up by one |
-| 5 | Edit it, untick *Show on the website* | Gone from the public gallery |
-| 6 | Remove it | Confirmation first; then gone, and its files gone from Storage → `website-photos` |
-| 7 | Sign in as a customer at `/login/`, open `/admin/photos/` | *"This page is not available on your account."* |
-| 8 | Tap **Log out** | Back at the sign-in page |
+| 2 | Sign in as Nat | **Website photos** with all 18 launch photos, then **Where photos appear** |
+| 3 | **Replace** *Side Swoop* with any portrait photo | "Replaced. The website shows the new photo now" |
+| 4 | Open `/installs/frontal/` in a private window | The new photo at the top; Sleek Straight's gallery has it second |
+| 5 | **Hide** *Glass Finish* | Gone from the homepage slideshow and the sign-in page; another photo stands in |
+| 6 | **Show** it again, then **Add photos** into *Body Wave* | "uploaded and showing on the website now"; last in `/gallery/body-wave-glam/` |
+| 7 | **Change** the Wand Curls swatch to that photo | It appears beside Wand Curls on `/installs/frontal/` |
+| 8 | **Remove** it | Confirmation first, saying the swatch goes plain; then gone |
+| 9 | Sign in as a customer at `/login/`, open `/admin/photos/` | *"This page is not available on your account."* |
+| 10 | Tap **Log out** | Back at the sign-in page |
+
+All of these, and the security checks above, were run against a local
+Supabase stack and a local build of the site on 2026-10-08 (110 checks), plus
+10 for migration 0008.
+
+---
+
+## Developer-only operations
+
+Nothing in day-to-day photo management needs a developer. What still does:
+
+- **Running migrations** 0007 and (optionally) 0008, and the deploy hook
+  (setup steps 1 and 7).
+- **Erasing a launch photo's file.** Removing one of the 18 launch photos
+  takes it off every page, but its original file stays in
+  `public/images/work/` and is still reachable at its old address
+  (`/images/work/<name>.jpg`) until it is deleted from the repository. If a
+  client asks for a launch photo to be gone entirely, delete its three files
+  there and push. (Uploads and replacements live in Storage and are deleted
+  by the photo manager.)
+- **The words around photos**: each homepage slide's headline and sentence
+  (`HERO_SLIDES` in `lib/images.ts`), each install page's caption under its
+  launch photo (`imageCaption` in `lib/taxonomy.ts`), and the collections
+  themselves (`COLLECTIONS` in `lib/collections.ts`). Nat chooses the photos;
+  the copy is still code. A caption written about a launch photo is hidden
+  automatically once a different photo is in that spot.
+- **Changing the crop of a photo.** The 18 launch photos keep their hand-
+  measured crops; uploads and replacements use a crop that keeps the top of a
+  portrait (the hairline). A different crop is a `focal_position` value set
+  in the SQL editor, e.g. `update public.gallery_items set focal_position =
+  'center 60%' where title = '...';`.
+- **Rolling back to an older deployment** in Cloudflare can bring back pages
+  that point at Storage files the photo manager has since deleted. Redeploy
+  the latest instead.
 
 ---
 
 ## Troubleshooting
 
 **"The photo manager is not connected yet."** The two environment variables
-are missing, or Cloudflare has not rebuilt since they were added (step 1).
+are missing, or Cloudflare has not rebuilt since they were added (step 2).
+
+**The photo manager shows only uploads, not the launch photos.** Migration
+0007 has not been run (step 1).
+
+**A Cloudflare build fails with "Could not reach Supabase to read the
+website's photographs" or "Supabase refused the website photographs".** The
+build could not read the photos, so it stopped rather than publish an old
+set; the previous deployment is still live. Check the Supabase project is up
+(free projects pause after a week without use), then retry the deployment.
+
+**A change shows on the site but not in a link preview or search result.**
+Those use the copy written at the last deployment: it catches up at the next
+rebuild (automatic with step 7). Apps also cache previews themselves.
 
 **"Supabase is not allowed to email this address yet."** Step 4.
 
@@ -335,8 +487,12 @@ her earlier sign-ins. Sign in again.
 **"Too many codes have been sent just now."** Supabase limits how often codes
 are sent. Wait a few minutes, or use the code from the last email.
 
-**A photo shows in the manager but not on the site.** It is hidden (edit it
-and tick *Show on the website*), or it is not in the collection being viewed.
+**A photo shows in the manager but not on the site.** It is hidden (tap
+**Show**), or it is not in the collection being viewed.
+
+**"This photo was changed somewhere else in the meantime."** The photo was
+replaced or edited in another tab or on another device. Reload the page and
+try again.
 
 **"This photo could not be opened in this browser."** Usually a HEIC file on a
 computer that cannot read HEIC. Upload from the phone, or save it as JPEG.

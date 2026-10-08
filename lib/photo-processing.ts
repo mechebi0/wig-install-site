@@ -10,8 +10,9 @@
  * only transforms images on its paid plan. So the phone does it, before
  * upload: a 4032px, 6 MB camera original becomes 1600, 1200 and 600px wide
  * copies of a few hundred kilobytes each, matching the three widths every
- * built-in photograph ships at (see `Photo` in lib/collections.ts). Visitors
- * on a phone then download the 600px file, not the original.
+ * launch photograph ships at (see `Photo` in lib/collections.ts). Visitors
+ * on a phone then download the 600px file, not the original. The same goes
+ * for a replacement, which is prepared exactly like an upload.
  *
  * Two side effects, both wanted:
  *   - a phone's sideways-stored portrait comes out upright, because the

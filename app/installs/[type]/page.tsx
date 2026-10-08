@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { InstallPage } from "@/components/install-page";
 import { SERVICE_AREA, STUDIO } from "@/lib/content";
+import { resolveSite } from "@/lib/gallery";
+import { loadPhotoSet } from "@/lib/site-photos-server";
 import {
   INSTALL_TYPES,
   getInstallType,
@@ -42,6 +44,11 @@ export async function generateMetadata({
   /* The brand and the town are added here from lib/content.ts rather than
      typed into lib/taxonomy.ts, so a change of either is still one edit. */
   const description = `${type.label} by ${STUDIO.name}, in ${SERVICE_AREA}. ${type.metaDescription}`;
+  /* The page's own photograph as this deployment was built with it; the
+     site's share picture if the page has none (this openGraph replaces the
+     layout's, so leaving it out would share no picture at all). */
+  const view = resolveSite(await loadPhotoSet());
+  const image = view.installs[id]?.item ?? view.share;
 
   return {
     // The root template appends "| Crowned by Nat".
@@ -50,7 +57,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${type.label} | ${STUDIO.name}`,
       description,
-      images: [{ url: type.image.large, alt: type.image.alt }],
+      ...(image ? { images: [{ url: image.image.large, alt: image.alt }] } : {}),
       type: "website",
     },
   };

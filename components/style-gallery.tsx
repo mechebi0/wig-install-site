@@ -1,17 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { ArrowsOut } from "@phosphor-icons/react/dist/ssr";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
+import { useSiteView } from "@/components/site-photos";
 import { FINISH_LABELS } from "@/lib/collections";
+import { findResolved, type GalleryItem } from "@/lib/gallery";
 import { getInstallType } from "@/lib/taxonomy";
-import {
-  useUploadedPhotos,
-  type GalleryCell,
-  type UploadedFilter,
-} from "@/lib/uploaded-photos";
 
 /**
  * The gallery on a collection page. One component, all six collections.
@@ -44,15 +41,14 @@ import {
  * only: the accessible name never depends on it.
  *
  * ---------------------------------------------------------------------------
- * NAT'S UPLOADS
+ * WHAT IS IN IT
  * ---------------------------------------------------------------------------
- * `uploads` names what to add from the photo manager: one collection's
- * photographs, or one install type's. They are appended after `items` once
- * they arrive, never before, so nothing already painted moves. See
- * lib/uploaded-photos.ts.
+ * Whatever it is given: the caller reads the photographs from the site's
+ * published set (CollectionGallery below, or the install page's examples).
+ * Nat's photo manager decides which those are and in what order.
  */
 export function StyleGallery({
-  items: builtIn,
+  items,
   /** Names the lightbox. "Deep Wave Glam gallery". */
   label,
   /**
@@ -61,20 +57,15 @@ export function StyleGallery({
    * only repeat the page's own title.
    */
   showInstallType = true,
-  uploads,
 }: {
-  items: GalleryCell[];
+  items: GalleryItem[];
   label: string;
   showInstallType?: boolean;
-  uploads?: UploadedFilter;
 }) {
-  const uploaded = useUploadedPhotos(uploads);
-  const items = useMemo(
-    () => (uploaded.length > 0 ? [...builtIn, ...uploaded] : builtIn),
-    [builtIn, uploaded],
-  );
-  const [open, setOpen] = useState<number | null>(null);
+  const [selected, setOpen] = useState<number | null>(null);
   const photos = items.map((item) => item.image);
+  // A photograph Nat hides while the lightbox is open can shorten the list.
+  const open = selected !== null && selected < photos.length ? selected : null;
 
   const step = useCallback(
     (delta: number) => {
@@ -92,7 +83,7 @@ export function StyleGallery({
         {items.map((item, index) => (
           <Reveal
             as="li"
-            key={item.id}
+            key={item.image.src}
             index={index % 3}
             className={index % 3 === 1 ? "lg:mt-12" : undefined}
           >
@@ -191,4 +182,10 @@ export function StyleGallery({
       />
     </>
   );
+}
+
+/** One collection's published photographs, in Nat's order. */
+export function CollectionGallery({ slug, label }: { slug: string; label: string }) {
+  const items = findResolved(useSiteView(), slug)?.items ?? [];
+  return <StyleGallery items={items} label={label} />;
 }

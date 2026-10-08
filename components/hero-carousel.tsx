@@ -9,8 +9,9 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { Photograph } from "@/components/photo";
+import { useSiteView } from "@/components/site-photos";
 import { bookingTarget, CTA, HERO } from "@/lib/content";
-import { heroFocal, HERO_SLIDES } from "@/lib/images";
+import { HERO_SLIDES } from "@/lib/images";
 
 /**
  * The homepage hero: a full-width carousel that crossfades slowly through six
@@ -61,9 +62,9 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * ---------------------------------------------------------------------------
  * THE COPY CHANGES WITH THE SLIDE, AND IS DRIVEN BY THE SAME INDEX
  * ---------------------------------------------------------------------------
- * Each entry in HERO_SLIDES carries its own label, headline and sentence
- * beside its photograph, and the block that renders them reads them off
- * `active` - which is just HERO_SLIDES[index]. One piece of state, one timer,
+ * Each slide carries its own label, headline and sentence beside its
+ * photograph, and the block that renders them reads them off `active` -
+ * which is just slides[index]. One piece of state, one timer,
  * one render. There is no separate schedule for the words, so there is no way
  * for slide two's headline to end up over slide three's photograph.
  *
@@ -143,6 +144,17 @@ import { heroFocal, HERO_SLIDES } from "@/lib/images";
  * dot is a trap even with a play button present, because nothing tells the
  * visitor that the dot they pressed is what turned autoplay off. Anyone who
  * wants a frame held has the pause button, which says so.
+ *
+ * ---------------------------------------------------------------------------
+ * THE PHOTOGRAPHS ARE NAT'S TO CHANGE
+ * ---------------------------------------------------------------------------
+ * Each slide's words are in lib/images.ts; its photograph is whichever one
+ * Nat put in that place in the photo manager (resolveSite in lib/gallery.ts).
+ * A slide whose photograph she hides shows another from its collection, or
+ * drops out, so the count can be under six, and can change once the page has
+ * loaded if she changed something since the last deployment. Nothing here
+ * assumes six. With no photographs at all the hero keeps its words and drops
+ * the picture.
  */
 
 /*
@@ -173,12 +185,18 @@ const HOVER_RECHECK_MS = 400;
 const HERO_SIZES = "(min-width: 1024px) 60vw, 100vw";
 
 export function HeroCarousel() {
-  const count = HERO_SLIDES.length;
+  const { slides } = useSiteView();
+  // At least one, so the arithmetic below never divides by zero; an empty
+  // slideshow is handled where the photographs are drawn.
+  const count = Math.max(1, slides.length);
   const sectionRef = useRef<HTMLElement>(null);
   /** The copy column. Hover is scoped to this, not to the whole hero. */
   const copyRef = useRef<HTMLDivElement>(null);
 
-  const [index, setIndex] = useState(0);
+  const [selected, setIndex] = useState(0);
+  /* Clamped rather than reset, so a slideshow that gets shorter after the
+     page loads keeps its place wherever it still can. */
+  const index = Math.min(selected, count - 1);
   /** The explicit toggle. Sticky until pressed again. */
   const [paused, setPaused] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
@@ -342,8 +360,9 @@ export function HeroCarousel() {
     goTo(dx < 0 ? index + 1 : index - 1);
   };
 
-  const active = HERO_SLIDES[index];
-  const lead = HERO_SLIDES[0];
+  /* With no photographs at all the words still come from the first slide. */
+  const active = slides[index] ?? HERO_SLIDES[0];
+  const lead = slides[0];
 
   return (
     <section
@@ -378,14 +397,16 @@ export function HeroCarousel() {
         rather than a bare href, or the browser preloads one width and the
         <img> then asks for another.
       */}
-      <link
-        rel="preload"
-        as="image"
-        href={lead.photo.src}
-        imageSrcSet={`${lead.photo.small} 600w, ${lead.photo.src} 1200w, ${lead.photo.large} 1600w`}
-        imageSizes={HERO_SIZES}
-        fetchPriority="high"
-      />
+      {lead ? (
+        <link
+          rel="preload"
+          as="image"
+          href={lead.item.image.src}
+          imageSrcSet={`${lead.item.image.small} 600w, ${lead.item.image.src} 1200w, ${lead.item.image.large} 1600w`}
+          imageSizes={HERO_SIZES}
+          fetchPriority="high"
+        />
+      ) : null}
 
       {/*
         The photography. An in-flow band below lg, an absolutely positioned
@@ -400,8 +421,9 @@ export function HeroCarousel() {
         range the desktop panel sits in. `max-h` caps it on a tall device so
         the copy underneath is never pushed a whole screen down.
       */}
+      {slides.length > 0 ? (
       <div className="relative aspect-[4/5] max-h-[62svh] min-h-[300px] w-full shrink-0 sm:aspect-[4/3] lg:absolute lg:inset-0 lg:aspect-auto lg:max-h-none lg:min-h-0 lg:w-auto lg:flex-none">
-        {HERO_SLIDES.map((slide, i) => {
+        {slides.map((slide, i) => {
           const isActive = i === index;
           const adjacent =
             i === (index + 1) % count || i === (index - 1 + count) % count;
@@ -430,7 +452,7 @@ export function HeroCarousel() {
                   {/* Backdrop. Desktop only, and never announced: it is the same
                     picture as the one beside it. */}
                   <Photograph
-                    photo={slide.photo}
+                    photo={slide.item.image}
                     sizes="60vw"
                     decorative
                     className="absolute inset-0 hidden h-full w-full scale-110 object-cover blur-2xl brightness-[0.55] saturate-[1.6] lg:block"
@@ -440,7 +462,7 @@ export function HeroCarousel() {
                     centre from lg, where `h-full w-auto` keeps its native 3:4
                     and the frame reveals more or less blur beside it. */}
                   <Photograph
-                    photo={slide.photo}
+                    photo={slide.item.image}
                     sizes={HERO_SIZES}
                     priority={i === 0}
                     className="hero-focal absolute inset-0 h-full w-full object-cover lg:left-auto lg:right-0 lg:w-[60%]"
@@ -449,6 +471,7 @@ export function HeroCarousel() {
                         /*
                         Per-slide, and measured off the file rather than
                         guessed: see the note on HeroFocal in lib/images.ts.
+                        A photograph Nat put in the slide brings its own.
 
                         Handed to CSS as a custom property read by
                         `.hero-focal` in app/globals.css, rather than set from
@@ -457,7 +480,7 @@ export function HeroCarousel() {
                         a variable, and a variable is correct on the very first
                         paint where a measured breakpoint is not.
                       */
-                        "--hero-focal": heroFocal(slide),
+                        "--hero-focal": slide.focal,
                         ...(reduced
                           ? null
                           : {
@@ -485,6 +508,7 @@ export function HeroCarousel() {
           className="hero-veil pointer-events-none absolute inset-0 z-[1]"
         />
       </div>
+      ) : null}
 
       {/*
         Copy and controls, layer 2, in ONE column.
@@ -524,7 +548,7 @@ export function HeroCarousel() {
             The words, and they change with the picture.
 
             ONE SOURCE OF TRUTH. Everything in here is read off `active`, which
-            is `HERO_SLIDES[index]`. There is no second piece of state and no
+            is `slides[index]`. There is no second piece of state and no
             second timer for the copy: the dwell timer moves `index`, and the
             label, the heading, the sentence, the gallery link's destination
             and the photograph all re-read from it in the same render. They
@@ -645,7 +669,7 @@ export function HeroCarousel() {
             would put every one of them under the 44px minimum.
           */}
               <div className="-mx-1 hidden items-center sm:flex">
-                {HERO_SLIDES.map((slide, i) => (
+                {slides.map((slide, i) => (
                   <button
                     key={slide.id}
                     type="button"

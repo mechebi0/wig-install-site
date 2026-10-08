@@ -1,9 +1,13 @@
+"use client";
+
 import { ArrowRight, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
-import { focalFor, type StyleCollection } from "@/lib/collections";
+import { useSiteView } from "@/components/site-photos";
+import type { StyleCollection } from "@/lib/collections";
 import { CTA, bookingTarget } from "@/lib/content";
+import { findResolved } from "@/lib/gallery";
 
 /**
  * One collection, as a card. The single card component for the whole site:
@@ -29,6 +33,11 @@ import { CTA, bookingTarget } from "@/lib/content";
  * turning into six contact sheets. A second photograph stacked underneath and
  * cross-faded on hover gives two looks per card in the space of one, which is
  * the device every serious fashion house uses on a product grid.
+ *
+ * Both are Nat's choice from the photo manager: the collection's cover and
+ * its second photograph (resolveSite in lib/gallery.ts says what stands in
+ * when either is hidden). A collection with a single photograph has no
+ * second, and its card simply does not fade.
  *
  * It is strictly an enhancement:
  *   - both photographs are in the collection gallery, so nothing is only
@@ -103,6 +112,9 @@ export function CollectionCard({
   booking?: boolean;
 }) {
   const editorial = variant === "editorial";
+  const photos = findResolved(useSiteView(), collection.slug);
+  const cover = photos?.cover ?? null;
+  const second = photos?.second ?? null;
 
   return (
     <div>
@@ -113,26 +125,30 @@ export function CollectionCard({
         <div
           className={`relative isolate overflow-hidden rounded-3xl bg-surface-3 ${ASPECT[variant]} group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-4 group-focus-visible:outline-accent`}
         >
-          <Photograph
-            photo={collection.hero}
-            sizes={SIZES[variant]}
-            priority={index < 2}
-            style={{ objectPosition: focalFor(collection.hero) }}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-          />
+          {cover ? (
+            <Photograph
+              photo={cover.image}
+              sizes={SIZES[variant]}
+              priority={index < 2}
+              style={{ objectPosition: cover.focalPosition }}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            />
+          ) : null}
 
           {/*
             The second look. Sits on top at opacity 0 and is the only thing that
             changes on hover, which is why the transition can be slow enough to
             read as a dissolve rather than a swap.
           */}
-          <Photograph
-            photo={collection.hoverImage}
-            sizes={SIZES[variant]}
-            decorative
-            style={{ objectPosition: focalFor(collection.hoverImage) }}
-            className="absolute inset-0 h-full w-full scale-[1.04] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 motion-reduce:hidden"
-          />
+          {second ? (
+            <Photograph
+              photo={second.image}
+              sizes={SIZES[variant]}
+              decorative
+              style={{ objectPosition: second.focalPosition }}
+              className="absolute inset-0 h-full w-full scale-[1.04] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 motion-reduce:hidden"
+            />
+          ) : null}
 
           {/*
             A wash from the foot of the frame, tinted to the wine ink rather than
@@ -146,7 +162,7 @@ export function CollectionCard({
           />
 
           <p className="absolute bottom-5 left-6 z-[1] font-display text-sm italic text-on-accent/85">
-            <LookCount slug={collection.slug} builtIn={collection.items.length} />
+            <LookCount slug={collection.slug} />
           </p>
 
           {/*

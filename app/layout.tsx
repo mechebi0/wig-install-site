@@ -5,12 +5,14 @@ import { AnnouncementMarquee } from "@/components/announcement-marquee";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileBookBar } from "@/components/mobile-book-bar";
+import { SitePhotosProvider } from "@/components/site-photos";
 import {
   ADDITIONAL_LOCATION_LABELS,
   PRIMARY_LOCATION_LABEL,
   STUDIO,
 } from "@/lib/content";
-import { HERO_PHOTOS } from "@/lib/collections";
+import { resolveSite } from "@/lib/gallery";
+import { loadPhotoSet } from "@/lib/site-photos-server";
 
 /*
   Type pairing. UI/UX Pro Max matched "Playfair Display / Inter" for the
@@ -35,7 +37,7 @@ const geist = Geist({
   display: "swap",
 });
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   /*
     Absolute URLs for the social cards. Next resolves og:image against this, and
     without it every share preview points at localhost. The site is a static
@@ -91,13 +93,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: STUDIO.name,
-    /* Nat's own work, so a shared link opens on a real install rather than on
-       a logo. Same file the homepage hero loads first, so it is already warm. */
-    images: [
-      { url: HERO_PHOTOS.deepWaveSwirl.large, alt: HERO_PHOTOS.deepWaveSwirl.alt },
-    ],
   },
 };
+
+/*
+  The share picture is Nat's own work, so a shared link opens on a real
+  install rather than on a logo: whatever the homepage slideshow opens on,
+  which is the file the hero loads first, so it is already warm. It is read
+  from the photographs this deployment was built with, so a new first slide
+  in the photo manager becomes the link preview at the next deployment.
+*/
+export async function generateMetadata(): Promise<Metadata> {
+  const share = resolveSite(await loadPhotoSet()).share;
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      ...(share ? { images: [{ url: share.image.large, alt: share.alt }] } : {}),
+    },
+  };
+}
 
 export const viewport: Viewport = {
   // Page is light locked by design; see the palette note in globals.css.
@@ -134,8 +149,13 @@ export const viewport: Viewport = {
  * The hero image preload used to live in this head. It moved into
  * HeroCarousel, because only the homepage renders a hero and every other page
  * was paying to preload an image it never showed.
+ *
+ * The page content sits inside SitePhotosProvider, holding the website's
+ * photographs as they stood when this deployment was built (see
+ * lib/site-photos-server.ts). Every photograph on every page comes from it.
  */
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const photos = await loadPhotoSet();
   return (
     <html
       lang="en"
@@ -159,7 +179,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <AnnouncementMarquee />
         <SiteNav />
-        <main id="main">{children}</main>
+        <main id="main">
+          <SitePhotosProvider initial={photos}>{children}</SitePhotosProvider>
+        </main>
         <SiteFooter />
         <MobileBookBar />
       </body>

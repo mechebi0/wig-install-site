@@ -1,8 +1,3 @@
-import {
-  FINISH_PHOTOS,
-  INSTALL_PHOTOS,
-  type Photo,
-} from "@/lib/collections";
 import { type AddOnId } from "@/lib/booking/add-ons";
 
 /**
@@ -158,24 +153,27 @@ export type InstallType = {
   metaDescription: string;
   /** Four short facts for the "how it works" band on the page. */
   highlights: readonly { title: string; body: string }[];
+  /*
+    The photograph the page and the booking card lead with is not here: it
+    is the `install-<id>` place in the photo manager (lib/gallery.ts), so Nat
+    can change it. LAUNCH_SLOTS in lib/collections.ts says why each install
+    launched with the photograph it did. The two values below were written
+    for that launch photograph, and are only used while it is still the one
+    showing.
+  */
   /**
-   * The photograph the page and the booking card lead with. See
-   * INSTALL_PHOTOS in lib/collections.ts for why the two are chosen
-   * differently, and why the closure one is an illustration of the look.
-   */
-  image: Photo;
-  /**
-   * `object-position` for that photograph wherever this install leads with
-   * it: its page hero (5:6), its card on /book (square at desktop) and the
-   * cross-link card. Its own value rather than the gallery's `focalPosition`,
-   * which is tuned for a 3:4 cell and in these wider frames would slice
-   * Nat's neon sign in half along the top edge.
+   * `object-position` for the launch photograph wherever this install leads
+   * with it: its page hero (5:6), its card on /book (square at desktop) and
+   * the cross-link card. Its own value rather than the gallery's
+   * `focalPosition`, which is tuned for a 3:4 cell and in these wider frames
+   * would slice Nat's neon sign in half along the top edge.
    */
   imageFocal: string;
   /**
-   * One line under that photograph, saying what is visible in it. Written as
-   * a description of the frame, never as a claim about what the client in it
-   * booked.
+   * One line under the launch photograph, saying what is visible in it.
+   * Written as a description of the frame, never as a claim about what the
+   * client in it booked, which is also why it is dropped once Nat puts a
+   * different photograph there: it would describe a picture nobody can see.
    */
   imageCaption: string;
   /**
@@ -199,13 +197,12 @@ export type Finish = {
   label: string;
   /** One sentence. What it looks like, not how long it lasts. */
   description: string;
-  /**
-   * Nat's photograph of this finish, where the set has one. Optional on
-   * purpose: an option without a real photograph renders a plain swatch
-   * rather than a borrowed one. See FINISH_PHOTOS in lib/collections.ts.
-   */
-  image?: Photo;
-  /** `object-position` for the swatch crop, measured off the file. */
+  /*
+    The swatch photograph is the `finish-<id>` place in the photo manager,
+    and may be empty: an option without a real photograph renders a plain
+    swatch rather than a borrowed one. See LAUNCH_SLOTS in lib/collections.ts.
+  */
+  /** `object-position` for the launch photograph's swatch crop, measured off the file. */
   imageFocal?: string;
 };
 
@@ -251,7 +248,6 @@ export const INSTALL_TYPES: readonly InstallType[] = [
         body: "More lace at the hairline to look after between appointments than a closure has.",
       },
     ],
-    image: INSTALL_PHOTOS.frontal,
     // Keeps the sign whole at the top and the swooped hairline mid-frame.
     imageFocal: "center 30%",
     imageCaption:
@@ -291,7 +287,6 @@ export const INSTALL_TYPES: readonly InstallType[] = [
         body: "Less of the hairline is glued down, which is gentler on a tender scalp.",
       },
     ],
-    image: INSTALL_PHOTOS.closure,
     // Higher than the frontal's: this sign hangs closer to the top of the
     // file, and in the square card on /book 30% grazed its glow.
     imageFocal: "center 15%",
@@ -332,13 +327,12 @@ export const INSTALL_TYPES: readonly InstallType[] = [
       },
     ],
     /*
-      No photograph of a reinstall exists yet, the same gap Closure had at
-      launch (see the note on INSTALL_PHOTOS in lib/collections.ts). This
+      No photograph of a reinstall existed at launch, the same gap Closure
+      had (see LAUNCH_SLOTS in lib/collections.ts). The launch photograph
       borrows an existing look rather than inventing one: an illustration of
       the kind of finish a reinstall brings back, captioned as exactly that,
       not as a record of what this client booked.
     */
-    image: INSTALL_PHOTOS["wig-touch-up"],
     imageFocal: "center 25%",
     imageCaption:
       "Soft layers falling into movement through the lengths: the kind of shape a reinstall brings back.",
@@ -360,7 +354,6 @@ export const FINISHES: readonly Finish[] = [
     id: "curls",
     label: "Curls",
     description: "Soft, full curls set through the lengths for movement and volume.",
-    image: FINISH_PHOTOS.curls,
     imageFocal: "center 55%",
   },
   {
@@ -368,13 +361,11 @@ export const FINISHES: readonly Finish[] = [
     label: "Wand Curls",
     description:
       "Defined spiral curls wrapped around a wand, from the mid-lengths to the ends.",
-    image: FINISH_PHOTOS["wand-curls"],
   },
   {
     id: "crimps",
     label: "Crimps",
     description: "A tight, crimped texture pressed through the lengths.",
-    image: FINISH_PHOTOS.crimps,
     imageFocal: "center 90%",
   },
 ];

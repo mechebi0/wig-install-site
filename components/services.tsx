@@ -2,9 +2,9 @@
 
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
+import { useSiteView } from "@/components/site-photos";
 import { groupByCategory, useServices, type CatalogService } from "@/lib/catalog";
 import { formatDuration, formatPrice } from "@/lib/format";
-import { SERVICE_IMAGE } from "@/lib/images";
 
 /**
  * The service menu, grouped by the four categories the customer books within.
@@ -25,7 +25,8 @@ import { SERVICE_IMAGE } from "@/lib/images";
  * The featured cell with Nat's own frame is kept as the lead of the first
  * category. It is the one picture in the menu and it sits on the service a
  * visitor is most likely to book, which is the same reasoning the old bento
- * used to put it first.
+ * used to put it first. Which frame is the `book` place in the photo manager
+ * (lib/gallery.ts); with no photographs at all the cell is words alone.
  *
  * ---------------------------------------------------------------------------
  * THE LAYOUT NO LONGER ASSUMES A COUNT
@@ -105,10 +106,12 @@ function ServiceCard({
   service: CatalogService;
   featured?: boolean;
 }) {
+  const photo = useSiteView().book;
+
   if (featured) {
     return (
       <article className="flex flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft sm:col-span-2">
-        <div className="grid sm:grid-cols-2">
+        <div className={photo ? "grid sm:grid-cols-2" : "grid"}>
           {/*
             Nat's own frame, through the same component as every other
             photograph on the site, so it gets the 600/1200/1600 srcSet rather
@@ -116,15 +119,17 @@ function ServiceCard({
             picture on /book and sits in the opening screen at every width,
             which makes it the page's likely LCP.
           */}
-          <div className="relative aspect-16/10 w-full overflow-hidden bg-surface-2 sm:aspect-auto sm:min-h-[16rem]">
-            <Photograph
-              photo={SERVICE_IMAGE.photo}
-              sizes="(min-width: 1024px) 55vw, calc(100vw - 2.5rem)"
-              priority
-              style={{ objectPosition: SERVICE_IMAGE.focal }}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </div>
+          {photo ? (
+            <div className="relative aspect-16/10 w-full overflow-hidden bg-surface-2 sm:aspect-auto sm:min-h-[16rem]">
+              <Photograph
+                photo={photo.item.image}
+                sizes="(min-width: 1024px) 55vw, calc(100vw - 2.5rem)"
+                priority
+                style={{ objectPosition: photo.focal }}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+          ) : null}
           <div className="flex flex-col justify-center p-7 lg:p-9">
             <ServiceHead service={service} large />
             <p className="mt-1 text-sm text-muted">

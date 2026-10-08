@@ -209,44 +209,48 @@ finish sent by name under the third. Unset (today) they all go to `/book/`.
 `bookingTarget()` in `lib/content.ts` is the one place that decides.
 
 **Which photographs are labelled Frontal or Closure** is decided by what the
-frame proves, not by a guess. `installType` in `GALLERY_ITEMS` is `"frontal"`
-only where the photograph shows lace laid past the point a closure's lace would
-stop (edges laid down at a temple, a side part with the hairline laid across it,
-or the hair taken off the face), which only ear-to-ear lace allows. Everywhere
-else it is `null`: the look stays in the gallery, unlabelled, and is never used
-as an install example. No photograph is `"closure"`, because a finished closure
-shows nothing a frontal could not also show; only Nat can mark one. That is
-why `/installs/closure/` has no gallery of its own yet, and why its lead
-photograph is captioned as the look a closure is built around rather than as a
-closure. Marking a photograph is a one-line edit in `GALLERY_ITEMS`, and the
-gallery tag and the install page examples follow automatically.
+frame proves, not by a guess. In the launch set (`LAUNCH_ITEMS` in
+`lib/collections.ts`, which migration 0007 copied into the database) a
+photograph's install type is `"frontal"` only where it shows lace laid past
+the point a closure's lace would stop (edges laid down at a temple, a side part
+with the hairline laid across it, or the hair taken off the face), which only
+ear-to-ear lace allows. Everywhere else it is unset: the look stays in the
+gallery, unlabelled, and is never used as an install example. No photograph is
+a closure, because a finished closure shows nothing a frontal could not also
+show; only Nat can mark one. That is why `/installs/closure/` has no gallery of
+its own yet, and why its lead photograph is captioned as the look a closure is
+built around rather than as a closure. Nat marks a photograph from the photo
+manager, and the gallery tag and the install page examples follow
+automatically.
 
 The `/gallery/body-wave-glam` URL and its `body-wave-glam` key are kept so
 existing links do not break; the style is now labelled "Body Wave".
 
 ### `lib/gallery.ts` — the read path
 
-Every component that shows a collection reads it through here, not out of
-`lib/collections.ts` directly. These functions return the compiled-in
-constants, which stay the first frame of every gallery. See the note at the top
-of that file for why the gallery is still in the bundle (short version: a
-static export has no server render to fetch during, so a database-backed
-gallery would ship six pages of empty grids).
+Every photograph on the site comes from Supabase, where Nat manages them from
+the photo manager: the launch photographs and her uploads alike, plus which
+one fills each fixed place (the homepage slideshow, the collection covers, the
+install pages, the finish swatches, the `/book` menu, the sign-in screens).
+The build reads the published set and writes it into the static HTML
+(`lib/site-photos-server.ts`), each page checks for anything newer in the
+browser (`components/site-photos.tsx`), and `resolveSite()` in
+`lib/gallery.ts` turns the set into what every component shows, including
+the stand-in when a chosen photograph is hidden. With no Supabase project (or
+none with migration 0007) the build uses the launch set in
+`lib/collections.ts`, which is what 0007 seeded. See `docs/photo-manager.md`.
 
-Photos Nat uploads from the photo manager are added on top in the browser by
-`lib/uploaded-photos.ts`: appended after the built-in photos on each
-collection page and install page, and counted in the "N looks" labels. See
-`docs/photo-manager.md`.
+### `lib/images.ts` — the words around the fixed photographs
 
-### `lib/images.ts` — the hero rotation and the services picture
-
-The hero slides reference photographs out of `lib/collections.ts`, so a picture
-is never described in two places. What is left here is the ordering of the hero
-slides and the one picture in the services menu on `/book`, which is Nat's own
-work like everything else; there is no stock photography on the site.
+Each hero slide's eyebrow, headline and sentence, in order, and the crops
+measured for the photographs the site launched with in the hero, the services
+menu on `/book` and the sign-in screens. Which photograph each of those shows
+is Nat's choice in the photo manager; everything on the site is her own work,
+and there is no stock photography.
 
 ```
-public/images/work/    every photograph of finished work, three widths each
+public/images/work/    the launch photographs, three widths each; replacements
+                       and new photographs go to Supabase Storage instead
 public/brand/          the official crest, crowned-by-nat-mark.png
 ```
 
@@ -396,13 +400,13 @@ the browser is decoration. Granting Nat admin is one function call,
   three and two; the others have five or six.
 - **Which photographs are closures.** No photograph can prove a closure, so
   none is labelled one and `/installs/closure/` has no gallery of its own until
-  Nat marks some (`installType: "closure"` in `GALLERY_ITEMS`). The same goes for
-  the six looks left unlabelled because the frame does not settle frontal or
+  Nat marks some (install type in the photo manager). The same goes for the
+  six looks left unlabelled because the frame does not settle frontal or
   closure (the melted centre part, long layers, shoulder sweep, glass finish,
   copper body wave, and warm copper).
 - **A photograph of Wand Curls.** None of the set is described as one, so that
-  option shows a plain swatch. Add it to `FINISH_PHOTOS` in
-  `lib/collections.ts` and the option picks it up.
+  option shows a plain swatch until Nat chooses one under "Where photos
+  appear" in the photo manager.
 - Confirmation that Curls, Wand Curls and Crimps are the finishes she offers.
   They are free styling choices; the paid Styling add-on (+$15, +35 minutes) is
   a separate optional extra, and the two time-window add-ons (Early Bird +30%,

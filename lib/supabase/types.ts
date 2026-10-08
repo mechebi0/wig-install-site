@@ -138,11 +138,12 @@ export type AdminStats = {
    PHASE TWO: GALLERY, REVIEWS AND SETTINGS
    ===========================================================================
    Created in supabase/migrations/0002_gallery_reviews_settings.sql. The
-   gallery tables are now in use: the photo manager at /admin/photos/ writes
-   gallery_items and gallery_item_categories (columns added in 0006), and the
-   public galleries read them through lib/uploaded-photos.ts. Reviews and
-   business settings are still unread. The shapes were decided ONCE, up
-   front, while the content they mirror was still in front of us.
+   gallery tables are now in use: they hold every photograph on the website
+   (0007 seeded the launch set into them), the photo manager at /admin/photos/
+   writes them, and the whole public site reads them through
+   lib/site-photos.ts. Reviews and business settings are still unread. The
+   shapes were decided ONCE, up front, while the content they mirror was
+   still in front of us.
 
    Each one mirrors something that is currently a compiled-in constant:
 
@@ -157,11 +158,12 @@ export type AdminStats = {
    the same field with the same meaning, so the day the data moves it is a
    query swap in lib/gallery.ts rather than a redesign.
 
-   WHY THE BUILT-IN PHOTOGRAPHS STAYED IN THE BUNDLE. A compiled-in constant
-   renders instantly, cannot fail, and is in git. A table read from the browser
-   after hydration is none of those things. So the built-in photographs are
-   still the first frame of every gallery, and Nat's uploads are added after
-   them once they load. See the note at the top of lib/gallery.ts.
+   HOW A STATIC SITE STILL OPENS WITH ITS PHOTOGRAPHS. The build reads the
+   published rows and bakes them into the HTML (lib/site-photos-server.ts), so
+   every page still renders complete before any JavaScript runs; the browser
+   then checks for anything newer (components/site-photos.tsx). The launch
+   set in lib/collections.ts is only the fallback for a build with no
+   database to ask.
    ========================================================================= */
 
 /** One of the six style collections. Mirrors a StyleCollection. */
@@ -218,7 +220,28 @@ export type GalleryItem = {
   /** Published. Only active rows are readable by the public. */
   active: boolean;
   display_order: number;
+  /** CSS object-position for cropped cells (0007). Null: the default. */
+  focal_position: string | null;
+  /** In the homepage's recent-work rail (0007). */
+  featured: boolean;
+  /** Lace details for the caption (0007). Natural Lace is a collection instead. */
+  finish_attributes: string[];
+  /** gallery_categories.slug it is filed under (0007). Null: its first. */
+  primary_collection: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+/**
+ * Which photograph fills one fixed place on the site (0007): a homepage
+ * slide, an install page, a finish swatch, the /book menu, the sign-in
+ * screens. SlotId in lib/site-photos.ts lists them. The collection covers
+ * are gallery_categories.hero_item_id / hover_item_id instead.
+ */
+export type SitePhotoSlot = {
+  slot: string;
+  /** gallery_items.id, or null once that photograph has been removed. */
+  item_id: string | null;
   updated_at: string;
 };
 

@@ -11,6 +11,7 @@ import {
 import { ButtonLink, buttonStyles } from "@/components/button";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
+import { useSiteView } from "@/components/site-photos";
 import {
   setBookingSelection,
   useBookingSelection,
@@ -101,6 +102,8 @@ const STYLE_COUNTER_THRESHOLD = 60;
 
 export function InstallSelector(props: InstallSelectorProps) {
   const selection = useBookingSelection();
+  // The install and finish photographs are Nat's to change; lib/gallery.ts.
+  const { installs, finishes: finishPhotos } = useSiteView();
   const uid = useId();
   const installGroup = useRef<HTMLFieldSetElement>(null);
   const finishGroup = useRef<HTMLFieldSetElement>(null);
@@ -222,7 +225,9 @@ export function InstallSelector(props: InstallSelectorProps) {
             aria-required="true"
             className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-8"
           >
-            {INSTALL_TYPES.map((type) => (
+            {INSTALL_TYPES.map((type) => {
+              const lead = installs[type.id];
+              return (
               <div key={type.id} className="flex min-w-0 flex-col">
                 <label className="relative block cursor-pointer">
                   <input
@@ -250,13 +255,15 @@ export function InstallSelector(props: InstallSelectorProps) {
                       before an earlier one was answered.
                     */}
                     <span className="relative aspect-[3/4] w-[38%] shrink-0 overflow-hidden bg-surface-3 sm:aspect-[4/5] sm:w-full lg:aspect-square">
-                      <Photograph
-                        photo={type.image}
-                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 38vw"
-                        decorative
-                        style={{ objectPosition: type.imageFocal }}
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
+                      {lead ? (
+                        <Photograph
+                          photo={lead.item.image}
+                          sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 38vw"
+                          decorative
+                          style={{ objectPosition: lead.focal }}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : null}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col justify-center py-5 pl-5 pr-12 sm:p-7 lg:p-8">
                       <span className="font-display text-2xl leading-tight tracking-tight text-ink lg:text-3xl">
@@ -291,7 +298,8 @@ export function InstallSelector(props: InstallSelectorProps) {
                   />
                 </a>
               </div>
-            ))}
+              );
+            })}
           </fieldset>
         )}
       </Reveal>
@@ -315,6 +323,7 @@ export function InstallSelector(props: InstallSelectorProps) {
         >
           {finishes.map((id) => {
             const option = getFinish(id);
+            const swatch = finishPhotos[id];
             return (
               <label key={id} className="relative block cursor-pointer">
                 <input
@@ -329,20 +338,20 @@ export function InstallSelector(props: InstallSelectorProps) {
                 />
                 <span className={`${CHOICE_SURFACE} flex-col`}>
                   <span className="relative aspect-[4/3] overflow-hidden bg-surface-2 lg:aspect-[3/2]">
-                    {option.image ? (
+                    {swatch ? (
                       <Photograph
-                        photo={option.image}
+                        photo={swatch.item.image}
                         sizes="(min-width: 1024px) 30vw, 45vw"
                         decorative
-                        style={{ objectPosition: option.imageFocal }}
+                        style={{ objectPosition: swatch.focal }}
                         className="absolute inset-0 h-full w-full object-cover"
                       />
                     ) : (
                       /*
-                        No photograph of this finish exists in Nat's set, so
-                        the swatch is a plain blush field with a spiral glyph,
-                        not someone else's picture. FINISH_PHOTOS in
-                        lib/collections.ts is where a real one goes.
+                        No photograph of this finish has been chosen, so the
+                        swatch is a plain blush field with a spiral glyph, not
+                        someone else's picture. Nat puts a real one here from
+                        the photo manager ("Where photos appear").
                       */
                       <span
                         aria-hidden="true"

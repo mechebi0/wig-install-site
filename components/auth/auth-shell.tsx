@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
-import { Photograph } from "@/components/photo";
+import { SignInPhoto } from "@/components/auth/sign-in-photo";
 import { Wordmark } from "@/components/wordmark";
-import { HERO_PHOTOS } from "@/lib/collections";
 
 /**
  * The frame every authentication screen sits in.
@@ -35,13 +34,12 @@ import { HERO_PHOTOS } from "@/lib/collections";
  * ---------------------------------------------------------------------------
  * THE PHOTOGRAPH
  * ---------------------------------------------------------------------------
- * One of Nat's own installs, taken straight from the shared set in
- * lib/collections.ts so it is never separately described or separately
- * exported. The sleek straight frame is chosen because it is the quietest one
- * in the set: this screen is a door, not a shop window, and the loudest
- * photograph in the library would be competing with a password field.
+ * One of Nat's own installs, the `sign-in` place in the photo manager, so it
+ * is never separately described or separately exported. It launched with the
+ * sleek straight frame because that is the quietest one in the set: this
+ * screen is a door, not a shop window, and the loudest photograph in the
+ * library would be competing with a password field.
  */
-const PANEL_PHOTO = HERO_PHOTOS.straight;
 
 export function AuthShell({
   kicker,
@@ -78,12 +76,7 @@ export function AuthShell({
           anyway; all that is given up is the high-priority hint, on a utility
           screen whose real content is a form the browser has already painted.
         */}
-        <Photograph
-          photo={PANEL_PHOTO}
-          sizes="50vw"
-          large
-          className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
-        />
+        <SignInPhoto />
         {/*
           The same wine veil the hero uses, so the type over it clears the same
           contrast floor without anyone having to re-measure it against this

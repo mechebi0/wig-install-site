@@ -1,8 +1,10 @@
+"use client";
+
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
-import { STYLE_LABELS } from "@/lib/collections";
-import { featuredInstalls } from "@/lib/gallery";
+import { useSiteView } from "@/components/site-photos";
+import { primaryLabel } from "@/lib/gallery";
 import { HOME } from "@/lib/content";
 import { INSTALL_TYPE_LABELS } from "@/lib/taxonomy";
 
@@ -10,17 +12,14 @@ import { INSTALL_TYPE_LABELS } from "@/lib/taxonomy";
  * The recent-work rail on the homepage.
  *
  * ---------------------------------------------------------------------------
- * WHY THIS IS NOT THE SAME SIX PHOTOGRAPHS AS THE HERO
+ * WHICH PHOTOGRAPHS
  * ---------------------------------------------------------------------------
- * The hero already rotates through six installs directly above this. Showing
- * the same six again a screen later does not read as emphasis, it reads as a
- * site that only has six photographs. So `featured` is set on a different six
- * in lib/collections.ts, and the two blocks between them put twelve of the
- * eighteen frames on the homepage without repeating one.
- *
- * That constraint is in the data rather than in this component on purpose: it
- * survives someone adding a slide, because the honest fix then is to move a
- * `featured` flag rather than to edit a list here.
+ * The ones Nat marks "Show in Recent work" in the photo manager, in her
+ * order. The hero already rotates through six installs directly above this,
+ * and the same six again a screen later would read as a site that only has
+ * six photographs, so the rail is best kept to different ones. That is in
+ * the data rather than in this component on purpose: the fix is to move a
+ * flag, not to edit a list here.
  *
  * ---------------------------------------------------------------------------
  * WHY EACH ONE LINKS TO A COLLECTION RATHER THAN OPENING A LIGHTBOX
@@ -39,7 +38,7 @@ import { INSTALL_TYPE_LABELS } from "@/lib/taxonomy";
  * known and is simply absent when it is not.
  */
 export function FeaturedInstalls() {
-  const items = featuredInstalls();
+  const items = useSiteView().featured;
   if (items.length === 0) return null;
 
   return (
@@ -85,9 +84,9 @@ export function FeaturedInstalls() {
         */}
         <ul className="mt-12 grid grid-cols-2 gap-3 sm:gap-5 lg:mt-16 lg:grid-cols-3 lg:gap-6">
           {items.map((item, index) => (
-            <Reveal as="li" key={item.id} index={index % 3}>
+            <Reveal as="li" key={item.image.src} index={index % 3}>
               <a
-                href={`/gallery/${item.primaryStyle}/`}
+                href={item.primaryCollection ? `/gallery/${item.primaryCollection}/` : "/gallery/"}
                 className="group block"
               >
                 <div className="relative overflow-hidden rounded-3xl bg-surface-3 aspect-[3/4]">
@@ -105,11 +104,10 @@ export function FeaturedInstalls() {
 
                 <div className="mt-4 border-t border-line pt-4 transition-colors duration-300 group-hover:border-line-strong">
                   <h3 className="font-display text-lg leading-tight tracking-tight text-ink">
-                    {item.title}
+                    {/* A title is optional on an upload; the collection stands in. */}
+                    {item.title || primaryLabel(item)}
                   </h3>
-                  <p className="label mt-2 text-muted">
-                    {STYLE_LABELS[item.primaryStyle]}
-                  </p>
+                  <p className="label mt-2 text-muted">{primaryLabel(item)}</p>
                   {/*
                     Only where the photograph establishes it; see
                     `installType` in lib/collections.ts. An unconfirmed look

@@ -1,10 +1,14 @@
+"use client";
+
 import { ArrowLeft, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
+import { useSiteView } from "@/components/site-photos";
 import { COLLECTION_PAGE, CTA, bookingTarget } from "@/lib/content";
-import { focalFor, type StyleCollection } from "@/lib/collections";
+import type { StyleCollection } from "@/lib/collections";
+import { findResolved } from "@/lib/gallery";
 
 /**
  * The opening of a collection page: a way back, the name, the three-beat line,
@@ -31,12 +35,18 @@ import { focalFor, type StyleCollection } from "@/lib/collections";
  * crumb is the page you are already on, and the first is the wordmark in the
  * nav directly above it. What is actually useful here is one obvious way back
  * up to the other five collections, so that is what it is.
+ *
+ * The photograph is the collection's cover, which Nat chooses in the photo
+ * manager. A collection with no published photographs at all keeps the
+ * frame, empty, so the page does not jump; the gallery below says the rest.
  */
 export function CollectionHero({
   collection,
 }: {
   collection: StyleCollection;
 }) {
+  const cover = findResolved(useSiteView(), collection.slug)?.cover ?? null;
+
   return (
     <header className="relative isolate overflow-hidden bg-ink">
       <div className="mx-auto grid max-w-[1400px] gap-10 px-5 pb-14 pt-10 sm:px-8 lg:grid-cols-12 lg:items-center lg:gap-12 lg:pb-20 lg:pt-16">
@@ -138,21 +148,23 @@ export function CollectionHero({
             </div>
 
             <p className="label mt-9 text-on-accent/55">
-              <LookCount slug={collection.slug} builtIn={collection.items.length} /> in this collection
+              <LookCount slug={collection.slug} /> in this collection
             </p>
           </Reveal>
         </div>
 
         <Reveal index={1} className="min-w-0 lg:col-span-6">
           <div className="relative overflow-hidden rounded-3xl bg-surface-3 aspect-[4/5] lg:aspect-[5/6]">
-            <Photograph
-              photo={collection.hero}
-              sizes="(min-width: 1024px) 48vw, calc(100vw - 2.5rem)"
-              large
-              priority
-              style={{ objectPosition: focalFor(collection.hero) }}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+            {cover ? (
+              <Photograph
+                photo={cover.image}
+                sizes="(min-width: 1024px) 48vw, calc(100vw - 2.5rem)"
+                large
+                priority
+                style={{ objectPosition: cover.focalPosition }}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null}
           </div>
         </Reveal>
       </div>

@@ -34,19 +34,20 @@ import type { InstallTypeId } from "@/lib/taxonomy";
  * SHAPED FOR A PHONE
  * ---------------------------------------------------------------------------
  * Nat is most likely doing this from her phone straight after an appointment,
- * so the whole section is one column of large targets, and "Choose photos"
- * opens the phone's own photo picker (accept="image/*", which is also what
- * makes iOS hand over a JPEG rather than a HEIC). Dragging files in works on
- * a computer as a bonus, never as the only way.
+ * so the whole block is one column of large targets, and "Add photos" opens
+ * the phone's own photo picker (accept="image/*", which is also what makes
+ * iOS hand over a JPEG rather than a HEIC). Dragging files in works on a
+ * computer as a bonus, never as the only way.
  *
  * Each photograph is resized the moment it is picked (lib/photo-processing),
  * so the preview is the real file that will be uploaded and a photo that
  * cannot be used says so before anything is sent.
  *
- * Where the photographs go - collections, install type, shown or hidden - is
- * chosen once for the whole batch, because a batch from one appointment is
- * usually one look. The title and the description are per photograph, and
- * any one can be changed afterwards from the list below.
+ * Where the photographs go - collections, install type, shown or hidden, and
+ * whether they join the start or the end of each gallery - is chosen once for
+ * the whole batch, because a batch from one appointment is usually one look.
+ * The title and the description are per photograph, and any one can be
+ * changed afterwards from the list below.
  */
 
 type Status = "preparing" | "ready" | "invalid" | "uploading" | "done" | "failed";
@@ -76,11 +77,11 @@ const STATUS_TEXT: Record<Status, string> = {
 let draftCounter = 0;
 
 export function PhotoUpload({
-  firstOrder,
+  orders,
   onUploaded,
 }: {
-  /** display_order of the current first upload, so new ones go ahead of it. */
-  firstOrder: number;
+  /** The current first and last display_order, so a batch can go either side. */
+  orders: { first: number; last: number };
   onUploaded: (photos: AdminPhoto[]) => void;
 }) {
   const baseId = useId();
@@ -90,6 +91,7 @@ export function PhotoUpload({
   const [collectionsError, setCollectionsError] = useState("");
   const [installType, setInstallType] = useState<InstallTypeId | null>(null);
   const [published, setPublished] = useState(true);
+  const [position, setPosition] = useState<"end" | "start">("end");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [dragging, setDragging] = useState(false);
@@ -239,10 +241,11 @@ export function PhotoUpload({
     setProgress({ done: 0, total: uploadable.length });
 
     /*
-      The batch goes in ahead of everything already uploaded, in the order
-      the photos were picked: the first gets the lowest number.
+      The batch keeps the order the photos were picked in, at the end of
+      every gallery (where it moves nothing already on the page) or at the
+      start, as Nat chose.
     */
-    let order = firstOrder - uploadable.length;
+    let order = position === "end" ? orders.last + 1 : orders.first - uploadable.length;
     const finished: AdminPhoto[] = [];
     const finishedKeys: string[] = [];
 
@@ -250,7 +253,15 @@ export function PhotoUpload({
       patch(draft.key, { status: "uploading", problem: "" });
       const { photo, error } = await uploadPhoto(
         draft.prepared!,
-        { title: draft.title, alt: draft.alt, collections, installType, published },
+        {
+          title: draft.title,
+          alt: draft.alt,
+          collections,
+          installType,
+          published,
+          featured: false,
+          laceDetails: [],
+        },
         order,
       );
       order += 1;
@@ -277,7 +288,7 @@ export function PhotoUpload({
         tone: "success",
         text: published
           ? `${count(finished.length)} uploaded and showing on the website now.`
-          : `${count(finished.length)} uploaded and kept hidden. Show them from Your photos when you are ready.`,
+          : `${count(finished.length)} uploaded and kept hidden. Show them from the list below when you are ready.`,
       });
     } else if (finished.length > 0) {
       setSummary({
@@ -293,20 +304,7 @@ export function PhotoUpload({
   }
 
   return (
-    <section aria-labelledby={`${baseId}-heading`} className="flex flex-col gap-8">
-      <div>
-        <h2
-          id={`${baseId}-heading`}
-          className="font-display text-2xl tracking-tight text-ink lg:text-3xl"
-        >
-          Add photos
-        </h2>
-        <p className="mt-2 max-w-[62ch] text-base leading-relaxed text-muted">
-          New photos go into the gallery on the collections you choose, after
-          the photos already there. Nothing on the site needs editing.
-        </p>
-      </div>
-
+    <section aria-labelledby={`${baseId}-heading`} className="flex flex-col gap-6">
       {/* ------------------------------------------------------ the picker --- */}
       <div
         onDragOver={(event) => {
@@ -315,46 +313,53 @@ export function PhotoUpload({
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`flex flex-col items-center gap-5 rounded-3xl border-2 border-dashed px-6 py-10 text-center transition-colors duration-200 sm:py-12 ${
+        className={`flex flex-col items-start gap-5 rounded-3xl border-2 border-dashed px-6 py-7 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between sm:px-8 ${
           dragging ? "border-accent bg-accent-soft" : "border-line-strong bg-surface/60"
         }`}
       >
-        <ImageSquare size={36} weight="light" aria-hidden="true" className="text-accent" />
-        <div>
-          <p className="font-display text-xl tracking-tight text-ink">
-            Choose the photos to add
-          </p>
-          <p className="mx-auto mt-2 max-w-[46ch] text-sm leading-relaxed text-muted">
-            JPEG, PNG, WebP or HEIC, up to {MAX_BATCH} at a time. Big photos are
-            resized for the web automatically. Tall (portrait) photos fit the
-            gallery best.
-          </p>
+        <div className="flex items-start gap-4">
+          <ImageSquare size={32} weight="light" aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
+          <div>
+            <h3
+              id={`${baseId}-heading`}
+              className="font-display text-xl tracking-tight text-ink"
+            >
+              Add photos
+            </h3>
+            <p className="mt-1.5 max-w-[52ch] text-sm leading-relaxed text-muted">
+              JPEG, PNG, WebP or HEIC, up to {MAX_BATCH} at a time. Big photos
+              are resized for the web automatically. Tall (portrait) photos fit
+              the gallery best.
+            </p>
+          </div>
         </div>
-        {/*
-          The input is visually hidden but stays in the tab order, and the
-          label is styled as the button. peer-focus-visible draws the site's
-          focus ring on the label, since the input itself has no visible box.
-        */}
-        <input
-          id={inputId}
-          type="file"
-          accept="image/*"
-          multiple
-          disabled={busy || drafts.length >= MAX_BATCH}
-          onChange={(event) => {
-            addFiles(Array.from(event.target.files ?? []));
-            // Lets the same file be picked again after it was removed.
-            event.target.value = "";
-          }}
-          className="peer sr-only"
-        />
-        <label
-          htmlFor={inputId}
-          className={`${buttonStyles.primary} peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-disabled:pointer-events-none peer-disabled:opacity-55`}
-        >
-          Choose photos
-        </label>
-        <p className="hidden text-xs text-muted lg:block">or drag them here</p>
+        <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+          {/*
+            The input is visually hidden but stays in the tab order, and the
+            label is styled as the button. peer-focus-visible draws the site's
+            focus ring on the label, since the input itself has no visible box.
+          */}
+          <input
+            id={inputId}
+            type="file"
+            accept="image/*"
+            multiple
+            disabled={busy || drafts.length >= MAX_BATCH}
+            onChange={(event) => {
+              addFiles(Array.from(event.target.files ?? []));
+              // Lets the same file be picked again after it was removed.
+              event.target.value = "";
+            }}
+            className="peer sr-only"
+          />
+          <label
+            htmlFor={inputId}
+            className={`${buttonStyles.primary} peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent peer-disabled:pointer-events-none peer-disabled:opacity-55`}
+          >
+            Add photos
+          </label>
+          <p className="hidden text-xs text-muted lg:block">or drag them here</p>
+        </div>
       </div>
 
       {summary ? (
@@ -471,6 +476,37 @@ export function PhotoUpload({
               onChange={setInstallType}
               disabled={busy}
             />
+            <fieldset>
+              <legend className="text-sm font-medium text-ink">Where they go in each gallery</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(
+                  [
+                    ["end", "After the photos already there"],
+                    ["start", "Before them, first in line"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label
+                    key={value}
+                    className={`inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-full border px-4 text-sm transition-colors duration-200 ${
+                      position === value
+                        ? "border-accent bg-accent-soft text-accent"
+                        : "border-line-strong bg-bg text-ink hover:border-accent"
+                    } ${busy ? "pointer-events-none opacity-60" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name={`${baseId}-position`}
+                      value={value}
+                      checked={position === value}
+                      disabled={busy}
+                      onChange={() => setPosition(value)}
+                      className="h-4 w-4 shrink-0 cursor-pointer accent-accent"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <PublishField
               id={`${baseId}-publish`}
               checked={published}

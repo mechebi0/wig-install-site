@@ -48,7 +48,13 @@ nothing pretends to work.
 4. Repeat for every later file in `supabase/migrations/`, each in its own
    query, in order, through
    `0006_owner_photo_manager.sql` (the photo manager's storage bucket,
-   policies and owner functions; see `docs/photo-manager.md`).
+   policies and owner functions) and
+   `0007_website_photos.sql` (the website's own photographs as rows Nat
+   manages, and which one fills each place on the site). See
+   `docs/photo-manager.md`.
+5. Optional: `0008_rebuild_site_on_photo_change.sql` rebuilds the site by
+   itself after Nat changes photographs. It does nothing until a Cloudflare
+   deploy hook is stored in Vault; `docs/photo-manager.md` has both steps.
 
 Each should finish with no errors. On a fresh project that is the whole job.
 
@@ -63,7 +69,9 @@ ask the database. This only reads:
 select
   to_regclass('public.appointments')  is not null                  as "0001",
   to_regclass('public.gallery_items') is not null                  as "0002",
-  to_regprocedure('public.promote_studio_owner(text)') is not null as "0006";
+  to_regprocedure('public.promote_studio_owner(text)') is not null as "0006",
+  to_regclass('public.site_photo_slots') is not null               as "0007",
+  to_regprocedure('private.request_site_rebuild()') is not null    as "0008";
 ```
 
 If `0001` is true, this tells 0003, 0004 and 0005 apart:
@@ -97,7 +105,9 @@ applied (2026-10-08):
   *Reinstall and refresh* back off, and resets Wig Touch Up's name, price and
   description, whatever was set from the dashboard since.
 
-0002, 0003 and 0006 are harmless to repeat.
+0002, 0003, 0006, 0007 and 0008 are harmless to repeat. 0007 seeds the
+website's photographs exactly once, ever (it records that it did), so running
+it again never brings back a photograph Nat has removed.
 
 **What it creates**
 
@@ -322,7 +332,8 @@ the UI does. Hiding a button is a courtesy. The policies are the control.
 | Change a `role` | no | **no** — trigger raises | yes |
 | Change locations / services | no | no | yes |
 | Read published gallery photos | yes | yes | yes (plus hidden) |
-| Upload, edit or delete photos (`gallery_*` tables, `website-photos` bucket) | no | no | yes |
+| Upload, edit, replace or delete photos (`gallery_*` tables, `website-photos` bucket) | no | no | yes |
+| Choose which photo fills a place on the site (`site_photo_slots`, collection covers) | no | no | yes |
 | List the `website-photos` bucket | no | no | yes |
 
 Since 0006, `is_admin()` also requires the sign-in behind the request to still

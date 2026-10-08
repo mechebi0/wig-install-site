@@ -1,8 +1,8 @@
-import type { FinishId, InstallTypeId } from "@/lib/taxonomy";
+import type { SlotId } from "@/lib/site-photos";
+import type { InstallTypeId } from "@/lib/taxonomy";
 
 /**
- * THE SIX STYLE COLLECTIONS - the single source of truth for the whole
- * /gallery branch of the site.
+ * THE SIX STYLE COLLECTIONS, and the photographs the site launched with.
  *
  * These are STYLES (and one lace finish): what the hair looks like. They are
  * not services. The service classification, Frontal Install or Closure
@@ -10,11 +10,26 @@ import type { FinishId, InstallTypeId } from "@/lib/taxonomy";
  * below carries one of the two as `installType` only where the frame itself
  * shows which it is (see the note on that field).
  *
- * Every collection card, every collection page, every gallery, the homepage
- * showcase, the related-collection rail and all six sets of page metadata are
- * generated from the array at the bottom of this file. Nothing about a
- * collection is typed twice, and adding a seventh is one entry here plus the
- * photographs.
+ * Every collection card, every collection page, the related-collection rail
+ * and all six sets of page metadata take their words from the array at the
+ * bottom of this file. Nothing about a collection is typed twice.
+ *
+ * ---------------------------------------------------------------------------
+ * WHERE THE PHOTOGRAPHS COME FROM NOW
+ * ---------------------------------------------------------------------------
+ * Not from here. Since migration 0007 the photographs are rows in Supabase,
+ * managed by Nat from /admin/photos/: which ones exist, their words and tags,
+ * their order, whether they are shown, and which one fills each place on the
+ * site (a collection's cover, the homepage slideshow, an install page). The
+ * site reads those rows when it is built and again in the visitor's browser
+ * (lib/site-photos.ts, lib/gallery.ts).
+ *
+ * What is left in this file under THE LAUNCH SET is the eighteen photographs
+ * as the site launched with them. Migration 0007 was generated from exactly
+ * these entries, and the site falls back to them only where there is no
+ * database to ask: a build with no Supabase project configured, or one whose
+ * database does not have 0007 yet. Editing them changes neither the live
+ * site nor the database; Nat's photo manager does that.
  *
  * ---------------------------------------------------------------------------
  * THE PHOTOGRAPHY IS REAL
@@ -35,24 +50,19 @@ import type { FinishId, InstallTypeId } from "@/lib/taxonomy";
  *      a client is not this site's business.
  *
  * ---------------------------------------------------------------------------
- * WHERE THE FILES LIVE, AND HOW TO ADD MORE
+ * WHERE THE FILES LIVE
  * ---------------------------------------------------------------------------
- * All of them sit flat in `public/images/work/`, not in a folder per
- * collection. Five of these photographs legitimately belong to two collections
- * at once (a copper body wave is both Body Wave and Color & Custom), and
- * a folder per collection would mean committing the same JPEG twice and
- * editing its alt text in two places.
- *
- * Each photograph ships at three widths, all the same 3:4 crop:
+ * The launch set's files sit flat in `public/images/work/`, and the database
+ * rows 0007 created point straight at them, so they are still served from
+ * there. Each ships at three widths, all the same 3:4 crop:
  *
  *      name-1600.jpg   1600x2133   lightbox, and the hero on large screens
  *      name.jpg        1200x1600   collection heroes and gallery cells
  *      name-600.jpg     600x800    cards, thumbnails, and every phone
  *
- * To add a look: crop it to 3:4, export those three widths into
- * public/images/work/, add one `photo()` line to WORK below with real alt
- * text, then list it in whichever collections it belongs to. Nothing else in
- * the codebase needs touching.
+ * Photographs Nat uploads, including any she uses to replace one of these,
+ * go to Supabase Storage at the same three widths (lib/photo-processing.ts).
+ * Nothing new is ever added to public/images/work/.
  */
 
 export type Photo = {
@@ -166,95 +176,56 @@ const WORK = {
 } as const;
 
 /**
- * The six photographs the homepage hero rotates through.
+ * Which launch photograph filled each fixed place on the site. Migration 0007
+ * copied these into site_photo_slots; Nat can now change any of them from the
+ * photo manager, so these are the starting point, not the rule.
  *
- * Named here rather than in lib/images.ts so the hero and the collections
- * cannot end up holding two different alt texts for the same file. See the
- * note on ordering in lib/images.ts for why these six and why in this order.
+ * Why each was chosen, since the reasons still hold for whatever replaces it:
  *
- * WHY THE LEAD FRAME CHANGED, TWICE
- * It used to be the middle-part deep wave, chosen because Nat's neon sign is
- * on the wall behind the client and that was the fastest way to say this is a
- * real room. The sign is now the nav bar's logo, sitting about 60px above the
- * top of the photograph, so a frame containing it printed the same mark twice
- * in one eyeful - most obviously on a phone, where the picture is full width.
- * The lead became the crimped deep wave instead: same collection, same
- * texture, shot against a plain door with no sign in it.
+ * THE SLIDESHOW (home-1 .. home-6). No two adjacent slides share a texture
+ * and a colour family; see HERO_SLIDES in lib/images.ts, which owns the words
+ * each slide shows. home-1 is the front swirl, sign in frame, supplied
+ * directly as the photograph the homepage should open on. It is also the
+ * picture in the site's link previews.
  *
- * `frontSwirl` leads now, sign back in frame. It was supplied directly as the
- * photograph the homepage should open on, so the double-mark tradeoff above
- * is accepted rather than solved a second time. The crimped deep wave is
- * still in the rotation, just no longer straight after the lead: both carry
- * the same label, and sitting them together would have repeated it on screen
- * two slides running. See the note beside HERO_SLIDES in lib/images.ts for
- * where it moved to.
+ * THE INSTALL PAGES. FRONTAL is a photograph that proves it: a deep side part
+ * with the hairline laid right across the forehead needs lace that runs ear
+ * to ear. CLOSURE has no such photograph, because a finished closure shows
+ * nothing a frontal cannot also show, so its photograph is an ILLUSTRATION of
+ * the look a closure is built around and stays untagged below; the caption
+ * beside it on the page (`imageCaption` in lib/taxonomy.ts) says what it
+ * shows. REINSTALLS is the same situation: no photograph can prove a restyle
+ * happened. When Nat has a real example of either, it belongs in that place
+ * instead, and the photo manager can now put it there.
+ *
+ * THE FINISH SWATCHES. Both are named in their own descriptions below, so
+ * neither is a new claim: the burgundy bob is "set into a soft curl", and the
+ * crimped deep wave is titled "Crimped Lengths". Nothing in the set is
+ * described as a wand curl, so Wand Curls starts with no photograph and
+ * renders a plain swatch rather than borrowing one.
+ *
+ * THE /book MENU. It sits in the Frontal Install cell, so it is a frame
+ * tagged frontal on visible evidence: the hair held back off the face and the
+ * edges laid in swirls at both temples.
+ *
+ * THE SIGN-IN SCREENS. The sleek straight frame, the quietest in the set:
+ * that screen is a door, not a shop window.
  */
-export const HERO_PHOTOS = {
-  /** Slide one, and the og:image. Sign in frame; see above. */
-  deepWaveSwirl: WORK.deepWaveFrontSwirl,
-  deepWave: WORK.deepWaveCrimped,
-  straight: WORK.straightGlassFinish,
-  bob: WORK.bobBurgundyCurl,
-  pink: WORK.colourPinkStraight,
-  /** The finish slide. A bob, because Natural Lace cuts across the styles. */
-  lace: WORK.bobSoftLob,
-} as const;
-
-/**
- * The photograph each install type leads with: its card in the booking flow
- * on /book and the hero of its own page. Named here for the same reason as
- * HERO_PHOTOS, so a file never ends up carrying two alt texts.
- *
- * THE TWO ARE NOT CHOSEN THE SAME WAY, and the difference is deliberate.
- *
- * FRONTAL is a photograph that proves it. A deep side part with the hairline
- * laid right across the forehead needs lace that runs ear to ear, and only a
- * frontal has it, so this frame is tagged "frontal" in GALLERY_ITEMS below on
- * the strength of what is visible in it.
- *
- * CLOSURE has no such photograph, because a finished closure shows nothing a
- * frontal cannot also show. So this is an ILLUSTRATION of the look a closure
- * is built around - a centre part laid flat, the hair falling over the
- * temples - and not a record of what this client booked. It stays untagged in
- * GALLERY_ITEMS, and the caption beside it on the page (`imageCaption` in
- * lib/taxonomy.ts) says what it shows rather than what it is. When Nat
- * confirms a real closure in the set, it belongs here instead.
- *
- * WIG TOUCH-UP is the same situation as closure, for the same reason: no
- * photograph can prove a restyle happened, only Nat can. This borrows a look
- * already in the set as an illustration of a finished style, untagged in
- * GALLERY_ITEMS, captioned on the page for what it shows.
- */
-export const INSTALL_PHOTOS: Record<InstallTypeId, Photo> = {
-  frontal: WORK.straightSideSwoop,
-  closure: WORK.deepWaveMeltedPart,
-  "wig-touch-up": WORK.deepWaveLongLayers,
+export const LAUNCH_SLOTS: Partial<Record<SlotId, Photo>> = {
+  "home-1": WORK.deepWaveFrontSwirl,
+  "home-2": WORK.straightGlassFinish,
+  "home-3": WORK.bobBurgundyCurl,
+  "home-4": WORK.deepWaveCrimped,
+  "home-5": WORK.colourPinkStraight,
+  "home-6": WORK.bobSoftLob,
+  "install-frontal": WORK.straightSideSwoop,
+  "install-closure": WORK.deepWaveMeltedPart,
+  "install-wig-touch-up": WORK.deepWaveLongLayers,
+  "finish-curls": WORK.bobBurgundyCurl,
+  "finish-crimps": WORK.deepWaveCrimped,
+  book: WORK.bodyWaveSideSweep,
+  "sign-in": WORK.straightGlassFinish,
 };
-
-/**
- * A photograph of a finish, where the set has one. Each is used as a swatch
- * cropped to the lengths, so what it shows is the texture rather than whose
- * install it is.
- *
- * Both are named in their own existing descriptions below, so neither is a
- * new claim: the burgundy bob is "set into a soft curl", and the crimped deep
- * wave is titled "Crimped Lengths". Nothing in the set is described as a wand
- * curl, so Wand Curls has no photograph. It renders a plain swatch instead of
- * borrowing a body wave and calling it something it was never said to be; add
- * the photograph here when Nat supplies one and the option picks it up.
- */
-export const FINISH_PHOTOS: Partial<Record<FinishId, Photo>> = {
-  curls: WORK.bobBurgundyCurl,
-  crimps: WORK.deepWaveCrimped,
-};
-
-/**
- * The picture in the services menu on /book. It used to be a Pexels stock
- * shot of a wig laid flat. It sits in the Frontal Install cell, so it is one
- * of the frames tagged frontal on visible evidence: the hair is held back
- * off the face and the edges are laid in swirls at both temples.
- */
-export const SERVICE_PHOTO: Photo = WORK.bodyWaveSideSweep;
 
 /* ==========================================================================
    THE THREE DIMENSIONS
@@ -291,9 +262,10 @@ export const SERVICE_PHOTO: Photo = WORK.bodyWaveSideSweep;
    WHY MEMBERSHIP IS A TAG AND NOT A LIST
    Each collection used to hand-list its photographs, which meant a photograph
    in two collections was written down twice and could drift. Now every
-   photograph is described once, in GALLERY_ITEMS, and the collections are
-   derived from those tags. One row per photograph, and the same physical JPEG
-   is referenced by each collection it belongs to rather than copied into it.
+   photograph is described once (in the database, and in LAUNCH_ITEMS below
+   for the launch set), and the collections are derived from those tags. One
+   row per photograph, and the same file is referenced by each collection it
+   belongs to rather than copied into it.
 */
 
 /**
@@ -345,8 +317,11 @@ export const FINISH_LABELS: Record<FinishAttribute, string> = {
  * client varies a lot between frames, and one shared value is wrong for most
  * of the set.
  */
-export type GalleryItem = {
-  /** Stable id. Matches the image file stem, and would be the database key. */
+export type LaunchItem = {
+  /**
+   * The image file stem. Only the launch set is keyed this way; a database
+   * row is keyed by uuid and found by its `src` (0007 seeded one per file).
+   */
   id: string;
   image: Photo;
   alt: string;
@@ -375,11 +350,12 @@ export type GalleryItem = {
    * null means "not established", never "neither". The photograph stays in
    * its collections and in the gallery; it just carries no install label and
    * is never used as an example on an install page. When Nat confirms one,
-   * setting it here is a one-line edit, and the gallery tag, the homepage
+   * she sets it in the photo manager, and the gallery tag, the homepage
    * label and the examples on /installs/<type>/ all follow.
    */
   installType: InstallTypeId | null;
-  primaryStyle: StyleCategory;
+  /** Null only for the homepage opener, which is in no collection. */
+  primaryStyle: StyleCategory | null;
   /** Includes `primaryStyle`. Drives which style collections show this item. */
   styleCategories: StyleCategory[];
   /** May be empty. Drives the Natural Lace collection and the item labels. */
@@ -391,7 +367,7 @@ export type GalleryItem = {
 };
 
 type ItemInput = Omit<
-  GalleryItem,
+  LaunchItem,
   "id" | "image" | "alt" | "styleCategories"
 > & {
   photo: Photo;
@@ -399,7 +375,7 @@ type ItemInput = Omit<
   alsoStyles?: StyleCategory[];
 };
 
-function galleryItem(input: ItemInput): GalleryItem {
+function galleryItem(input: ItemInput): LaunchItem {
   const { photo, alsoStyles = [], ...rest } = input;
   return {
     ...rest,
@@ -408,20 +384,21 @@ function galleryItem(input: ItemInput): GalleryItem {
     id: photo.src.split("/").pop()!.replace(".jpg", ""),
     image: photo,
     alt: photo.alt,
-    styleCategories: [rest.primaryStyle, ...alsoStyles],
+    styleCategories: rest.primaryStyle ? [rest.primaryStyle, ...alsoStyles] : alsoStyles,
   };
 }
 
 /**
- * EVERY PHOTOGRAPH, ONCE.
+ * THE LAUNCH SET: every photograph the site launched with, once, in the
+ * order the galleries showed them.
  *
  * The finish attributes are read off the frames - a parting sitting flat with
  * no visible lace edge, baby hairs laid along a rebuilt hairline - rather than
  * supplied by Nat. They describe what is visible in each picture and nothing
- * more; no specific lace product is claimed. Nat should correct any she
- * disagrees with, which is a one-line edit per photograph.
+ * more; no specific lace product is claimed. Nat can correct any of them in
+ * the photo manager.
  */
-export const GALLERY_ITEMS: GalleryItem[] = [
+export const LAUNCH_ITEMS: LaunchItem[] = [
   galleryItem({
     photo: WORK.deepWaveMiddlePart,
     installType: "frontal",
@@ -624,43 +601,25 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     featured: true,
     focalPosition: "center 85%",
   }),
+
+  /*
+    The homepage's opening photograph, which was never in a gallery: it
+    exists for the slideshow and the link previews. Untagged for the same
+    reason as any centre part (either install looks like this), and its
+    crop is the slideshow's measured one: the crown at roughly a third of
+    the file and the face around 55%.
+  */
+  galleryItem({
+    photo: WORK.deepWaveFrontSwirl,
+    installType: null,
+    title: "Front Swirl",
+    description: "",
+    primaryStyle: null,
+    finishAttributes: [],
+    featured: false,
+    focalPosition: "center 55%",
+  }),
 ];
-
-/** Every item carrying a style, in GALLERY_ITEMS order. */
-export function itemsInStyle(style: StyleCategory): GalleryItem[] {
-  return GALLERY_ITEMS.filter((item) => item.styleCategories.includes(style));
-}
-
-/** Every item carrying a finish, in GALLERY_ITEMS order. */
-export function itemsWithFinish(finish: FinishAttribute): GalleryItem[] {
-  return GALLERY_ITEMS.filter((item) => item.finishAttributes.includes(finish));
-}
-
-/**
- * Every item whose frame establishes this install type, in GALLERY_ITEMS
- * order. Untagged items are never returned for either, which is the point of
- * leaving them null.
- */
-export function itemsForInstall(type: InstallTypeId): GalleryItem[] {
-  return GALLERY_ITEMS.filter((item) => item.installType === type);
-}
-
-/**
- * The measured `object-position` for a photograph, for the places that hold a
- * bare `Photo` rather than a whole item - a collection hero, a card. Falls
- * back to the middle of the measured set, which is where these frames sit.
- */
-export function focalFor(photo: Photo): string {
-  return (
-    GALLERY_ITEMS.find((item) => item.image.src === photo.src)?.focalPosition ??
-    "center 70%"
-  );
-}
-
-/** The homepage rail. Deliberately not the hero six; see lib/images.ts. */
-export function featuredItems(): GalleryItem[] {
-  return GALLERY_ITEMS.filter((item) => item.featured);
-}
 
 export type StyleCollection = {
   /** URL segment. /gallery/<slug>/ */
@@ -678,26 +637,18 @@ export type StyleCollection = {
   description: string;
   /** For the page description tag. Plain, accurate, no keyword stuffing. */
   metaDescription: string;
-  /** The card image, the collection hero, and the social share image. */
-  hero: Photo;
-  /**
-   * The second card image. Cross-fades in on hover at desktop, which is how
-   * each card shows two looks without becoming a collage. Never the only way
-   * to see a photograph: everything here is in `gallery` as well.
-   */
-  hoverImage: Photo;
   /**
    * Which axis this collection cuts along. Five collections are STYLE (what
    * the hair is); Natural Lace is FINISH (how well it is attached), and the
    * page says so rather than letting it pass as a sixth hairstyle.
+   *
+   * The photographs are not part of this type. Which ones a collection holds,
+   * its cover (the card image, the page photograph and the link preview) and
+   * the second photograph its card fades to on hover all come from the
+   * database; see ResolvedCollection in lib/gallery.ts.
    */
   dimension: "style" | "finish";
-  /**
-   * Derived from the tags in GALLERY_ITEMS, never hand-listed, so a
-   * photograph that belongs in two collections is written down once.
-   */
-  items: GalleryItem[];
-  /** Ordering hook for a future admin screen. Lower sorts first. */
+  /** Reading order. Lower sorts first. */
   order: number;
 };
 
@@ -715,21 +666,10 @@ export type StyleCollection = {
  * copper body wave IS both a body wave and a colour transformation, and
  * pretending otherwise would hide the best example of one of them.
  */
-/**
- * The metadata half of a collection: everything a human writes. The
- * photographs are joined on below, from the tags rather than by hand.
- */
-type CollectionMeta = Omit<StyleCollection, "items"> &
-  (
-    | { dimension: "style"; style: StyleCategory }
-    | { dimension: "finish"; finish: FinishAttribute }
-  );
-
-const COLLECTION_META: CollectionMeta[] = [
+export const COLLECTIONS: StyleCollection[] = [
   {
     slug: "deep-wave-glam",
     dimension: "style",
-    style: "deep-wave-glam",
     title: "Deep Wave Glam",
     tagline: "Texture. Movement. Glamour.",
     summary: "Long, textured, effortlessly glamorous.",
@@ -737,14 +677,11 @@ const COLLECTION_META: CollectionMeta[] = [
       "Deep wave is the one people bring a screenshot in for. Long lengths, a wave pattern that holds its definition from the root down, and enough weight through the ends to move when you do. Density is set before the lace goes down, so the shape is still there in week three.",
     metaDescription:
       "Long deep-wave lace installs by Crowned by Nat. Defined texture, glamorous volume, and a hairline cut to your face, in Towson and Laurel, MD.",
-    hero: WORK.deepWaveMiddlePart,
-    hoverImage: WORK.deepWaveCrimped,
     order: 1,
   },
   {
     slug: "sleek-straight",
     dimension: "style",
-    style: "sleek-straight",
     title: "Sleek Straight",
     tagline: "Smooth. Precise. Polished.",
     summary: "Pressed flat, parted clean, finished sharp.",
@@ -752,14 +689,11 @@ const COLLECTION_META: CollectionMeta[] = [
       "Straight hides nothing. Every lift at the parting and every uneven end is visible from across a room, which is what makes this collection the honest test of an install. Middle part or deep side part, pressed to a glass finish, cut to a baseline that stays level.",
     metaDescription:
       "Sleek straight lace installs by Crowned by Nat. Clean centre and side partings, a pressed glass finish, and a level baseline, in Towson and Laurel, MD.",
-    hero: WORK.straightGlassFinish,
-    hoverImage: WORK.straightSideSwoop,
     order: 2,
   },
   {
     slug: "signature-bob",
     dimension: "style",
-    style: "signature-bob",
     title: "Signature Bob",
     tagline: "Sharp. Modern. Considered.",
     summary: "The cut that has to be right the first time.",
@@ -767,14 +701,11 @@ const COLLECTION_META: CollectionMeta[] = [
       "Short units live or die on the perimeter, and a bob cannot be rescued by length the way long hair can. These are cut on the head rather than off the stand, so the baseline sits where your jaw actually is and the shape holds when you turn your head.",
     metaDescription:
       "Bob and lob lace installs by Crowned by Nat. Blunt baselines, soft curved ends, and a perimeter cut on the head, in Towson and Laurel, MD.",
-    hero: WORK.bobSoftLob,
-    hoverImage: WORK.bobBluntSidePart,
     order: 3,
   },
   {
     slug: "body-wave-glam",
     dimension: "style",
-    style: "body-wave-glam",
     title: "Body Wave",
     tagline: "Soft. Full. Luminous.",
     summary: "Wide, glossy waves with weight behind them.",
@@ -782,14 +713,11 @@ const COLLECTION_META: CollectionMeta[] = [
       "Body wave is the softer register: a wider wave, more shine off the surface, and volume that reads as fullness rather than texture. It takes light better than any other pattern, which is why it is the one that photographs best in almost any room.",
     metaDescription:
       "Body-wave lace installs by Crowned by Nat. Soft volume, wide glossy waves, and elegant movement, in Towson and Laurel, MD.",
-    hero: WORK.bodyWaveCopper,
-    hoverImage: WORK.bodyWaveSideSweep,
     order: 4,
   },
   {
     slug: "color-and-custom",
     dimension: "style",
-    style: "color-and-custom",
     title: "Color & Custom",
     tagline: "Blonde. Copper. Pink.",
     summary: "Explore custom colour inspiration.",
@@ -797,14 +725,11 @@ const COLLECTION_META: CollectionMeta[] = [
       "Colour inspiration from the chair: platinum, copper, burgundy and candy pink, all of it worked on the unit rather than on your own hair. Bring a reference to your consult and Nat will tell you straight what the unit you have can and cannot be taken to.",
     metaDescription:
       "Colour and custom wig inspiration from Crowned by Nat. Blonde, copper, burgundy, and pink lace installs, in Towson and Laurel, MD.",
-    hero: WORK.colourPinkStraight,
-    hoverImage: WORK.bodyWaveCopper,
     order: 5,
   },
   {
     slug: "natural-lace",
     dimension: "finish",
-    finish: "natural-lace",
     title: "Natural Lace",
     tagline: "Seamless. Quiet. Yours.",
     summary: "The install nobody can tell is an install.",
@@ -812,27 +737,27 @@ const COLLECTION_META: CollectionMeta[] = [
       "The quiet collection, and the one the others get judged against. Lace tinted to your skin, knots bleached down, the parting flat to the scalp, and the edges laid to follow your own hairline. Nothing here is trying to be noticed.",
     metaDescription:
       "Natural-looking lace installs by Crowned by Nat. Tinted lace, bleached knots, and a seamless hairline, in Towson and Laurel, MD.",
-    hero: WORK.deepWaveMeltedPart,
-    hoverImage: WORK.straightGlassFinish,
     order: 6,
   },
 ];
 
 /**
- * The six, with their photographs joined on.
+ * Each collection's cover and second photograph in the launch set. 0007
+ * copied these into gallery_categories.hero_item_id / hover_item_id.
  *
- * A style collection takes every item tagged with that style; Natural Lace
- * takes every item tagged with that finish, which is why a sleek straight
- * install and a deep wave install both appear there without either being
- * filed as the other.
+ * A collection holds every photograph tagged with it: a style collection the
+ * photographs of that style, and Natural Lace every photograph whose lace is
+ * natural, which is why a sleek straight install and a deep wave install both
+ * appear there without either being filed as the other.
  */
-export const COLLECTIONS: StyleCollection[] = COLLECTION_META.map((meta) => ({
-  ...meta,
-  items:
-    meta.dimension === "style"
-      ? itemsInStyle(meta.style)
-      : itemsWithFinish(meta.finish),
-}));
+export const LAUNCH_COVERS: Record<string, { cover: Photo; second: Photo }> = {
+  "deep-wave-glam": { cover: WORK.deepWaveMiddlePart, second: WORK.deepWaveCrimped },
+  "sleek-straight": { cover: WORK.straightGlassFinish, second: WORK.straightSideSwoop },
+  "signature-bob": { cover: WORK.bobSoftLob, second: WORK.bobBluntSidePart },
+  "body-wave-glam": { cover: WORK.bodyWaveCopper, second: WORK.bodyWaveSideSweep },
+  "color-and-custom": { cover: WORK.colourPinkStraight, second: WORK.bodyWaveCopper },
+  "natural-lace": { cover: WORK.deepWaveMeltedPart, second: WORK.straightGlassFinish },
+};
 
 /** Reading order, and the order every grid on the site renders in. */
 export const COLLECTIONS_IN_ORDER = [...COLLECTIONS].sort(
@@ -841,6 +766,11 @@ export const COLLECTIONS_IN_ORDER = [...COLLECTIONS].sort(
 
 export function getCollection(slug: string): StyleCollection | undefined {
   return COLLECTIONS.find((collection) => collection.slug === slug);
+}
+
+/** A collection's display name from its slug, or the slug if it is unknown. */
+export function collectionTitle(slug: string): string {
+  return getCollection(slug)?.title ?? slug;
 }
 
 /**

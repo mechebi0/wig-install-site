@@ -5,15 +5,28 @@ import { SignOut } from "@phosphor-icons/react/dist/ssr";
 import { Guarded } from "@/components/auth/guarded";
 import { Wordmark } from "@/components/wordmark";
 import { Notice } from "@/components/ui/feedback";
-import { BuiltInPhotos } from "@/components/admin/built-in-photos";
 import { PhotoLibrary } from "@/components/admin/photo-library";
+import { PhotoPlaces } from "@/components/admin/photo-places";
 import { PhotoUpload } from "@/components/admin/photo-upload";
+import { useBuiltPhotoSet } from "@/components/site-photos";
 import { signOut } from "@/lib/auth/session";
 import { ADMIN_LOGIN_PATH, ADMIN_PHOTOS_PATH, leaveTo } from "@/lib/auth/redirect";
 import { fetchAdminPhotos, sweepOrphanFiles, type AdminPhoto } from "@/lib/photo-admin";
+import { byWebsiteOrder, storageKeys, type PhotoSet } from "@/lib/site-photos";
 
 /**
  * /admin/photos/ - Nat's photo manager.
+ *
+ * ---------------------------------------------------------------------------
+ * EVERY PHOTOGRAPH ON THE WEBSITE
+ * ---------------------------------------------------------------------------
+ * Two sections. "Website photos" is every photograph, the eighteen the site
+ * launched with and everything added since, managed the same way: add,
+ * replace, edit, hide, reorder, remove. "Where photos appear" is which
+ * photograph fills each fixed place (the homepage slideshow, the collection
+ * covers, the install pages and so on). Between them there is nothing about
+ * the site's photography left that needs a developer; see
+ * docs/photo-manager.md for the little that does.
  *
  * ---------------------------------------------------------------------------
  * WHO GETS IN, AND WHAT DECIDES IT
@@ -23,7 +36,7 @@ import { fetchAdminPhotos, sweepOrphanFiles, type AdminPhoto } from "@/lib/photo
  * end. That is routing. The security is underneath it: every read and write
  * on this screen is answered by Postgres and Storage according to
  * is_admin(), so the same requests from anyone else are refused however they
- * are sent (supabase/migrations/0006_owner_photo_manager.sql).
+ * are sent (supabase/migrations/0006 and 0007).
  *
  * When the session ends while the page is open - "Log out" in another tab,
  * an expired sign-in, or the sessions being revoked - Supabase reports it,
@@ -55,9 +68,17 @@ export function PhotoManager() {
 type LoadStatus = "loading" | "ready" | "error";
 
 function Manager({ email }: { email: string }) {
-  const [photos, setPhotos] = useState<AdminPhoto[]>([]);
+  const [set, setSet] = useState<PhotoSet | null>(null);
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [loadError, setLoadError] = useState("");
+
+  /*
+    Every Storage file the deployed pages were built with. A file in here is
+    never deleted, even after its photograph is replaced or removed, until a
+    deployment that no longer uses it is live (lib/photo-admin.ts).
+  */
+  const built = useBuiltPhotoSet();
+  const deployed = useMemo(() => storageKeys(built), [built]);
 
   /*
     `.then()` rather than awaits, so every setState lands in a promise
@@ -66,30 +87,35 @@ function Manager({ email }: { email: string }) {
   */
   const load = useCallback(
     () =>
-      fetchAdminPhotos().then(({ photos: found, truncated, error }) => {
-        if (error) {
+      fetchAdminPhotos().then(({ set: found, truncated, error }) => {
+        if (error || !found) {
           setLoadError(error);
           setStatus("error");
           return;
         }
-        setPhotos(found);
+        setSet(found);
         setStatus("ready");
         // Housekeeping, only against a complete list: a partial one would
         // make files that are in use look abandoned.
-        if (!truncated) void sweepOrphanFiles(found);
+        if (!truncated) void sweepOrphanFiles(found.photos, deployed);
       }),
-    [],
+    [deployed],
   );
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  /* New uploads go in ahead of the first one. */
-  const firstOrder = useMemo(
-    () => (photos.length > 0 ? Math.min(...photos.map((photo) => photo.order)) : 0),
-    [photos],
-  );
+  /* Where a new batch goes: after the last photograph, or before the first. */
+  const orders = useMemo(() => {
+    const all = set?.photos.map((photo) => photo.order) ?? [];
+    return all.length > 0
+      ? { first: Math.min(...all), last: Math.max(...all) }
+      : { first: 1, last: 0 };
+  }, [set]);
+
+  const setPhotos = (photos: AdminPhoto[]) =>
+    setSet((current) => (current ? { ...current, photos } : current));
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 pb-24 pt-10 sm:px-8 lg:pb-28 lg:pt-14">
@@ -134,29 +160,46 @@ function Manager({ email }: { email: string }) {
       </header>
 
       <div className="mt-10 flex flex-col gap-16 lg:mt-14 lg:gap-20">
-        <PhotoUpload
-          firstOrder={firstOrder}
-          onUploaded={(added) => {
-            setPhotos((current) =>
-              [...added, ...current].sort(
-                (a, b) => a.order - b.order || b.createdAt.localeCompare(a.createdAt),
-              ),
-            );
-          }}
-        />
+        <section aria-labelledby="website-photos-heading" className="flex flex-col gap-10">
+          <div>
+            <h2
+              id="website-photos-heading"
+              className="font-display text-2xl tracking-tight text-ink lg:text-3xl"
+            >
+              Website photos
+            </h2>
+            <p className="mt-2 max-w-[62ch] text-base leading-relaxed text-muted">
+              Manage the photos featured across Crowned by Nat. Add, replace,
+              remove, hide, or reorder photos without contacting your
+              developer.
+            </p>
+          </div>
 
-        <PhotoLibrary
-          photos={photos}
-          status={status}
-          loadError={loadError}
-          onRetry={() => {
-            setStatus("loading");
-            void load();
-          }}
-          onChange={setPhotos}
-        />
+          <PhotoUpload
+            orders={orders}
+            onUploaded={(added) => {
+              setSet((current) =>
+                current
+                  ? { ...current, photos: [...current.photos, ...added].sort(byWebsiteOrder) }
+                  : current,
+              );
+            }}
+          />
 
-        <BuiltInPhotos />
+          <PhotoLibrary
+            set={set}
+            status={status}
+            loadError={loadError}
+            deployed={deployed}
+            onRetry={() => {
+              setStatus("loading");
+              void load();
+            }}
+            onChange={setPhotos}
+          />
+        </section>
+
+        {status === "ready" && set ? <PhotoPlaces set={set} onChange={setSet} /> : null}
       </div>
     </div>
   );

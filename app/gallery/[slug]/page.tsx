@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CollectionHero } from "@/components/collection-hero";
 import { CollectionCard } from "@/components/collection-card";
-import { StyleGallery } from "@/components/style-gallery";
+import { CollectionGallery } from "@/components/style-gallery";
 import { BookingCta } from "@/components/booking-cta";
 import { Reveal } from "@/components/reveal";
 import { COLLECTIONS } from "@/lib/collections";
 import {
-  collectionItems,
   findCollection,
+  findResolved,
+  resolveSite,
   suggestCollections,
 } from "@/lib/gallery";
+import { loadPhotoSet } from "@/lib/site-photos-server";
 import { COLLECTION_PAGE, FINISH_FOCUS, STUDIO } from "@/lib/content";
 
 /**
@@ -22,12 +24,12 @@ import { COLLECTION_PAGE, FINISH_FOCUS, STUDIO } from "@/lib/content";
  * out of the array, so the six are guaranteed to feel like one system rather
  * than six pages that happen to look similar.
  *
- * Everything is read through lib/gallery.ts rather than out of
- * lib/collections.ts directly, so the day the gallery moves into Supabase this
- * page does not change. `generateStaticParams` still reads COLLECTIONS
- * directly, because the list of slugs has to be known at BUILD time and a
- * database read is not available then; that is the one place the seam does not
- * reach, and it is the correct place for it not to.
+ * The words come from lib/collections.ts; the photographs from Supabase,
+ * through lib/gallery.ts: in the HTML as they stood when the site was built,
+ * then refreshed in the browser (components/site-photos.tsx). The link
+ * preview uses the cover this deployment was built with. `generateStaticParams`
+ * reads COLLECTIONS directly, because the six slugs are part of the site's
+ * structure rather than its photographs, and Nat cannot add a seventh.
  *
  * STATIC EXPORT. `generateStaticParams` is what makes this compatible with
  * `output: "export"`: the six slugs are known at build time, so the build
@@ -55,6 +57,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const collection = findCollection(slug);
   if (!collection) return {};
+  // This page's openGraph replaces the layout's, so an empty collection
+  // borrows the site's own share picture rather than sharing none.
+  const view = resolveSite(await loadPhotoSet());
+  const cover = findResolved(view, slug)?.cover ?? view.share;
 
   return {
     /* The root layout template appends "| Crowned by Nat", so every one of the
@@ -64,7 +70,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${collection.title} | ${STUDIO.name}`,
       description: collection.metaDescription,
-      images: [{ url: collection.hero.large, alt: collection.hero.alt }],
+      ...(cover ? { images: [{ url: cover.image.large, alt: cover.alt }] } : {}),
       type: "website",
     },
   };
@@ -101,10 +107,9 @@ export default async function CollectionPage({
           </Reveal>
 
           <div className="mt-10 lg:mt-14">
-            <StyleGallery
-              items={collectionItems(collection)}
+            <CollectionGallery
+              slug={collection.slug}
               label={`${collection.title} gallery`}
-              uploads={{ collection: collection.slug }}
             />
           </div>
         </div>

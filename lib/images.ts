@@ -1,27 +1,29 @@
 /**
- * IMAGE SLOTS that are not part of a style collection.
+ * THE WORDS AND CROPS around the site's fixed photographs.
  *
- * The portfolio itself lives in lib/collections.ts, which owns every
- * photograph of finished work and the six collections they are grouped into.
- * What is left here is the homepage hero rotation, plus the one single slot
- * that is not a portfolio piece: the picture in the services menu on /book.
+ * Which photograph fills each fixed place - a slide of the homepage hero, the
+ * picture in the services menu on /book, the one beside the sign-in forms -
+ * is Nat's choice now, made in the photo manager and stored in
+ * site_photo_slots (migration 0007). What stays in code is everything written
+ * AROUND a photograph: each slide's eyebrow, headline and sentence, and the
+ * crops measured for the photographs the site launched with.
+ *
+ * A measured crop only means something for the frame it was measured on, so
+ * each one is used while that launch photograph is still the one in the
+ * place, and a photograph Nat puts there instead brings its own (see
+ * resolveSite in lib/gallery.ts).
  *
  * ---------------------------------------------------------------------------
  * PROVENANCE
  * ---------------------------------------------------------------------------
- * ALL REAL. Everything here is Nat's own work, pulled from the same set as the
- * collections and referenced straight out of lib/collections.ts, so a
- * photograph is never described twice.
- *
- * There is no stock photography on the site any more. The last piece, a
- * Pexels shot of a wig laid flat with the lace cap up, used to fill the
- * services slot at the bottom of this file; it has been replaced with one of
- * Nat's own frames and the file deleted from public/images/. If a slot ever
- * needs a picture the set does not have, use a real frame that honestly fits
- * it rather than going back to stock.
+ * ALL REAL. Every photograph on the site is Nat's own work. There is no stock
+ * photography on the site any more: the last piece, a Pexels shot of a wig
+ * laid flat, used to fill the services slot on /book and was replaced with
+ * one of Nat's own frames. If a place ever needs a picture the set does not
+ * have, it gets a real frame that honestly fits it rather than stock.
  */
 
-import { HERO_PHOTOS, SERVICE_PHOTO, type Photo } from "@/lib/collections";
+import type { SlotId } from "@/lib/site-photos";
 
 /* ==========================================================================
    HOMEPAGE HERO CAROUSEL
@@ -109,7 +111,12 @@ export type HeroSlide = {
   headline: string;
   /** One sentence under the headline. Kept under 90 characters; see below. */
   description: string;
-  photo: Photo;
+  /**
+   * The place this slide's photograph comes from, in slideshow order. If Nat
+   * hides or removes the photograph there, the slide shows another from
+   * `collection` instead, and is left out if that collection has none.
+   */
+  slot: Extract<SlotId, `home-${number}`>;
   /**
    * The hairstyle in the frame, when that differs from `label`. Only the
    * finish slide sets it, and only the accessible name reads it.
@@ -130,7 +137,10 @@ export type HeroSlide = {
    * second copy of the bob page.
    */
   collection: string;
-  /** Overrides `HERO_FOCAL_DEFAULT`. */
+  /**
+   * Overrides `HERO_FOCAL_DEFAULT`, for the photograph this slide launched
+   * with. A different photograph in the slot uses its own crop.
+   */
   focal?: HeroFocal;
 };
 
@@ -179,7 +189,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     headline: "A hairline that melts into skin.",
     description:
       "Swirled baby hairs, a clean centre part, and lace you cannot find.",
-    photo: HERO_PHOTOS.deepWaveSwirl,
+    slot: "home-1",
     finish: "Melted Hairline",
     collection: "deep-wave-glam",
     // A moderately close frame: the crown sits at roughly 33% of the file and
@@ -192,7 +202,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     headline: "Silky. Sleek. Effortlessly polished.",
     description:
       "Clean lines, a flawless finish, and a look that speaks for itself.",
-    photo: HERO_PHOTOS.straight,
+    slot: "home-2",
     finish: "Natural Lace",
     collection: "sleek-straight",
     // The loosest frame in the set - almost half the file is bare wall above
@@ -204,7 +214,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     label: "Signature Bob",
     headline: "A statement cut, tailored to you.",
     description: "Sharp, polished, and shaped to complement your features.",
-    photo: HERO_PHOTOS.bob,
+    slot: "home-3",
     finish: "Melted Hairline",
     collection: "signature-bob",
     focal: "center 67%",
@@ -215,7 +225,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     headline: "Texture that moves with you.",
     description:
       "Defined waves, seamless lace, and a finish designed to turn heads.",
-    photo: HERO_PHOTOS.deepWave,
+    slot: "home-4",
     finish: "Melted Hairline",
     collection: "deep-wave-glam",
     // A close frame: the crown sits high at 31% of the file while the face is
@@ -228,7 +238,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     headline: "Your vision, brought to life.",
     description:
       "Custom color and styling, made to leave your install unmistakably yours.",
-    photo: HERO_PHOTOS.pink,
+    slot: "home-5",
     finish: "Melted Hairline",
     collection: "color-and-custom",
     // Shot from further back, with the sign high on the wall: the client sits
@@ -241,7 +251,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     headline: "Made to look like it grew there.",
     description:
       "Customized lace and a seamless hairline, for an effortlessly natural finish.",
-    photo: HERO_PHOTOS.lace,
+    slot: "home-6",
     // The label is the FINISH. This says what the hair itself is, so the two
     // axes stay separate and the slide does not read as a sixth hairstyle.
     style: "Signature Bob",
@@ -256,24 +266,21 @@ export const HERO_SLIDES: HeroSlide[] = [
    ========================================================================== */
 
 /**
- * The featured cell in the services menu on /book, which carries the first
- * service: Frontal Install.
- *
- * It used to be the stock lace-cap shot described at the top of this file.
- * It is now one of Nat's frames, and specifically one whose install type the
- * photograph itself establishes (see SERVICE_PHOTO in lib/collections.ts), so
- * the picture in the frontal cell is a frontal.
+ * The crop for the featured cell in the services menu on /book (the `book`
+ * place), which carries the first service: Frontal Install.
  *
  * The cell is 16:10 and the file is 3:4, so the crop keeps a band a little
- * under half the file's height. `focal` puts that band on the laid hairline
- * and the swirls at both temples, which are the point of the frame.
+ * under half the file's height. For the launch photograph, the S-wave side
+ * sweep, this puts that band on the laid hairline and the swirls at both
+ * temples, which are the point of the frame. Its stand-in, if Nat hides it,
+ * is the first published frontal (see resolveSite in lib/gallery.ts), so the
+ * picture in the frontal cell stays a frontal where one exists.
  */
-export const SERVICE_IMAGE: { photo: Photo; focal: string } = {
-  photo: SERVICE_PHOTO,
-  focal: "center 35%",
-};
+export const BOOK_FOCAL = "center 35%";
 
-/** The slide's focal point, falling back to `HERO_FOCAL_DEFAULT`. */
-export function heroFocal(slide: HeroSlide): HeroFocal {
-  return slide.focal ?? HERO_FOCAL_DEFAULT;
-}
+/**
+ * The crop for the photograph beside the sign-in forms (the `sign-in`
+ * place). The launch photograph is tall with bare wall above the client, so
+ * this keeps the top fifth: the crown and the parting.
+ */
+export const SIGN_IN_FOCAL = "center 20%";

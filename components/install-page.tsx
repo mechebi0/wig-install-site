@@ -5,11 +5,10 @@ import {
   InstallSelector,
 } from "@/components/install-selector";
 import { InstallExamples } from "@/components/install-examples";
-import { Photograph } from "@/components/photo";
+import { InstallCardPhoto, InstallLeadFigure } from "@/components/install-photo";
 import { Reveal } from "@/components/reveal";
 import { COLLECTION_PAGE, CTA, INSTALL_PAGE } from "@/lib/content";
-import { installExamples } from "@/lib/gallery";
-import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
+import { INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
 
 /**
  * One install type's own page: /installs/frontal/ or /installs/closure/.
@@ -33,7 +32,7 @@ import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
  * looking at hair.
  *
  * ---------------------------------------------------------------------------
- * WHY THE CLOSURE AND REINSTALL PAGES HAVE NO GALLERY TODAY
+ * WHY THE CLOSURE AND REINSTALL PAGES HAVE NO GALLERY YET
  * ---------------------------------------------------------------------------
  * The work section lists only photographs whose frame establishes this
  * install type (see `installType` in lib/collections.ts). No photograph can
@@ -41,20 +40,16 @@ import { FINISHES, INSTALL_TYPES, type InstallType } from "@/lib/taxonomy";
  * a frame proves a restyle happened rather than a fresh style), so on those
  * two pages the section is left out entirely rather than filled with
  * pictures that merely look like one. Each appears on its own the day Nat
- * marks a real example in the set, or uploads one from the photo manager
- * labelled with that install (components/install-examples.tsx). The lead
- * photograph is still shown on
+ * labels a real example with that install in the photo manager
+ * (components/install-examples.tsx). The lead photograph is still shown on
  * both, captioned for what it shows: the look each is built around, not a
  * record of what that client booked.
+ *
+ * Every photograph on the page is Nat's to change, so those parts are the
+ * client components in components/install-photo.tsx; the words stay here.
  */
 export function InstallPage({ type }: { type: InstallType }) {
   const others = INSTALL_TYPES.filter((candidate) => candidate.id !== type.id);
-  const finishPhotos = FINISHES.flatMap((finish) =>
-    finish.image ? [finish.image] : [],
-  );
-  const examples = installExamples(type.id, {
-    exclude: [type.image, ...finishPhotos],
-  });
 
   return (
     <>
@@ -99,26 +94,7 @@ export function InstallPage({ type }: { type: InstallType }) {
           </div>
 
           <Reveal index={1} className="min-w-0 lg:col-span-6">
-            <figure>
-              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-surface-3 lg:aspect-[5/6]">
-                <Photograph
-                  photo={type.image}
-                  sizes="(min-width: 1024px) 48vw, calc(100vw - 2.5rem)"
-                  large
-                  priority
-                  style={{ objectPosition: type.imageFocal }}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              </div>
-              {/*
-                Says what is visible in the frame. On the frontal page that
-                is also the proof it is a frontal; on the closure page it is
-                the look a closure is built around, stated as a look.
-              */}
-              <figcaption className="mt-4 max-w-[52ch] text-sm leading-relaxed text-on-accent/65">
-                {type.imageCaption}
-              </figcaption>
-            </figure>
+            <InstallLeadFigure installType={type.id} />
           </Reveal>
         </div>
       </header>
@@ -151,11 +127,10 @@ export function InstallPage({ type }: { type: InstallType }) {
       </section>
 
       {/* ---------------------------------------------------- the work --- */}
-      {/* Built-in examples in the first frame, plus any of Nat's uploads
-          labelled with this install; absent when there are neither. */}
+      {/* The photographs labelled with this install; absent when there
+          are none. */}
       <InstallExamples
         installType={type.id}
-        examples={examples}
         heading={INSTALL_PAGE.examples(type.shortLabel)}
         note={`${type.examplesNote} ${COLLECTION_PAGE.galleryHint}`.trim()}
         galleryLabel={`${type.label} gallery`}
@@ -202,11 +177,9 @@ export function InstallPage({ type }: { type: InstallType }) {
                   className="group grid grid-cols-[38%_minmax(0,1fr)] overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-soft transition-colors duration-300 hover:border-accent sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]"
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-surface-3 sm:aspect-auto sm:min-h-[20rem]">
-                    <Photograph
-                      photo={other.image}
+                    <InstallCardPhoto
+                      installType={other.id}
                       sizes="(min-width: 1024px) 24vw, (min-width: 640px) 38vw, 38vw"
-                      decorative
-                      style={{ objectPosition: other.imageFocal }}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     />
                   </div>
