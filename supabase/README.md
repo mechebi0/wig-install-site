@@ -45,13 +45,59 @@ nothing pretends to work.
 2. Paste the entire contents of
    `supabase/migrations/0001_crown_by_nat_foundation.sql`
 3. **Run**
-4. Repeat for every later file in `supabase/migrations/`, in order, through
+4. Repeat for every later file in `supabase/migrations/`, each in its own
+   query, in order, through
    `0006_owner_photo_manager.sql` (the photo manager's storage bucket,
    policies and owner functions; see `docs/photo-manager.md`).
 
-Each should finish with no errors. They are written to be re-runnable, so if
-you have to run one twice nothing breaks. (If you ever re-run 0001 after 0006,
-run 0006 again afterwards: 0006 replaces two functions 0001 defines.)
+Each should finish with no errors. On a fresh project that is the whole job.
+
+### Which migrations to run
+
+There is no record of which files have been run: the SQL editor keeps none
+(only `supabase db push` fills `supabase_migrations.schema_migrations`). So
+before running anything on a project that might already have some of them,
+ask the database. This only reads:
+
+```sql
+select
+  to_regclass('public.appointments')  is not null                  as "0001",
+  to_regclass('public.gallery_items') is not null                  as "0002",
+  to_regprocedure('public.promote_studio_owner(text)') is not null as "0006";
+```
+
+If `0001` is true, this tells 0003, 0004 and 0005 apart:
+
+```sql
+select slug, name, price_cents, active from public.services order by slug;
+```
+
+| What the services list shows | Applied |
+| --- | --- |
+| `frontal-install` ... and `wig-touch-up` named **Wig Touch Up**, 3500 | 0003, 0004 and 0005 |
+| `frontal` and `closure`, `wig-touch-up` named **Reinstalls**, 5500 | 0003 and 0004, not 0005 |
+| `frontal` and `closure`, `wig-touch-up` named **Wig Touch-up** | 0003, not 0004 |
+| `frontal` and `closure`, no `wig-touch-up` | 0001 only |
+
+Run only the files that are missing, in order. If the result matches none of
+these rows, stop and work out why before running anything.
+
+**Re-running an older file over a newer one does damage.** No file errors
+when run twice, but these were checked against a local Supabase with all six
+applied (2026-10-08):
+
+- **0001** again can put back the two placeholder services 0005 renamed away
+  (*Full frontal install* $180 and *Closure install* $140, both bookable),
+  after which 0005 fails with a duplicate key and cannot clean them up. It
+  also restores the older `is_admin()` (no check that the sign-in still
+  exists) and `protect_profile_columns()` (which blocks
+  `promote_studio_owner()`), until 0006 is run again.
+- **0004** again renames the $35 *Wig Touch Up* to *Reinstalls*.
+- **0005** again switches Laurel back on, switches *Customization only* and
+  *Reinstall and refresh* back off, and resets Wig Touch Up's name, price and
+  description, whatever was set from the dashboard since.
+
+0002, 0003 and 0006 are harmless to repeat.
 
 **What it creates**
 
@@ -103,14 +149,19 @@ will not see their old appointment, and you would have to link it by hand.
 
 Dashboard → **Authentication** → **URL Configuration**
 
-- **Site URL**: your production domain, e.g. `https://crownedbynat.pages.dev`
+- **Site URL**: `https://crownedbynat.com`
 - **Redirect URLs**: add every origin the site runs on, each with `/**`:
 
 ```
+https://crownedbynat.com/**
+https://wig-install-site.pages.dev/**
 http://localhost:3000/**
-https://crownedbynat.pages.dev/**
-https://<your-custom-domain>/**
 ```
+
+The site only ever asks to come back to three paths: `/admin/login/` (the
+owner's sign-in email), `/account/` (customer sign-up confirmation) and
+`/reset-password/` (customer password reset). Exact entries for those three
+on each origin work as well as the wildcards.
 
 **This allowlist is not optional.** It is what stops the password-reset flow
 being an open redirect: Supabase refuses to send anyone to a URL that is not on

@@ -5,19 +5,22 @@ the website's gallery, without anyone editing code.
 
 | | |
 | --- | --- |
-| **Sign in** | `https://wig-install-site.pages.dev/admin/login/` |
-| **Photo manager** | `https://wig-install-site.pages.dev/admin/photos/` |
+| **Sign in** | `https://crownedbynat.com/admin/login/` |
+| **Photo manager** | `https://crownedbynat.com/admin/photos/` |
 | **Owner account** | `crownedbynattt@gmail.com` |
 | **Password** | None. Nat signs in with a code emailed to that address. |
 
-Neither page is linked from the public site. Bookmark them. (On a custom
-domain, the same paths work on that domain.)
+Neither page is linked from the public site. Bookmark them. (The same paths
+also work on the Cloudflare Pages address, `https://wig-install-site.pages.dev`.)
 
-> **Status when this was written (2026-10-07):** the code is finished and
-> deployed with the site, but the site has no Supabase project connected yet,
-> so both pages currently say *"The photo manager is not connected yet."*
-> Everything under [One-time setup](#one-time-setup-for-the-developer) still
-> has to be done before Nat can sign in.
+> **Status (2026-10-08):** the code is finished and deployed. A Supabase
+> project now exists with email sign-in and custom SMTP switched on, but the
+> live site was built without its two environment variables (checked on
+> 2026-10-08: the JavaScript served by crownedbynat.com contains no Supabase
+> address), so both pages still say *"The photo manager is not connected
+> yet."* Whether the migrations, URL configuration and email templates are in
+> place cannot be seen from this repository; work through
+> [One-time setup](#one-time-setup-for-the-developer) and skip what is done.
 
 ---
 
@@ -156,25 +159,56 @@ accept from them.
 Do these in order. Steps 1 to 3 are shared with the booking system; skip any
 already done (see `supabase/README.md` for those in more detail).
 
-### 1. Supabase project and environment variables
+### 1. Apply the migrations
 
-Create the project, then set these two variables in **Cloudflare Pages →
-Settings → Environment variables** (Production and Preview), and redeploy:
+Before the environment variables, so the site never asks for tables that do
+not exist yet (the stripe above the nav would lose its town names until they
+did).
+
+Supabase dashboard → **SQL Editor**. First find out what is already there; this
+only reads:
+
+```sql
+select
+  to_regclass('public.appointments')  is not null                  as "0001",
+  to_regclass('public.gallery_items') is not null                  as "0002",
+  to_regprocedure('public.promote_studio_owner(text)') is not null as "0006";
+```
+
+- All `false`: a fresh project. Run every file in `supabase/migrations/`, in
+  order, `0001` through `0006`, each in its own query.
+- Anything `true`: some were run before. Do **not** run them all again; see
+  "Which migrations to run" in `supabase/README.md` §2, which shows how to
+  tell 0003-0005 apart and why re-running an older file over a newer one
+  does damage.
+
+0006 is the photo manager: the storage bucket, its policies, the extra photo
+columns and the owner functions. 0006 on its own is safe to run again.
+
+### 2. Environment variables
+
+Set these two variables in **Cloudflare Pages → Settings → Environment
+variables** (Production and Preview), then redeploy (**Deployments → the
+latest one → Retry deployment**; they are compiled in at build time, so
+nothing changes until a new build runs):
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<the anon / publishable key>
 ```
 
+Both values are in the project's **Connect** panel and under **Project
+Settings**. The legacy anon key and the newer `sb_publishable_...` key both
+work (both were tested against a local Supabase on 2026-10-08).
 No other variable is needed. They are listed, without values, in
-`.env.example`. Never add the service role or secret key.
+`.env.example`. Never add the service role or `sb_secret_...` key.
 
-### 2. Apply the migrations
-
-Supabase dashboard → **SQL Editor**: run every file in `supabase/migrations/`
-in order, `0001` through `0006` (or `supabase db push`). 0006 is the photo
-manager: the storage bucket, its policies, the extra photo columns and the
-owner functions. It is safe to run again.
+Connecting the project does not change the public pages: the gallery adds
+Nat's uploads after the built-in photos; the location stripe and the /book
+prices start reading the `locations` and `services` tables, which after 0005
+hold the same towns and prices the site shows today; and the nav and footer
+still leave out customer "Log in" links (`customerAccountsLinked` in
+`lib/supabase/client.ts`).
 
 ### 3. Authentication settings
 
@@ -183,9 +217,26 @@ owner functions. It is safe to run again.
   up* **on** (Nat's account is created the first time she signs in).
 
 **Authentication → URL Configuration**
-- Site URL: `https://wig-install-site.pages.dev` (or the custom domain).
-- Redirect URLs: `https://wig-install-site.pages.dev/**` (plus the custom
-  domain and `http://localhost:3000/**` for local work).
+- Site URL: `https://crownedbynat.com`
+- Redirect URLs: the site asks Supabase to send people back to exactly three
+  pages, on whichever address it is open on:
+
+  | Page | Used by |
+  | --- | --- |
+  | `/admin/login/` | the **Sign in** button in Nat's email (`components/auth/owner-sign-in.tsx`) |
+  | `/account/` | a customer's "Confirm my email" button (`components/auth/signup-form.tsx`) |
+  | `/reset-password/` | a customer's password-reset email (`components/auth/forgot-password-form.tsx`) |
+
+  Add `https://crownedbynat.com/**` and `https://wig-install-site.pages.dev/**`
+  (and `http://localhost:3000/**` for local work), or the three exact URLs
+  per address if you prefer exact entries, e.g.
+  `https://crownedbynat.com/admin/login/`. The trailing slash is part of each
+  path. `www.crownedbynat.com` did not resolve on 2026-10-08, so it needs no
+  entry unless it is set up later.
+
+  Nat's 6-digit code does not depend on this list at all; only the link in
+  the email does. A link to an address missing from the list is sent to the
+  Site URL instead.
 
 **Authentication → Emails → Templates**: Nat needs the *code* in her emails.
 Supabase's default templates only contain a link, which on a phone often opens
@@ -211,6 +262,10 @@ authorized"*, and it is limited to a handful of emails per hour. Do one of:
 - **Stop-gap:** invite `crownedbynattt@gmail.com` to the Supabase
   organization (**Organization settings → Team**) so the built-in service will
   email her.
+
+Custom SMTP was set up for this project on 2026-10-08. Its password or API
+key lives only in the Supabase dashboard; it never goes in this repository,
+in `.env*` files, or in Cloudflare.
 
 ### 5. Nat signs in once
 

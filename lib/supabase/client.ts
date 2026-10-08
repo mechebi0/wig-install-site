@@ -56,6 +56,20 @@ const SUPABASE_ANON_KEY = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim
 export const isSupabaseConfigured =
   SUPABASE_URL.length > 0 && SUPABASE_ANON_KEY.length > 0;
 
+/**
+ * Whether the public nav and footer offer customer accounts ("Log in", "My
+ * appointments").
+ *
+ * Deliberately separate from isSupabaseConfigured. Since Square became /book's
+ * scheduler, nothing on the site creates a Supabase appointment (README.md,
+ * "Admin and customer accounts"), so a customer who followed those links would
+ * find an account that can never show anything. The project is connected for
+ * the owner's photo manager, and connecting it must not change the public
+ * pages. /login/, /signup/ and /account/ still work for anyone sent to them
+ * directly. Flip this to true if customer accounts come back.
+ */
+export const customerAccountsLinked = false;
+
 let client: SupabaseClient | null = null;
 
 /**

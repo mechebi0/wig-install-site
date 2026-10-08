@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AuthError, User } from "@supabase/supabase-js";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  customerAccountsLinked,
+  getSupabase,
+  isSupabaseConfigured,
+} from "@/lib/supabase/client";
 import type { Profile } from "@/lib/supabase/types";
 
 /**
@@ -183,15 +187,15 @@ export function authErrorMessage(error: AuthError | Error | null): string {
  *
  * Returns "unconfigured" when there is no Supabase project, which the nav uses
  * to leave the account control out entirely rather than showing a login link
- * that leads to a page explaining there are no logins.
+ * that leads to a page explaining there are no logins. It says the same while
+ * customer accounts are not offered on the public site (customerAccountsLinked
+ * in lib/supabase/client.ts), and then sends no request at all.
  */
 export type AuthState = "loading" | "unconfigured" | "signed-out" | "signed-in";
 
 export function useAuthState(): AuthState {
-  const supabase = useMemo(() => getSupabase(), []);
-  const [state, setState] = useState<AuthState>(
-    isSupabaseConfigured ? "loading" : "unconfigured",
-  );
+  const supabase = useMemo(() => (customerAccountsLinked ? getSupabase() : null), []);
+  const [state, setState] = useState<AuthState>(supabase ? "loading" : "unconfigured");
 
   useEffect(() => {
     if (!supabase) return;

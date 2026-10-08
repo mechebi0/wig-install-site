@@ -344,7 +344,10 @@ row any more; the account dashboard's "Upcoming appointments" will only ever
 show rows added some other way. They were left in place rather than deleted,
 since whether to keep, repurpose or remove that subsystem is a product
 decision, not a booking-integration one. Delete them once that decision is
-made.
+made. Until then the public nav and footer do not link to customer accounts
+even when Supabase is connected (`customerAccountsLinked` in
+`lib/supabase/client.ts`), so connecting it for the photo manager leaves the
+public pages as they are.
 
 **The photo manager, built, waiting on the same Supabase setup.**
 `/admin/photos/` lets Nat upload, edit, reorder, hide and remove gallery

@@ -1,6 +1,6 @@
 import { InstagramLogo } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/wordmark";
-import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { customerAccountsLinked, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   ADDITIONAL_LOCATION_LABELS,
   NAV_LINKS,
@@ -85,6 +85,9 @@ const FOOTER_PAGES = [
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();
+  // See customerAccountsLinked: a connected Supabase alone is not a reason to
+  // send customers to an account page.
+  const accounts = isSupabaseConfigured && customerAccountsLinked;
 
   return (
     <footer className="on-photo border-t border-line bg-ink">
@@ -172,7 +175,7 @@ export function SiteFooter() {
           </nav>
 
           <div className="lg:col-span-3">
-            {isSupabaseConfigured ? (
+            {accounts ? (
               <>
                 <h2 className="label text-on-accent">Your account</h2>
                 <ul className="mt-4 flex flex-col text-sm">
@@ -187,7 +190,7 @@ export function SiteFooter() {
             ) : null}
 
             <h2
-              className={`label text-on-accent ${isSupabaseConfigured ? "mt-6" : ""}`}
+              className={`label text-on-accent ${accounts ? "mt-6" : ""}`}
             >
               Contact
             </h2>

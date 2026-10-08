@@ -368,8 +368,9 @@ export function SiteNav() {
             {/*
               A fixed-width slot, so the Book button does not slide sideways
               when the session resolves a moment after hydration. Rendered only
-              when there is a booking system to log in to; with no Supabase
-              project the slot does not exist and the bar is exactly as it was.
+              when customer accounts are offered (customerAccountsLinked in
+              lib/supabase/client.ts) and a Supabase project is connected;
+              otherwise the slot does not exist and the bar is exactly as it was.
             */}
             {auth !== "unconfigured" ? (
               <div className="hidden min-w-[5.5rem] justify-end lg:flex">
