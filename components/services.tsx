@@ -1,9 +1,11 @@
 "use client";
 
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { useSiteView } from "@/components/site-photos";
 import { groupByCategory, useServices, type CatalogService } from "@/lib/catalog";
+import { CTA, parseServiceId, serviceBookingTarget } from "@/lib/content";
 import { formatDuration, formatPrice } from "@/lib/format";
 
 /**
@@ -138,6 +140,7 @@ function ServiceCard({
             <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">
               {service.description}
             </p>
+            <ServiceLink service={service} className="mt-4" />
           </div>
         </div>
       </article>
@@ -153,7 +156,43 @@ function ServiceCard({
       <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted">
         {service.description}
       </p>
+      {/* At the foot of the card, so the links line up across a row. */}
+      <ServiceLink service={service} className="mt-auto pt-4" />
     </article>
+  );
+}
+
+/**
+ * "Book Closure Install", out to that service's own page: its photographs
+ * and the same scheduler, with nothing else in the way. The scheduler is
+ * still further down this page too; the link is for someone who wants to see
+ * the work first. A service added from the dashboard has no page of its own,
+ * so it gets no link and is booked from the scheduler below like before.
+ */
+function ServiceLink({
+  service,
+  className = "",
+}: {
+  service: CatalogService;
+  className?: string;
+}) {
+  const id = parseServiceId(service.slug);
+  if (!id) return null;
+  return (
+    <div className={className}>
+      <a
+        {...serviceBookingTarget(id)}
+        className="group inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"
+      >
+        {CTA.bookInstall} {service.name}
+        <ArrowRight
+          size={15}
+          weight="regular"
+          aria-hidden="true"
+          className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 motion-reduce:transition-none"
+        />
+      </a>
+    </div>
   );
 }
 

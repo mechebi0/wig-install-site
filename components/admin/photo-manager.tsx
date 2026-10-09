@@ -179,6 +179,7 @@ function Manager({ email }: { email: string }) {
 
           <PhotoUpload
             orders={orders}
+            bookingReady={set?.photos.some((photo) => photo.bookingServicesStored) ?? false}
             onUploaded={(added) => {
               setSet((current) =>
                 current

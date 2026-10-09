@@ -7,8 +7,9 @@
  * A PhotoSet (lib/site-photos.ts) says which photographs exist and which one
  * Nat chose for each place. This file turns it into what the site shows:
  * each collection's photographs and cover, the homepage slideshow, each
- * install page's photograph, the finish swatches, the /book menu, the sign-in
- * screens, the homepage's recent-work rail and the link-preview picture.
+ * install page's photograph, the finish swatches, the photographs on each
+ * service's booking page, the /book menu, the sign-in screens, the homepage's
+ * recent-work rail and the link-preview picture.
  *
  * Every component reads photographs through resolveSite(), and none of them
  * reads lib/collections.ts or the database directly. The build calls it once
@@ -34,6 +35,9 @@
  *   install page        the first photograph tagged with that install; none
  *                       if nothing is, and the page leads with its words
  *   finish swatch       none: a plain swatch, never a borrowed photograph
+ *   a service's own     the photographs ticked for that service; for a
+ *   booking page        reinstall with none, the Reinstalls ones; else none
+ *                       and the page says so (bookingPhotos)
  *   /book menu          the first frontal, else the first photograph
  *   sign-in screens     the first photograph
  *   link previews       whatever the first slide shows
@@ -63,6 +67,7 @@ import {
   SIGN_IN_FOCAL,
   type HeroSlide,
 } from "@/lib/images";
+import { SERVICES, type ServiceId } from "@/lib/content";
 import { DEFAULT_FOCAL, type PhotoSet, type SitePhoto, type SlotId } from "@/lib/site-photos";
 import {
   FINISHES,
@@ -84,6 +89,8 @@ export type GalleryItem = {
    * where it does not. See the note on `installType` in lib/collections.ts.
    */
   installType: InstallTypeId | null;
+  /** The services whose own booking page shows it. See bookingPhotos below. */
+  bookingServices: ServiceId[];
   /** Collection slugs it appears in, in reading order. */
   collections: string[];
   /** The collection it is filed under where only one can be named. */
@@ -153,6 +160,7 @@ function toItem(photo: SitePhoto): GalleryItem {
     title: photo.title,
     description: photo.caption,
     installType: photo.installType,
+    bookingServices: photo.bookingServices,
     collections: photo.collections,
     primaryCollection: primary,
     finishAttributes: natural ? ["natural-lace", ...photo.laceDetails] : photo.laceDetails,
@@ -278,12 +286,7 @@ export function listCollections(): StyleCollection[] {
 /**
  * The examples on an install page: only photographs whose frame establishes
  * that install type (see `installType` in lib/collections.ts), so an untagged
- * look is never presented as either.
- *
- * Taken one collection at a time, in reading order, so six of them read as
- * the range of the work rather than as the first six deep waves. Within a
- * collection, Nat's order decides, so moving a photograph earlier in the
- * photo manager is how it gets picked. The page's own photograph and the
+ * look is never presented as either. The page's own photograph and the
  * finish swatches are left out, so no photograph appears twice on one screen.
  *
  * Returns an empty list when nothing is established, and the page leaves the
@@ -295,7 +298,58 @@ export function installExamples(view: SiteView, type: InstallTypeId, limit = 6):
       placed ? [placed.item.id] : [],
     ),
   );
-  const pool = view.items.filter((item) => item.installType === type && !onPage.has(item.id));
+  return acrossCollections(
+    view.items.filter((item) => item.installType === type && !onPage.has(item.id)),
+    limit,
+  );
+}
+
+/**
+ * The photographs on a service's own booking page, /book/<service>/.
+ *
+ *   1. the photographs Nat ticked that service for ("Booking pages" in the
+ *      photo manager, `bookingServices`)
+ *   2. for the two reinstalls only, when none is ticked: the photographs
+ *      labelled with the broader Reinstalls install type, which is the label
+ *      Nat has been using for reinstalls of either kind. `borrowed` says so,
+ *      and the page says so in words (SERVICE_BOOKING.photos.borrowed)
+ *   3. otherwise none. The page says there are none yet rather than filling
+ *      the space with a different service's work
+ *
+ * Step 2 is written out per service in BORROWS rather than inferred from
+ * the services' install types: a colour frontal shares the plain frontal's
+ * install type, and borrowing along it would put coloured units on the plain
+ * frontal's page and the other way round.
+ */
+export type BookingPhotos = {
+  items: GalleryItem[];
+  /** The install type the photographs were borrowed from, or null when they are the service's own. */
+  borrowed: InstallTypeId | null;
+};
+
+const BORROWS: Partial<Record<ServiceId, InstallTypeId>> = {
+  "frontal-reinstall": "wig-touch-up",
+  "closure-reinstall": "wig-touch-up",
+};
+
+export function bookingPhotos(view: SiteView, service: ServiceId, limit = 6): BookingPhotos {
+  const own = view.items.filter((item) => item.bookingServices.includes(service));
+  if (own.length > 0) return { items: acrossCollections(own, limit), borrowed: null };
+
+  const from = BORROWS[service];
+  const borrowed = from ? view.items.filter((item) => item.installType === from) : [];
+  if (from && borrowed.length > 0) return { items: acrossCollections(borrowed, limit), borrowed: from };
+
+  return { items: [], borrowed: null };
+}
+
+/**
+ * Up to `limit` of `pool`, taken one collection at a time in reading order,
+ * so six of them read as the range of the work rather than as the first six
+ * deep waves. Within a collection Nat's order decides, so moving a photograph
+ * earlier in the photo manager is how it gets picked.
+ */
+function acrossCollections(pool: GalleryItem[], limit: number): GalleryItem[] {
   const order: (string | null)[] = [...COLLECTIONS_IN_ORDER.map((collection) => collection.slug), null];
   const queues = order.map((slug) => pool.filter((item) => item.primaryCollection === slug));
 
@@ -350,6 +404,14 @@ function placesIn(view: SiteView): { key: string; label: string; ids: string[]; 
   }
   for (const finish of FINISHES) {
     one(`finish:${finish.id}`, `${finish.label} swatch`, view.finishes[finish.id]?.item);
+  }
+  for (const service of SERVICES) {
+    places.push({
+      key: `booking:${service.id}`,
+      label: `${service.name} booking page`,
+      ids: bookingPhotos(view, service.id).items.map((item) => item.id),
+      single: false,
+    });
   }
   one("book", "Booking page menu", view.book?.item);
   one("sign-in", "Sign-in page", view.signIn?.item);

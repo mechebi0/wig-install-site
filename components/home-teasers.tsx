@@ -2,7 +2,12 @@ import { ArrowRight, CalendarCheck } from "@phosphor-icons/react/dist/ssr";
 import { ButtonLink } from "@/components/button";
 import { CollectionGrid } from "@/components/collection-grid";
 import { Reveal } from "@/components/reveal";
-import { CTA, HOME, bookingTarget } from "@/lib/content";
+import {
+  CTA,
+  HOME,
+  baseServiceForInstallType,
+  serviceBookingTarget,
+} from "@/lib/content";
 import { INSTALL_TYPES } from "@/lib/taxonomy";
 
 /**
@@ -14,8 +19,8 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
  * side by side is what stops that happening one section at a time.
  *
  *   InstallTypes         the three services, frontal, closure and
- *                        reinstalls, out to /book and to each install's own
- *                        page
+ *                        reinstalls, out to each one's booking page and to
+ *                        each install's own page
  *   CollectionShowcase   six style cards, out to /gallery
  *
  * They answer two different questions and are kept visibly apart. InstallTypes
@@ -65,10 +70,10 @@ function TextLink({ href, children }: { href: string; children: string }) {
  * elsewhere on the page carries the colour, and this block only has to be
  * unmistakable.
  *
- * Names, descriptions, the per-type booking link and the link to each
- * install's own page (/installs/frontal/, /installs/closure/,
- * /installs/wig-touch-up/) all come from lib/taxonomy.ts. Nothing here types
- * "frontal", "closure" or "wig-touch-up".
+ * Names, descriptions and the link to each install's own page
+ * (/installs/frontal/, /installs/closure/, /installs/wig-touch-up/) all come
+ * from lib/taxonomy.ts, and the booking link from serviceBookingTarget in
+ * lib/content.ts. Nothing here types "frontal", "closure" or "wig-touch-up".
  */
 export function InstallTypes() {
   return (
@@ -120,10 +125,15 @@ export function InstallTypes() {
                   Book pill stays the primary object; the page link is the
                   quiet text-link tier the rest of the homepage uses, so the
                   panel gains a doorway without gaining a second button.
+
+                  Book opens that service's own booking page rather than the
+                  whole menu. Reinstalls covers two services, and opens on
+                  the first, Frontal Reinstall, with Closure Reinstall one tap
+                  away on the same page (baseServiceForInstallType).
                 */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
                   <ButtonLink
-                    {...bookingTarget({ install: type.id })}
+                    {...serviceBookingTarget(baseServiceForInstallType(type.id))}
                     className="w-full sm:w-auto"
                   >
                     <CalendarCheck size={17} weight="regular" aria-hidden="true" />

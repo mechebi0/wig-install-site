@@ -84,8 +84,16 @@ export function MobileBookBar() {
   */
   const HIDDEN_ON = ["/book", "/admin", "/login", "/signup", "/forgot-password", "/reset-password"];
   const current = pathname.replace(/\/$/, "") || "/";
-  // Every page under /admin/ too: the owner sign-in and the photo manager.
-  const hidden = HIDDEN_ON.includes(current) || current.startsWith("/admin/");
+  /*
+    Every page under /admin/ too: the owner sign-in and the photo manager.
+    And each service's own booking page under /book/, for the same reason as
+    /book: it would float over the scheduler, and would take her from the
+    service she chose back to the whole menu.
+  */
+  const hidden =
+    HIDDEN_ON.includes(current) ||
+    current.startsWith("/admin/") ||
+    current.startsWith("/book/");
   const shown = past && !hidden;
 
   if (hidden) return null;

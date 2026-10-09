@@ -5,7 +5,9 @@ import {
   LAUNCH_SLOTS,
   type FinishAttribute,
   type Photo,
+  type StyleCategory,
 } from "@/lib/collections";
+import { SERVICES, parseServiceId, type ServiceId } from "@/lib/content";
 import { SUPABASE_URL } from "@/lib/supabase/client";
 import { parseInstallType, type InstallTypeId } from "@/lib/taxonomy";
 
@@ -70,6 +72,9 @@ export const DEFAULT_FOCAL = "center 30%";
 
 const LACE_DETAILS: readonly FinishAttribute[] = ["melted-hairline", "hd-lace", "custom-hairline"];
 
+/** The collection that marks a coloured unit; see launchBookingServices. */
+const COLOUR_COLLECTION: StyleCategory = "color-and-custom";
+
 /** One photograph, published or not, as the site and the manager read it. */
 export type SitePhoto = {
   /** The row's uuid; for the launch set, the file stem. */
@@ -82,6 +87,18 @@ export type SitePhoto = {
   /** One sentence about the frame. Kept with the photograph, not shown. */
   caption: string;
   installType: InstallTypeId | null;
+  /**
+   * The services whose own booking page (/book/<service>/) shows it: "Booking
+   * pages" in the photo manager. A booking service, never a style, so it is
+   * a separate field from the collections below.
+   */
+  bookingServices: ServiceId[];
+  /**
+   * False when `bookingServices` was not read from the database but filled in
+   * by launchBookingServices(): the launch set, or a database without
+   * migration 0010. The photo manager only offers the choice when it is true.
+   */
+  bookingServicesStored: boolean;
   /** Collection slugs, in the site's reading order. Natural Lace included. */
   collections: string[];
   /** Where one collection has to be named. Null: the first of `collections`. */
@@ -173,11 +190,16 @@ export function storageKeys(set: PhotoSet): Set<string> {
  * it fills and the collections it is the cover or second photograph of. The
  * `!hero_item_id` hints name which of gallery_categories' two links to a
  * photograph each embed follows.
+ *
+ * The photograph's own columns are `*` rather than a list, so that this one
+ * request works before and after migration 0010 adds `booking_services`:
+ * naming a column the database does not have yet fails the whole request
+ * (and with it the build), where `*` just leaves it out, and photoFromRow
+ * fills it in. The table holds nothing a visitor may not read; which ROWS
+ * come back is still row level security's decision.
  */
 export const PHOTO_SELECT = [
-  "id, src, alt, title, caption, width, height, install_type, active,",
-  "display_order, created_at, focal_position, featured, finish_attributes,",
-  "primary_collection, gallery_item_categories(gallery_categories(slug)),",
+  "*, gallery_item_categories(gallery_categories(slug)),",
   "site_photo_slots(slot), cover_of:gallery_categories!hero_item_id(slug),",
   "second_of:gallery_categories!hover_item_id(slug)",
 ].join(" ");
@@ -198,6 +220,8 @@ export type PhotoRow = {
   featured: boolean | null;
   finish_attributes: string[] | null;
   primary_collection: string | null;
+  /** Absent, not empty, on a database without migration 0010. */
+  booking_services?: string[] | null;
   gallery_item_categories: { gallery_categories: { slug: string } | null }[] | null;
   site_photo_slots: { slot: string }[] | null;
   cover_of: { slug: string }[] | null;
@@ -221,12 +245,48 @@ function isLaceDetail(value: string): value is FinishAttribute {
   return (LACE_DETAILS as readonly string[]).includes(value);
 }
 
+/**
+ * The booking pages a photograph starts on, from what it already carries.
+ * Migration 0010 writes exactly this rule into `booking_services` once, and
+ * from then on Nat's own choices in the photo manager are the only rule. It
+ * is also what stands in where there is nothing stored to read: the launch
+ * set, and a database that does not have 0010 yet, so the booking pages look
+ * the same before the migration as just after it.
+ *
+ *   frontal, or closure   that install's own service, or its colour service
+ *                         when the photograph is in Color & Custom: a
+ *                         coloured unit belongs with the colour price
+ *   Reinstalls, or none   nothing. A frame cannot say which of the two
+ *                         reinstalls it was, and a reinstall page borrows
+ *                         the Reinstalls photographs anyway (lib/gallery.ts)
+ *
+ * Wig Touch Up starts with nothing: no photograph carries anything that
+ * says it shows one.
+ */
+export function launchBookingServices(
+  installType: InstallTypeId | null,
+  collections: readonly string[],
+): ServiceId[] {
+  const colour = collections.includes(COLOUR_COLLECTION);
+  if (installType === "frontal") return [colour ? "color-frontal-install" : "frontal-install"];
+  if (installType === "closure") return [colour ? "color-closure-install" : "closure-install"];
+  return [];
+}
+
+/** Known services only, once each, in the order SERVICES lists them. */
+function parseBookingServices(values: readonly unknown[]): ServiceId[] {
+  const known = new Set(values.map(parseServiceId).filter((id): id is ServiceId => id !== null));
+  return SERVICES.flatMap((service) => (known.has(service.id) ? [service.id] : []));
+}
+
 export function photoFromRow(row: PhotoRow): SitePhoto {
   const collections = inReadingOrder(
     (row.gallery_item_categories ?? []).flatMap((link) =>
       link.gallery_categories?.slug ? [link.gallery_categories.slug] : [],
     ),
   );
+  const installType = parseInstallType(row.install_type);
+  const stored = Array.isArray(row.booking_services);
   return {
     id: row.id,
     src: row.src,
@@ -234,7 +294,11 @@ export function photoFromRow(row: PhotoRow): SitePhoto {
     alt: row.alt,
     title: row.title ?? "",
     caption: row.caption ?? "",
-    installType: parseInstallType(row.install_type),
+    installType,
+    bookingServices: stored
+      ? parseBookingServices(row.booking_services ?? [])
+      : launchBookingServices(installType, collections),
+    bookingServicesStored: stored,
     collections,
     primaryCollection: row.primary_collection,
     laceDetails: LACE_DETAILS.filter((detail) => (row.finish_attributes ?? []).includes(detail)),
@@ -272,8 +336,12 @@ export function photoSetFromRows(rows: PhotoRow[]): PhotoSet {
  * photograph, to what migration 0007 put in the database.
  */
 export function launchPhotoSet(): PhotoSet {
-  const photos = LAUNCH_ITEMS.map(
-    (item, index): SitePhoto => ({
+  const photos = LAUNCH_ITEMS.map((item, index): SitePhoto => {
+    const collections = inReadingOrder([
+      ...item.styleCategories,
+      ...(item.finishAttributes.includes("natural-lace") ? ["natural-lace"] : []),
+    ]);
+    return {
       id: item.id,
       src: item.image.src,
       image: item.image,
@@ -281,10 +349,9 @@ export function launchPhotoSet(): PhotoSet {
       title: item.title,
       caption: item.description,
       installType: item.installType,
-      collections: inReadingOrder([
-        ...item.styleCategories,
-        ...(item.finishAttributes.includes("natural-lace") ? ["natural-lace"] : []),
-      ]),
+      bookingServices: launchBookingServices(item.installType, collections),
+      bookingServicesStored: false,
+      collections,
       primaryCollection: item.primaryStyle,
       laceDetails: item.finishAttributes.filter(isLaceDetail),
       featured: item.featured,
@@ -292,8 +359,8 @@ export function launchPhotoSet(): PhotoSet {
       published: true,
       order: index + 1,
       createdAt: "",
-    }),
-  );
+    };
+  });
 
   const idOf = (photo: Photo) => photos.find((candidate) => candidate.src === photo.src)?.id;
   const set: PhotoSet = { photos, slots: {}, covers: {}, seconds: {}, source: "launch" };
@@ -331,6 +398,7 @@ export function photoSetKey(set: PhotoSet): string {
       photo.alt,
       photo.title,
       photo.installType,
+      photo.bookingServices,
       photo.collections,
       photo.primaryCollection,
       photo.laceDetails,

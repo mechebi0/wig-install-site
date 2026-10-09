@@ -28,7 +28,11 @@ and files, and it refuses to start unless `SUPABASE_URL` is `localhost` or
 - Reads the policies and grants from the database itself.
 - Feeds the REAL error responses of the local GoTrue (rate limit, wrong code,
   an unreachable server) through `lib/auth/owner-errors.ts`.
-- Re-runs migrations 0006 to 0009 on a database that already has them.
+- Checks the booking pages a photograph is on (`booking_services`, 0010):
+  nobody but the owner can change them, a value that is not a service is
+  refused, and a hidden photograph never comes back for one.
+- Re-runs migrations 0006 to 0010 on a database that already has them, and
+  checks 0010's one-time seed does not run a second time.
 
 ## Running it
 

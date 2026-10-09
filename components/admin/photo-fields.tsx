@@ -7,6 +7,7 @@ import {
   collectionTitle,
   type FinishAttribute,
 } from "@/lib/collections";
+import { SERVICES, type ServiceId } from "@/lib/content";
 import { INSTALL_TYPES, getInstallType, type InstallTypeId } from "@/lib/taxonomy";
 
 export { collectionTitle };
@@ -26,6 +27,10 @@ export { collectionTitle };
  *                  photograph Nat says it applies to; choosing one never
  *                  creates anything bookable. It also lets the photograph
  *                  appear on that install's own page.
+ *   booking pages  which of the seven services' own booking pages
+ *                  (/book/<service>/) show it. Finer than the install type:
+ *                  a frontal can be a plain or a colour frontal, a reinstall
+ *                  a frontal or a closure one, and only Nat knows which.
  *   lace details   what the gallery caption names under the title: Melted
  *                  Hairline, HD Lace, Custom Hairline. Natural Lace is the
  *                  collection above rather than a second tick box here.
@@ -263,6 +268,67 @@ export function LaceDetailsField({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+/**
+ * The booking pages that show it, one tick box per service, in menu order.
+ * All optional: a photograph on no booking page is still everywhere else.
+ */
+export function BookingServicesField({
+  id,
+  value,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  value: ServiceId[];
+  onChange: (next: ServiceId[]) => void;
+  disabled?: boolean;
+}) {
+  const toggle = (service: ServiceId) =>
+    onChange(
+      SERVICES.map((option) => option.id).filter((option) =>
+        option === service ? !value.includes(service) : value.includes(option),
+      ),
+    );
+
+  return (
+    <fieldset aria-describedby={`${id}-help`}>
+      <legend className="text-sm font-medium text-ink">Booking pages (optional)</legend>
+      <p id={`${id}-help`} className="mt-1 text-sm text-muted">
+        Tick the services this photo shows. Someone booking one of them then
+        sees it on that service&rsquo;s booking page, which shows up to six,
+        earliest in your order first. A reinstall page with no photos ticked
+        shows your Reinstalls photos instead.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {SERVICES.map((service, index) => (
+          <Chip
+            key={service.id}
+            id={index === 0 ? id : undefined}
+            label={service.name}
+            checked={value.includes(service.id)}
+            disabled={disabled}
+            onToggle={() => toggle(service.id)}
+          />
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** In place of BookingServicesField while the database cannot store the choice. */
+export function BookingServicesUnavailable() {
+  return (
+    <div>
+      <p className="text-sm font-medium text-ink">Booking pages</p>
+      <p className="mt-1 text-sm text-muted">
+        Choosing which booking pages show a photo needs a one-time update to
+        the website&rsquo;s database. Your developer has the steps in
+        docs/photo-manager.md (One-time setup, step 1).
+      </p>
+    </div>
   );
 }
 

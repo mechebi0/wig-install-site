@@ -146,6 +146,8 @@ async function attackAsEveryWriter(c, who, target) {
     "upsert a place": () => c.from("site_photo_slots").upsert({ slot: "home-1", item_id: null }),
     "update every photo": () => c.from("gallery_items").update({ alt: "Defaced by an attacker here", active: false }).neq("id", ZERO),
     "update one photo's file": () => c.from("gallery_items").update({ src: "gallery/elsewhere.webp" }).eq("id", target.publishedId),
+    // A value the CHECK accepts (0010), so only a policy can stop it.
+    "update booking pages": () => c.from("gallery_items").update({ booking_services: ["wig-touch-up"] }).neq("id", ZERO),
     "update collections": () => c.from("gallery_categories").update({ title: "Defaced", hero_item_id: null }).neq("id", ZERO),
     "update places": () => c.from("site_photo_slots").update({ item_id: null }).neq("slot", ""),
     "update settings": () => c.from("business_settings").update({ value: { defaced: true } }).neq("key", ""),
@@ -268,8 +270,10 @@ for (const key of [publishedKey, hiddenKey]) {
   const up = await owner.storage.from(BUCKET).upload(key, webp(), { contentType: "image/webp", upsert: false });
   check(`owner uploads ${key.slice(-11)}`, !up.error, up.error?.message ?? "");
 }
-const published = await owner.from("gallery_items").insert(photoRow(publishedKey, { title: "Fixture live" })).select("id").single();
-const hidden = await owner.from("gallery_items").insert(photoRow(hiddenKey, { title: "Fixture hidden", active: false })).select("id").single();
+// Both on the Closure Install booking page (0010), so the visitor checks can
+// show that a hidden photograph never reaches one.
+const published = await owner.from("gallery_items").insert(photoRow(publishedKey, { title: "Fixture live", booking_services: ["closure-install"] })).select("id").single();
+const hidden = await owner.from("gallery_items").insert(photoRow(hiddenKey, { title: "Fixture hidden", active: false, booking_services: ["closure-install"] })).select("id").single();
 check("owner inserts a published and a hidden photograph", !published.error && !hidden.error, published.error?.message ?? hidden.error?.message ?? "");
 const target = { publishedId: published.data?.id, hiddenId: hidden.data?.id, publishedKey, hiddenKey };
 {
@@ -288,6 +292,9 @@ await attackAsEveryWriter(anon, "visitor", target);
   check("visitor sees the published photograph and NOT the hidden one", data?.length === 1 && data[0].id === target.publishedId, `rows=${data?.length}`);
   const all = await anon.from("gallery_items").select("id, active");
   check("visitor sees only published rows in the whole table", (all.data ?? []).length > 0 && (all.data ?? []).every((r) => r.active === true), `rows=${all.data?.length}`);
+  // The query a booking page's photographs come from, asked directly.
+  const closure = await anon.from("gallery_items").select("id").contains("booking_services", ["closure-install"]);
+  check("a booking page gets the published photograph and never the hidden one", !closure.error && (closure.data ?? []).some((r) => r.id === target.publishedId) && !(closure.data ?? []).some((r) => r.id === target.hiddenId), closure.error?.message ?? `rows=${closure.data?.length}`);
   const slots = await anon.from("site_photo_slots").select("slot");
   check("visitor can read the photo places", !slots.error && (slots.data ?? []).length > 0, slots.error?.message ?? `rows=${slots.data?.length}`);
   const cats = await anon.from("gallery_categories").select("slug");
@@ -402,6 +409,10 @@ section("5. The owner can do all of it");
   check("an unknown collection is refused, even for the owner", !!unknown.error);
   const edit = await owner.from("gallery_items").update({ title: "Edited", alt: "A freshly edited description here" }).eq("id", target.publishedId).select("title");
   check("owner edits a photograph", !edit.error && edit.data?.[0]?.title === "Edited", edit.error?.message ?? "");
+  const pages = await owner.from("gallery_items").update({ booking_services: ["frontal-reinstall", "closure-reinstall"] }).eq("id", target.publishedId).select("booking_services");
+  check("owner chooses a photograph's booking pages", !pages.error && JSON.stringify(pages.data?.[0]?.booking_services) === JSON.stringify(["frontal-reinstall", "closure-reinstall"]), pages.error?.message ?? "");
+  const notAService = await owner.from("gallery_items").update({ booking_services: ["frontal-curls"] }).eq("id", target.publishedId);
+  check("a booking page that is not a service is refused, even for the owner", !!notAService.error, notAService.error?.message ?? "accepted");
   const hide = await owner.from("gallery_items").update({ active: false }).eq("id", target.publishedId).select("id");
   check("owner hides a photograph", !hide.error && hide.data?.length === 1);
   const gone = await anon.from("gallery_items").select("id").eq("id", target.publishedId);
@@ -566,16 +577,25 @@ section("8. What the sign-in page would show for REAL Supabase errors");
 // ==========================================================================
 section("9. The migrations are safe to run again");
 if (MIGRATIONS) {
+  // A launch photograph Nat has taken off its booking page: 0010's seed must
+  // not put it back when the file is run again.
+  const launch = sql(`select id from public.gallery_items where install_type = 'frontal' order by display_order limit 1;`);
+  const pagesBefore = launch ? sql(`select booking_services::text from public.gallery_items where id = '${launch}';`) : "";
+  if (launch) sql(`update public.gallery_items set booking_services = '{}' where id = '${launch}';`);
   const snapBefore = snapshot();
   try {
-    for (const file of ["0006_owner_photo_manager.sql", "0007_website_photos.sql", "0008_rebuild_site_on_photo_change.sql", "0009_revoke_excess_api_grants.sql"]) {
+    for (const file of ["0006_owner_photo_manager.sql", "0007_website_photos.sql", "0008_rebuild_site_on_photo_change.sql", "0009_revoke_excess_api_grants.sql", "0010_photo_booking_services.sql"]) {
       runFile(`${MIGRATIONS}/${file}`);
     }
-    check("0006 to 0009 re-run cleanly on a database that already has them", true);
+    check("0006 to 0010 re-run cleanly on a database that already has them", true);
   } catch (e) {
-    check("0006 to 0009 re-run cleanly on a database that already has them", false, String(e.stderr || e.message).slice(0, 300));
+    check("0006 to 0010 re-run cleanly on a database that already has them", false, String(e.stderr || e.message).slice(0, 300));
   }
   check("re-running them changed no photograph, place or collection", changedTables(snapBefore, snapshot()).filter((t) => t !== "profiles").length === 0, changedTables(snapBefore, snapshot()).join(","));
+  if (launch) {
+    check("0010's seed ran once: a booking page Nat cleared stays cleared", sql(`select booking_services::text from public.gallery_items where id = '${launch}';`) === "{}");
+    sql(`update public.gallery_items set booking_services = '${pagesBefore}' where id = '${launch}';`);
+  }
   const { data } = await (await otpSignIn(OWNER)).rpc("is_admin");
   check("and the owner is still the owner afterwards", data === true);
 } else {

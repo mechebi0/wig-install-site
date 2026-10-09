@@ -21,8 +21,9 @@ import {
   CTA,
   MAX_STYLE_DESCRIPTION_LENGTH,
   SELECTION,
+  baseServiceForInstallType,
   bookingTarget,
-  bookingTargetAtForm,
+  serviceBookingTarget,
 } from "@/lib/content";
 import {
   FINISHES,
@@ -130,15 +131,17 @@ export function InstallSelector(props: InstallSelectorProps) {
   /*
     Where the Book button goes. Both installType and finish are required, so
     either missing means null: no half-complete link. On an install page the
-    choice is otherwise complete, so it opens /book at the request form with
-    both answers in the URL. On /book itself the form is further down this
-    same page, so it is an anchor: a link back to /book with a different
-    query string would reload the page for nothing. Either way an external
-    scheduler, once configured, wins.
+    choice is otherwise complete, so it opens that install's own booking page
+    (/book/<service>/), the finish riding along in the URL. On /book itself
+    the form is further down this same page, so it is an anchor: a link back
+    to /book with a different query string would reload the page for
+    nothing. Either way an external scheduler, once configured, wins.
   */
   const bookTarget = (() => {
     if (!installType || !finish) return null;
-    if (onPage) return bookingTargetAtForm({ install: installType, finish });
+    if (onPage) {
+      return serviceBookingTarget(baseServiceForInstallType(installType), { finish });
+    }
     const target = bookingTarget({ install: installType, finish });
     return "target" in target ? target : { href: `#${BOOKING_ANCHOR}` };
   })();
@@ -584,7 +587,8 @@ export function InstallSelector(props: InstallSelectorProps) {
  * seen yet. Scrolling her to #finish instead is the same destination the
  * quiet "Choose your finish" button beside it already goes to, so the
  * pill and its neighbour briefly agree rather than one out-promising the
- * other. Once a finish exists, it reverts to the real booking link.
+ * other. Once a finish exists, it is the real booking link: this install's
+ * own booking page (serviceBookingTarget in lib/content.ts), finish included.
  */
 export function BookInstallLink({
   installType,
@@ -607,7 +611,7 @@ export function BookInstallLink({
 
   return (
     <ButtonLink
-      {...bookingTargetAtForm({ install: installType, finish })}
+      {...serviceBookingTarget(baseServiceForInstallType(installType), { finish })}
       variant="onPhoto"
       className={className}
     >

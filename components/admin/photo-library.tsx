@@ -15,6 +15,8 @@ import { buttonStyles } from "@/components/button";
 import { AdminDialog } from "@/components/admin/admin-dialog";
 import { ReplacePhotoDialog } from "@/components/admin/photo-replace";
 import {
+  BookingServicesField,
+  BookingServicesUnavailable,
   CollectionsField,
   FeaturedField,
   InstallTypeField,
@@ -579,6 +581,16 @@ function EditPhotoForm({
         onChange={(next) => set("installType", next)}
         disabled={busy}
       />
+      {details.bookingServices ? (
+        <BookingServicesField
+          id={`${baseId}-booking`}
+          value={details.bookingServices}
+          onChange={(next) => set("bookingServices", next)}
+          disabled={busy}
+        />
+      ) : (
+        <BookingServicesUnavailable />
+      )}
       <LaceDetailsField
         id={`${baseId}-lace`}
         value={details.laceDetails}

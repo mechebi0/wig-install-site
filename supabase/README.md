@@ -59,6 +59,11 @@ nothing pretends to work.
    Supabase grants by default and nothing here uses (it only revokes; the site
    does not change). `docs/photo-manager.md`, "Who can do what", says why and
    how to check whether a project needs it.
+7. `0010_photo_booking_services.sql` records which services' booking pages
+   (`/book/<service>/`) show each photograph, so Nat can choose them under
+   "Booking pages" in the photo manager. Safe to run at any time after 0007:
+   the site places photographs by the same rule until it has run, so nothing
+   a visitor sees changes. See `docs/photo-manager.md`.
 
 Each should finish with no errors. On a fresh project that is the whole job.
 
@@ -75,7 +80,10 @@ select
   to_regclass('public.gallery_items') is not null                  as "0002",
   to_regprocedure('public.promote_studio_owner(text)') is not null as "0006",
   to_regclass('public.site_photo_slots') is not null               as "0007",
-  to_regprocedure('private.request_site_rebuild()') is not null    as "0008";
+  to_regprocedure('private.request_site_rebuild()') is not null    as "0008",
+  exists (select 1 from information_schema.columns
+           where table_schema = 'public' and table_name = 'gallery_items'
+             and column_name = 'booking_services')                 as "0010";
 ```
 
 If `0001` is true, this tells 0003, 0004 and 0005 apart:
@@ -109,9 +117,10 @@ applied (2026-10-08):
   *Reinstall and refresh* back off, and resets Wig Touch Up's name, price and
   description, whatever was set from the dashboard since.
 
-0002, 0003, 0006, 0007, 0008 and 0009 are harmless to repeat. 0007 seeds the
-website's photographs exactly once, ever (it records that it did), so running
-it again never brings back a photograph Nat has removed.
+0002, 0003, 0006, 0007, 0008, 0009 and 0010 are harmless to repeat. 0007 seeds
+the website's photographs exactly once, ever (it records that it did), so
+running it again never brings back a photograph Nat has removed; 0010 places
+photographs on booking pages once, ever, for the same reason.
 
 **What it creates**
 

@@ -2,6 +2,7 @@
 
 import { requireSupabase } from "@/lib/supabase/client";
 import type { FinishAttribute } from "@/lib/collections";
+import type { ServiceId } from "@/lib/content";
 import type { InstallTypeId } from "@/lib/taxonomy";
 import type { PreparedPhoto } from "@/lib/photo-processing";
 import {
@@ -74,7 +75,18 @@ export type PhotoDetails = {
   featured: boolean;
   /** Melted Hairline, HD Lace, Custom Hairline. */
   laceDetails: FinishAttribute[];
+  /**
+   * The services whose own booking page shows it. Null where the database
+   * cannot store them yet (it does not have migration 0010): the photo
+   * manager then does not offer the choice, and nothing is written.
+   */
+  bookingServices: ServiceId[] | null;
 };
+
+/** The booking pages, as a column to write, or nothing where there is no column yet. */
+function bookingServicesColumn(details: PhotoDetails): { booking_services?: ServiceId[] } {
+  return details.bookingServices ? { booking_services: details.bookingServices } : {};
+}
 
 /** gallery_items.alt has a CHECK for this in 0002. */
 export const MIN_ALT = 10;
@@ -90,6 +102,7 @@ export function detailsOf(photo: AdminPhoto): PhotoDetails {
     published: photo.published,
     featured: photo.featured,
     laceDetails: photo.laceDetails,
+    bookingServices: photo.bookingServicesStored ? photo.bookingServices : null,
   };
 }
 
@@ -289,6 +302,7 @@ export async function uploadPhoto(
       install_type: details.installType,
       featured: details.featured,
       finish_attributes: details.laceDetails,
+      ...bookingServicesColumn(details),
       active: false,
       display_order: order,
     })
@@ -382,6 +396,7 @@ export async function updatePhoto(
       active: details.published,
       featured: details.featured,
       finish_attributes: details.laceDetails,
+      ...bookingServicesColumn(details),
       primary_collection: primaryAfter(photo, details.collections),
     })
     .eq("id", photo.id)

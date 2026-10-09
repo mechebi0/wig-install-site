@@ -7,10 +7,12 @@ import { buttonStyles } from "@/components/button";
 import { Notice, Spinner } from "@/components/ui/feedback";
 import { TextAreaField, TextField, focusFirstError } from "@/components/ui/form";
 import {
+  BookingServicesField,
   CollectionsField,
   InstallTypeField,
   PublishField,
 } from "@/components/admin/photo-fields";
+import type { ServiceId } from "@/lib/content";
 import {
   MAX_BATCH,
   PhotoProblem,
@@ -43,9 +45,10 @@ import type { InstallTypeId } from "@/lib/taxonomy";
  * so the preview is the real file that will be uploaded and a photo that
  * cannot be used says so before anything is sent.
  *
- * Where the photographs go - collections, install type, shown or hidden, and
- * whether they join the start or the end of each gallery - is chosen once for
- * the whole batch, because a batch from one appointment is usually one look.
+ * Where the photographs go - collections, install type, booking pages, shown
+ * or hidden, and whether they join the start or the end of each gallery - is
+ * chosen once for the whole batch, because a batch from one appointment is
+ * usually one look.
  * The title and the description are per photograph, and any one can be
  * changed afterwards from the list below.
  */
@@ -78,10 +81,13 @@ let draftCounter = 0;
 
 export function PhotoUpload({
   orders,
+  bookingReady,
   onUploaded,
 }: {
   /** The current first and last display_order, so a batch can go either side. */
   orders: { first: number; last: number };
+  /** Whether the database can store booking pages yet (migration 0010). */
+  bookingReady: boolean;
   onUploaded: (photos: AdminPhoto[]) => void;
 }) {
   const baseId = useId();
@@ -90,6 +96,7 @@ export function PhotoUpload({
   const [collections, setCollections] = useState<string[]>([]);
   const [collectionsError, setCollectionsError] = useState("");
   const [installType, setInstallType] = useState<InstallTypeId | null>(null);
+  const [bookingServices, setBookingServices] = useState<ServiceId[]>([]);
   const [published, setPublished] = useState(true);
   const [position, setPosition] = useState<"end" | "start">("end");
   const [busy, setBusy] = useState(false);
@@ -261,6 +268,7 @@ export function PhotoUpload({
           published,
           featured: false,
           laceDetails: [],
+          bookingServices: bookingReady ? bookingServices : null,
         },
         order,
       );
@@ -484,6 +492,15 @@ export function PhotoUpload({
               onChange={setInstallType}
               disabled={busy}
             />
+            {/* Left out until the database can store it; Edit says why. */}
+            {bookingReady ? (
+              <BookingServicesField
+                id={`${baseId}-booking`}
+                value={bookingServices}
+                onChange={setBookingServices}
+                disabled={busy}
+              />
+            ) : null}
             <fieldset>
               <legend className="text-sm font-medium text-ink">Where they go in each gallery</legend>
               <div className="mt-3 flex flex-wrap gap-2">

@@ -37,6 +37,7 @@ own page.
 | `/installs/frontal`        | The Frontal Install: what it is, how it works, Nat's frontal work, choose a finish, book |
 | `/installs/closure`        | The Closure Install, same layout                                   |
 | `/book`                    | Every service and price, then the Square Appointments scheduler    |
+| `/book/closure-install` (one per service) | One service, its photos and the same scheduler: where each service's own Book button goes |
 | `/before-you-book`         | The appointment step by step, and the FAQ                          |
 | `/reviews`                 | Client quotes                                                      |
 | `/meet-nat`                | Introduction, credentials, three assurances                        |
@@ -48,7 +49,12 @@ own page.
 The six collection pages are generated from one file, `app/gallery/[slug]/page.tsx`,
 via `generateStaticParams`, so the build emits six real HTML files and the six
 pages cannot drift apart. The two install pages work the same way from
-`app/installs/[type]/page.tsx`, reading `lib/taxonomy.ts`.
+`app/installs/[type]/page.tsx`, reading `lib/taxonomy.ts`, and so do the seven
+service booking pages from `app/book/[service]/page.tsx`, reading `SERVICES` in
+`lib/content.ts`. "Book Your Chair" still goes to `/book`; a button that names
+one service ("Book Closure Install") goes to that service's page. Square's
+embed cannot be opened on one service, so those pages name the service and
+say which line of the scheduler to tap.
 
 Two earlier URLs are still linked from elsewhere: `/work` (the single page that
 carried the whole portfolio) and `/styles` (the collections, before the rename).

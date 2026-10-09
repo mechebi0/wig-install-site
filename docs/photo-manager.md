@@ -19,12 +19,12 @@ never shown that an owner area exists. Nat reaches it by this address:
 (on a phone, "Add to Home Screen" gives it an icon). (The same paths also work on
 the Cloudflare Pages address, `https://wig-install-site.pages.dev`.)
 
-> **Status (2026-10-08):** the live site is connected to Supabase (its
-> JavaScript carries the project address) and the owner sign-in works. The
-> photos the site launched with become manageable once
-> `supabase/migrations/0007_website_photos.sql` has been run in the Supabase
-> project; until then the photo manager shows only uploads and the website
-> keeps using the launch photos exactly as before. See
+> **Status (2026-10-09):** the live site is connected to Supabase and the
+> owner sign-in works. `0007_website_photos.sql` has been run on the hosted
+> project (read back that day: 18 photos, 13 places), so every photo on the
+> site is manageable. `0010_photo_booking_services.sql` has **not** been run
+> yet: until it is, the booking pages show photos by the starting rule and
+> the photo manager cannot change them. See
 > [One-time setup](#one-time-setup-for-the-developer), step 1.
 
 ---
@@ -64,6 +64,13 @@ it now: the six homepage slides, each collection's cover and second photo,
 the three install pages, the finish swatches, the booking page and the
 sign-in page.
 
+**Booking pages.** Every service has its own booking page, where a client
+lands after tapping that service's Book button (for example "Book Closure
+Install"): the service, photos of it, and your Square scheduler. Which photos
+go there is your choice, photo by photo, under **Booking pages** (see
+Editing). A page with no photos ticked says so politely rather than showing
+other work. "Book Your Chair" is unchanged and still opens the full menu.
+
 ### Adding photos
 
 1. Tap **Add photos** and pick up to 12 from your phone or computer. Big
@@ -79,11 +86,15 @@ sign-in page.
    Install, Closure Install or Reinstalls). The photo can then also appear on
    that install's page, which shows up to six, earliest in your order first.
    Leave it on *Not specified* if you are not sure.
-5. Choose **where they go in each gallery**: after the photos already there
+5. Under **Booking pages**, tick each service the photo shows (Frontal
+   Install, Color Closure Install, Wig Touch Up and so on). It then appears on
+   that service's booking page, which also shows up to six. Leave them all
+   unticked if it does not show a particular service.
+6. Choose **where they go in each gallery**: after the photos already there
    (the usual choice) or first in line.
-6. Leave **Show on the website** ticked to publish now, or untick it to keep
+7. Leave **Show on the website** ticked to publish now, or untick it to keep
    the photos hidden until you are ready.
-7. Tap **Upload**. Keep the page open until it says the photos are uploaded.
+8. Tap **Upload**. Keep the page open until it says the photos are uploaded.
 
 ### Replacing a photo
 
@@ -103,10 +114,14 @@ If anything goes wrong on the way, the current photo stays exactly as it was.
 
 ### Editing, hiding and reordering
 
-- **Edit** changes the title, description, collections, install type, lace
-  details (Melted Hairline, HD Lace, Custom Hairline, shown when someone looks
-  closer in the gallery), whether it is in **Recent work** on the homepage,
-  and whether it is shown.
+- **Edit** changes the title, description, collections, install type,
+  booking pages, lace details (Melted Hairline, HD Lace, Custom Hairline,
+  shown when someone looks closer in the gallery), whether it is in **Recent
+  work** on the homepage, and whether it is shown.
+- **Booking pages** are separate from the install type on purpose. A frontal
+  photo can be a plain Frontal Install or a Color Frontal Install, and a
+  reinstall can be a frontal or a closure one; only you know which, so tick
+  the exact service. Hidden photos never appear on a booking page.
 - **Hide** takes a photo off the website without deleting it. **Show** puts it
   back. Both save straight away.
 - **Earlier** and **Later** (the up and down arrows) move a photo earlier or
@@ -138,6 +153,7 @@ stands in"). Which photo stands in:
 | Collection second photo | The next photo in it; none if it only has one (the card simply does not fade) |
 | Homepage slide | The first photo in that slide's collection that no other slide is showing; the slide is left out if there is none |
 | Install page | The first photo with that install type; otherwise the page shows its words without a photo |
+| A service's booking page | Nothing: it says there are no photos of that service yet and links to the gallery. The two reinstall pages are the exception: with none ticked, they show photos whose install type is Reinstalls, and say so |
 | Finish swatch | Nothing: a plain swatch |
 | Booking page | The first Frontal Install photo |
 | Sign-in page | The first photo |
@@ -163,6 +179,7 @@ the site. Link previews are also cached by each app, sometimes for days.
 | Photos you add, and every replacement | Supabase Storage, bucket **`website-photos`**, folder `gallery/`. Each photo is three files: `<id>.webp` (1200px wide), `<id>-600.webp` and `<id>-1600.webp`. |
 | The photos the site launched with | Still the files in `public/images/work/`, served by Cloudflare. Migration 0007 made each one a row pointing at its file, so nothing moved and nothing a visitor sees changed. A launch photo moves to Storage the moment it is replaced. |
 | Title, description, install type, lace details, Recent work, crop, shown/hidden, order | Table **`gallery_items`** (columns added in 0006 and 0007) |
+| Which services' booking pages show it | **`gallery_items.booking_services`** (0010): `services.slug` values, e.g. `{closure-install}` |
 | Which collections a photo is in | Table **`gallery_item_categories`**, joined to **`gallery_categories`** (the six collections, seeded in 0002) |
 | Each collection's cover and second photo | **`gallery_categories.hero_item_id`** and **`hover_item_id`** (0002) |
 | Which photo fills each other spot | Table **`site_photo_slots`** (0007): `home-1`..`home-6`, `install-frontal`, `install-closure`, `install-wig-touch-up`, `finish-curls`, `finish-wand-curls`, `finish-crimps`, `book`, `sign-in` |
@@ -186,10 +203,18 @@ the source of truth for every photo on it:
    current set (`components/site-photos.tsx`) and redraws only if something
    changed since the deployment.
 3. **`lib/gallery.ts`** turns the set into what each part of the site shows
-   (collections, slideshow, install pages, finish swatches, the booking and
-   sign-in pages, Recent work), including the stand-ins above. The build and
-   the browser use the same function, and so does the photo manager when it
-   lists where a photo appears.
+   (collections, slideshow, install pages, finish swatches, each service's
+   booking page, the booking and sign-in pages, Recent work), including the
+   stand-ins above. The build and the browser use the same function, and so
+   does the photo manager when it lists where a photo appears.
+
+**Booking pages before 0010.** Until migration 0010 has run there is no
+`booking_services` column to read, and the site places photos by the rule
+0010 seeds instead (`launchBookingServices` in `lib/site-photos.ts`): a
+Frontal Install photo goes on the Frontal Install page, or on Color Frontal
+Install if it is in Color & Custom, and the same for closures. So running
+0010 changes nothing a visitor sees; it is what lets Nat change it. The photo
+manager says the choice needs a one-time update until then.
 
 If Supabase is not configured (a clean clone, a preview without the
 variables) or does not have 0007 yet, the build uses the launch photos in
@@ -288,9 +313,9 @@ sign-in error messages and needs no Supabase.
 
 ## One-time setup (for the developer)
 
-Steps 2 to 6 were done for crownedbynat.com on 2026-10-08. Step 1 (0007) and
-step 7 are what is left. Skip anything already done; `supabase/README.md` has
-the shared steps in more detail.
+Steps 2 to 6 were done for crownedbynat.com on 2026-10-08, and 0007 in step 1
+by 2026-10-09. What is left is 0010 in step 1, and step 7. Skip anything
+already done; `supabase/README.md` has the shared steps in more detail.
 
 ### 1. Apply the migrations
 
@@ -303,11 +328,15 @@ select
   to_regclass('public.gallery_items') is not null                  as "0002",
   to_regprocedure('public.promote_studio_owner(text)') is not null as "0006",
   to_regclass('public.site_photo_slots') is not null               as "0007",
-  to_regprocedure('private.request_site_rebuild()') is not null    as "0008";
+  to_regprocedure('private.request_site_rebuild()') is not null    as "0008",
+  exists (select 1 from information_schema.columns
+           where table_schema = 'public' and table_name = 'gallery_items'
+             and column_name = 'booking_services')                 as "0010";
 ```
 
 - All `false`: a fresh project. Run every file in `supabase/migrations/`, in
-  order, `0001` through `0007` (and `0008` for step 7), each in its own query.
+  order, `0001` through `0007` (and `0008` for step 7), then `0010`, each in
+  its own query.
 - Anything `true`: some were run before. Do **not** run them all again; see
   "Which migrations to run" in `supabase/README.md` §2, which shows how to
   tell 0003-0005 apart and why re-running an older file over a newer one
@@ -329,6 +358,22 @@ select count(*) from public.site_photo_slots;                               -- 1
 The deployed site checks for 0007 each time it is built: until it is there,
 the build log says *"Supabase does not have migration 0007 yet"* and the site
 is built from the launch photos, exactly as before.
+
+**0010** adds `booking_services`, the services whose booking page shows each
+photo, and places the existing photos once by the starting rule (a Frontal
+Install photo on Frontal Install, or on Color Frontal Install when it is in
+Color & Custom; the same for closures; nothing else). Nothing a visitor sees
+changes; afterwards Nat can tick booking pages in the photo manager. Run it
+whenever convenient, after 0007. Check it took:
+
+```sql
+select title, booking_services from public.gallery_items order by display_order;
+select value from public.business_settings where key = 'booking_services_seeded';  -- one timestamp
+```
+
+At launch that is Frontal Install on eight photos and Color Frontal Install on
+three (Burgundy Curl, Candy Pink, Platinum Straight). Running it again never
+puts back a booking page Nat has cleared.
 
 **0009 (optional)** only takes privileges away; see "Who can do what". It was
 written, and passes the whole test suite, but **has not been run on the hosted
@@ -476,6 +521,8 @@ select status_code, created from net._http_response order by created desc limit 
 | 10 | Tap **Log out** | Back at the sign-in page |
 | 11 | Look for an Admin link in the header, the mobile menu and the footer | There is none |
 | 12 | Type a different email address on `/admin/login/` | "This sign-in is only for the studio owner's email address", and nothing is emailed |
+| 13 | **Edit** a photo, tick *Closure Install* under **Booking pages**, save; open `/book/closure-install/` in a private window | The photo is there, and the photo's card says "Also on: ... Closure Install booking page" |
+| 14 | **Hide** that photo and reload `/book/closure-install/` | Gone from the booking page |
 
 Rows 1 to 10 and the security checks above were run against a local Supabase
 stack and a local build of the site on 2026-10-08 (110 checks), plus 10 for
@@ -489,8 +536,8 @@ checks (see "Testing the rules").
 
 Nothing in day-to-day photo management needs a developer. What still does:
 
-- **Running migrations** 0007 and (optionally) 0008, and the deploy hook
-  (setup steps 1 and 7).
+- **Running migrations** 0010 and (optionally) 0008 and 0009, and the deploy
+  hook (setup steps 1 and 7).
 - **Erasing a launch photo's file.** Removing one of the 18 launch photos
   takes it off every page, but its original file stays in
   `public/images/work/` and is still reachable at its old address

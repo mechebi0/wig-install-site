@@ -228,6 +228,11 @@ export type GalleryItem = {
   finish_attributes: string[];
   /** gallery_categories.slug it is filed under (0007). Null: its first. */
   primary_collection: string | null;
+  /**
+   * The services whose booking page shows it (0010): ServiceId slugs from
+   * lib/content.ts. Absent on a database that does not have 0010 yet.
+   */
+  booking_services?: string[];
   created_at: string;
   updated_at: string;
 };

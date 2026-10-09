@@ -430,16 +430,35 @@ export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
 }
 
 /**
- * bookingTarget(), except that an on-site destination opens at the booking
- * panel rather than at the top of /book. For the buttons pressed after the
- * visitor has already chosen, so the page she lands on does not ask again.
- * An external link is returned untouched.
+ * Where a button that names ONE service points: that service's own booking
+ * page, which shows its photographs and the scheduler and nothing else
+ * (components/service-booking.tsx). Every individual "Book Frontal Install"
+ * or "Book Reinstall" button spreads this.
+ *
+ * "Book Your Chair" does not, on purpose. It is the general way in, so it
+ * keeps bookingTarget() above and lands on the whole menu at /book.
+ *
+ *   serviceBookingTarget("closure-install")
+ *     -> /book/closure-install/
+ *   serviceBookingTarget("closure-install", { finish: "curls" })
+ *     -> /book/closure-install/?finish=curls
+ *
+ * The finish rides along where the service has one, and lib/booking-
+ * selection.ts reads it back on arrival; Wig Touch Up has none, so it is
+ * dropped there. An external scheduler link, once one is configured, still
+ * wins, through the same switches bookingTarget() reads.
  */
-export function bookingTargetAtForm(intent: BookingIntent) {
+export function serviceBookingTarget(
+  id: ServiceId,
+  { finish = null }: { finish?: FinishId | null } = {},
+) {
+  const { installType } = getService(id);
+  const intent = { install: installType, finish: installType ? finish : null };
   const target = bookingTarget(intent);
-  return "target" in target
-    ? target
-    : { href: `${target.href}#${BOOKING_ANCHOR}` };
+  if ("target" in target) return target;
+  return {
+    href: withParams(serviceBookingPath(id), { finish: intent.finish ?? undefined }),
+  };
 }
 
 /** True while booking runs through the form on /book rather than an external tool. */
@@ -870,10 +889,30 @@ export const INSTALL_PAGE = {
  * booking flow asks for a finish: the six installs do, Wig Touch Up does not.
  * The two color services are frontals and closures with colour, so they carry
  * the frontal and closure finish. The two reinstalls carry the reinstall
- * finish. It is read by the booking flow and by nothing else.
+ * finish. It is read by the booking flow, and by a service's own booking page
+ * (serviceBookingTarget), which carries a chosen finish only where there is
+ * one to carry.
  */
+
+/**
+ * The seven services, by the slug each one shares with its row in the
+ * `services` table. Square's own menu lists them under the same names, so a
+ * service named here is the one a visitor taps in the scheduler. Also the
+ * values a photograph's "booking pages" can hold (`booking_services`,
+ * migration 0010) and the segment of each service's own booking page,
+ * /book/<id>/.
+ */
+export type ServiceId =
+  | "frontal-install"
+  | "closure-install"
+  | "frontal-reinstall"
+  | "closure-reinstall"
+  | "color-frontal-install"
+  | "color-closure-install"
+  | "wig-touch-up";
+
 export type ServiceEntry = {
-  id: string;
+  id: ServiceId;
   name: string;
   category: string;
   priceCents: number;
@@ -969,8 +1008,42 @@ export const SERVICE_CATEGORIES: readonly string[] = [
  * closure and the frontal reinstall. The customer can switch to the colour or
  * the closure variant from the flow's own service step.
  */
-export function baseServiceForInstallType(installType: InstallTypeId): string {
-  return SERVICES.find((service) => service.installType === installType)?.id ?? "";
+export function baseServiceForInstallType(installType: InstallTypeId): ServiceId {
+  // Every install type has at least one service carrying it, so this cannot miss.
+  return SERVICES.find((service) => service.installType === installType)!.id;
+}
+
+/**
+ * A service from untrusted text, such as a URL segment or a value read back
+ * from the database, or null. The one place an arbitrary string becomes a
+ * service, the same job parseInstallType does for an install type.
+ */
+export function parseServiceId(value: unknown): ServiceId | null {
+  return SERVICES.find((service) => service.id === value)?.id ?? null;
+}
+
+export function getService(id: ServiceId): ServiceEntry {
+  // SERVICES carries every ServiceId, so this cannot miss.
+  return SERVICES.find((service) => service.id === id)!;
+}
+
+/** The services filed under one heading, in menu order. */
+export function servicesInCategory(category: string): readonly ServiceEntry[] {
+  return SERVICES.filter((service) => service.category === category);
+}
+
+/** A service's own booking page, /book/<id>/ (see app/book/[service]/page.tsx). */
+export function serviceBookingPath(id: ServiceId): string {
+  return `/book/${id}/`;
+}
+
+/**
+ * The service whose booking page a path is, or null on any other page.
+ * Either spelling of the trailing slash, as installTypeForPath accepts.
+ */
+export function serviceForPath(pathname: string): ServiceId | null {
+  const match = /^\/book\/([^/]+)\/?$/.exec(pathname);
+  return match ? parseServiceId(match[1]) : null;
 }
 
 /** Verb labels, never "Step 1 / Stage 1". */
@@ -1125,6 +1198,58 @@ export const QUESTIONS = [
 export const BOOKING = {
   heading: "Choose your time.",
   body: "Pick your service, any add-ons, and a day and time that works for you using the scheduler below.",
+} as const;
+
+/**
+ * A service's own booking page, /book/<service>/: the one service the visitor
+ * chose, photographs of it, and the scheduler (components/service-booking.tsx).
+ * The service's name, category, price and description are its entry in
+ * SERVICES; these are only the words around them.
+ *
+ * THE SCHEDULER CANNOT BE TOLD WHICH SERVICE. Square's embed opens on Nat's
+ * whole menu whatever page it sits on, so the steps say which line to tap
+ * rather than pretending it is already chosen. They name things the way her
+ * live Square menu does (read off it on 2026-10-09): the seven services under
+ * the same names as SERVICES, and the finishes under one add-on, "Styling",
+ * filed under "Add ons". If she renames that add-on in Square, change
+ * `step2` below to match.
+ */
+export const SERVICE_BOOKING = {
+  back: "All services",
+  /** Skips down the page to the scheduler. */
+  toScheduler: "Choose a time",
+  price: "Price",
+  /** For screen readers: names the switch between the services in one category. */
+  switchLabel: (category: string) => `Services in ${category}`,
+  /** Read out after the switch changes the service without reloading the page. */
+  switched: (name: string) => `Now showing ${name}.`,
+  photos: {
+    heading: (name: string) => `${name} looks from the chair`,
+    hint: "Select any photograph to see it larger.",
+    /**
+     * Over the photographs a reinstall page borrows from the broader
+     * Reinstalls install type, when none is tagged with the service itself.
+     * Says so, so a closure reinstall is never passed off as a frontal one.
+     */
+    borrowed: (name: string, label: string) =>
+      `None is tagged ${name} yet, so these are from Nat's ${label.toLowerCase()} of every kind.`,
+    emptyHeading: "No photos of this one yet",
+    empty: (name: string) =>
+      `Nat has not added photos of ${name} to the site yet. Every look in the gallery is her own work.`,
+    gallery: "Browse the gallery",
+  },
+  scheduler: {
+    heading: "Choose your time.",
+    booking: "You are booking",
+    finish: "Finish",
+    style: "Your style notes",
+    step1: (name: string) => `Tap ${name} in the scheduler's menu.`,
+    step2: (finish: string) => `Add Styling, under Add ons, for your ${finish} finish.`,
+    step3: "Choose a day and time, then confirm your details.",
+  },
+  /** When the live menu has loaded and this service is not on it. */
+  unavailable:
+    "This service is not on the menu at the moment. See every service Nat offers, or get in touch.",
 } as const;
 
 /**
