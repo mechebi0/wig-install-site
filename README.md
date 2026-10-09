@@ -105,15 +105,12 @@ alt text, then list it in whichever collections it belongs to.
 ### `lib/content.ts` — all copy and business details
 
 - `STUDIO` and the `CONTACT` block above it — brand name, owner, email, and the
-  values still missing (phone, street, hours, Instagram). **Anything empty is
+  values still missing (phone, street). **Anything empty is
   empty on purpose**: every component reads these through helpers and renders
   nothing at all where there is no real value, so the site can never advertise a
   phone number nobody owns. Fill one in and it appears everywhere at once.
-  The nav's Instagram icon is the one deliberate exception: it renders even
-  while `CONTACT.instagram` is empty, pointed at `INSTAGRAM_URL_PLACEHOLDER`
-  (Instagram's own homepage, never a guessed handle) so the control exists and
-  works today. Fill in `CONTACT.instagram` and it takes over automatically;
-  see the note beside `INSTAGRAM_URL_PLACEHOLDER` in `lib/content.ts`.
+  Instagram is set: `STUDIO.instagram` is the one URL the nav icon, the mobile
+  menu, the footer and the homepage `sameAs` data all read.
 - `LOCATIONS` — Towson, MD and Laurel, MD, in that order. The single source of
   truth for the service area: the announcement stripe, the footer, the "Where"
   row on `/book`, the page metadata and the LocalBusiness structured data all
@@ -379,7 +376,7 @@ the browser is decoration. Granting Nat admin is one function call,
 - **Written consent from the clients in the photographs.** Every face on this
   site is a real customer. This is the one outstanding item that is not
   cosmetic.
-- A phone number, a street address, and an Instagram handle. Until then the
+- A phone number and a street address. Until then the
   site simply does not mention them. Opening hours are now set (10:00 AM to
   9:00 PM) and the booking window is 10:00 AM to 9:00 PM in the studio's own
   timezone, America/New_York.

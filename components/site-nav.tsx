@@ -14,7 +14,6 @@ import { useBookingSelection } from "@/lib/booking-selection";
 import { installTypeForPath } from "@/lib/taxonomy";
 import {
   CTA,
-  INSTAGRAM_URL_PLACEHOLDER,
   NAV_LINKS,
   REACH,
   REACH_SECONDARY,
@@ -145,14 +144,13 @@ function NavMark({ className = "" }: { className?: string }) {
  * so this does not duplicate the link the way rendering it twice on the same
  * screen would.
  *
- * `STUDIO.instagram || INSTAGRAM_URL_PLACEHOLDER`: the real handle the
- * moment Nat confirms one (see lib/content.ts), Instagram's own homepage
- * until then - never a guessed @handle, and never a dead link either.
+ * The destination is `STUDIO.instagram` (lib/content.ts), the same value the
+ * footer uses, so the two can never point at different profiles.
  */
 function InstagramLink({ className = "" }: { className?: string }) {
   return (
     <a
-      href={STUDIO.instagram || INSTAGRAM_URL_PLACEHOLDER}
+      href={STUDIO.instagram}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`${STUDIO.name} on Instagram`}

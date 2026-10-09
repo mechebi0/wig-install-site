@@ -59,12 +59,10 @@ const CONTACT = {
   phone: "" as string,
   email: "crownedbynattt@gmail.com",
   /**
-   * No handle confirmed. The footer omits the social row while this is "".
-   * The nav's Instagram icon (components/site-nav.tsx) still renders while
-   * this is empty, unlike the footer - see INSTAGRAM_URL_PLACEHOLDER below
-   * for why, and fill this in with the real profile URL to replace it.
+   * The official profile. Every Instagram link on the site reads this: the
+   * nav icon, the mobile menu, the footer, and the homepage "sameAs" data.
    */
-  instagram: "" as string,
+  instagram: "https://www.instagram.com/crownedbynattt/" as string,
   /** Not supplied. Chairs are described by town instead; see LOCATIONS. */
   street: "" as string,
   /**
@@ -78,30 +76,6 @@ const CONTACT = {
    */
   hours: [{ days: "Tuesday to Saturday", time: "10:00 AM – 9:00 PM" }],
 } as const;
-/**
- * PLACEHOLDER. Not CONTACT.instagram, and deliberately never read by it.
- *
- * Searched the whole project (2026-09-22) for an existing handle before
- * adding this - README.md lists an Instagram handle among the values still
- * missing, and CONTACT.instagram above has always been "". No real one
- * exists anywhere here, and this does not invent one: it is Instagram's own
- * homepage, not a guessed @crownedbynat profile.
- *
- * It exists only so the nav's new Instagram icon (components/site-nav.tsx)
- * has something real and clickable to point at today, without writing a
- * fake handle into CONTACT.instagram, which also feeds the "sameAs"
- * structured data on the homepage and must stay empty until a real profile
- * is confirmed (an unconfirmed guess there would misrepresent the business
- * to search engines, not just to a visitor).
- *
- * THE ACTUAL URL STILL NEEDS TO BE SUPPLIED. The moment Nat confirms her
- * handle: set CONTACT.instagram above to the real profile URL. Nothing else
- * changes - the nav icon reads `STUDIO.instagram || INSTAGRAM_URL_PLACEHOLDER`,
- * so a real value there is picked up automatically and this constant simply
- * stops being reached. It can be deleted at the same time, or left inert.
- */
-export const INSTAGRAM_URL_PLACEHOLDER = "https://www.instagram.com/";
-
 /**
  * WHERE NAT WORKS.
  *

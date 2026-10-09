@@ -200,7 +200,7 @@ export function SiteFooter() {
               </li>
               {STUDIO.instagram ? (
                 <li>
-                  <FooterLink href={STUDIO.instagram}>
+                  <FooterLink href={STUDIO.instagram} external>
                     <InstagramLogo
                       size={16}
                       weight="regular"
@@ -224,14 +224,18 @@ export function SiteFooter() {
 
 function FooterLink({
   href,
+  external = false,
   children,
 }: {
   href: string;
+  /** Opens in a new tab, as the nav's Instagram icon does. */
+  external?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <a
       href={href}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="flex min-h-9 items-center gap-2 text-sm text-on-accent/65 transition-colors hover:text-on-accent"
     >
       {children}
