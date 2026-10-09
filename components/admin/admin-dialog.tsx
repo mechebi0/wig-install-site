@@ -59,7 +59,19 @@ export function AdminDialog({
 
     if (open && !node.open) {
       node.showModal();
-      if (initialFocusId) document.getElementById(initialFocusId)?.focus();
+      /*
+        Focus without scrolling, and the dialog put back at its top. Focus on
+        its own scrolls the control into view, and the removal confirmation
+        and the photo picker both start on Cancel, at the foot: on a phone
+        they opened scrolled to their buttons, with "Remove this photo?" and
+        the picture it means scrolled away above. Focus still lands on
+        Cancel, so a stray Enter still cannot remove anything; what changes
+        is that the question is what shows first.
+      */
+      if (initialFocusId) {
+        document.getElementById(initialFocusId)?.focus({ preventScroll: true });
+      }
+      node.scrollTop = 0;
     }
     if (!open && node.open) {
       node.close();

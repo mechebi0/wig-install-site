@@ -109,8 +109,8 @@ If anything goes wrong on the way, the current photo stays exactly as it was.
   and whether it is shown.
 - **Hide** takes a photo off the website without deleting it. **Show** puts it
   back. Both save straight away.
-- The **up and down arrows** move a photo earlier or later in every gallery.
-  The new order is saved immediately.
+- **Earlier** and **Later** (the up and down arrows) move a photo earlier or
+  later in every gallery. The new order is saved immediately.
 
 ### Removing a photo
 

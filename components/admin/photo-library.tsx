@@ -75,11 +75,19 @@ type Flash = { tone: "success" | "error"; text: string } | null;
 const dangerButton =
   "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full bg-danger px-7 py-3.5 text-sm font-medium text-on-accent shadow-soft transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#8e0e1e] hover:shadow-lifted active:translate-y-px active:scale-[0.98] disabled:pointer-events-none disabled:opacity-55";
 
+/*
+  The card's six actions share one row shape: centred in an equal third of
+  the card, 44px tall, label always visible. Tight side padding because a
+  third of a 320px card is about 80px and "Replace" has to fit in it.
+*/
 const actionButton =
-  "inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-medium text-ink transition-colors hover:bg-surface-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 text-sm font-medium text-ink transition-colors hover:bg-surface-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 const moveButton =
-  "tap inline-flex cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-35";
+  "inline-flex min-h-11 min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-35";
+
+const removeButton =
+  "inline-flex min-h-11 min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 text-sm font-medium text-danger transition-colors hover:bg-danger/5 disabled:cursor-not-allowed disabled:opacity-50";
 
 /** The words Nat sees for a photograph that has no title. */
 function nameOf(photo: { title: string }): string {
@@ -226,126 +234,141 @@ export function PhotoLibrary({
             return (
               <li
                 key={photo.id}
-                className="flex gap-4 rounded-3xl border border-line bg-surface p-3 sm:flex-col sm:gap-0 sm:p-0"
+                className="flex flex-col rounded-3xl border border-line bg-surface p-3 sm:p-0"
               >
-                <div className="relative aspect-[3/4] w-28 shrink-0 self-start overflow-hidden rounded-2xl bg-surface-3 sm:w-full sm:rounded-b-none sm:rounded-t-3xl">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.image.small}
-                    alt={photo.alt}
-                    width={photo.image.width}
-                    height={photo.image.height}
-                    loading="lazy"
-                    decoding="async"
-                    style={{ objectPosition: photo.focal ?? undefined }}
-                    className={`absolute inset-0 h-full w-full object-cover ${photo.published ? "" : "opacity-60"}`}
-                  />
-                  {photo.published ? null : (
-                    <span className="absolute left-2 top-2 rounded-full bg-ink/80 px-2.5 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-on-accent">
-                      Hidden
-                    </span>
-                  )}
+                <div className="flex gap-4 sm:flex-1 sm:flex-col sm:gap-0">
+                  <div className="relative aspect-[3/4] w-28 shrink-0 self-start overflow-hidden rounded-2xl bg-surface-3 sm:w-full sm:rounded-b-none sm:rounded-t-3xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.image.small}
+                      alt={photo.alt}
+                      width={photo.image.width}
+                      height={photo.image.height}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ objectPosition: photo.focal ?? undefined }}
+                      className={`absolute inset-0 h-full w-full object-cover ${photo.published ? "" : "opacity-60"}`}
+                    />
+                    {photo.published ? null : (
+                      <span className="absolute left-2 top-2 rounded-full bg-ink/80 px-2.5 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-on-accent">
+                        Hidden
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 py-1 pr-1 sm:p-5 sm:pb-3 sm:pt-4">
+                    <p className="font-display text-lg leading-tight tracking-tight text-ink">
+                      {photo.title || <span className="text-muted">Untitled</span>}
+                    </p>
+                    <p className="text-sm leading-snug text-muted">
+                      {photo.collections.length > 0
+                        ? photo.collections.map(collectionTitle).join(", ")
+                        : "Not in a gallery"}
+                    </p>
+                    {photo.installType ? (
+                      <p className="text-[0.6875rem] font-medium uppercase leading-none tracking-[0.14em] text-accent">
+                        {installTypeLabel(photo.installType)}
+                      </p>
+                    ) : null}
+                    {places.length > 0 ? (
+                      <p className="text-xs leading-relaxed text-ink">
+                        <span className="text-muted">Also on: </span>
+                        {places.map((place) => place.label).join(" · ")}
+                      </p>
+                    ) : null}
+                    <p className="text-xs text-muted">
+                      {photo.published ? "Showing on the website" : "Hidden from the website"}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex min-w-0 flex-1 flex-col gap-2 py-1 pr-1 sm:p-5 sm:pt-4">
-                  <p className="font-display text-lg leading-tight tracking-tight text-ink">
-                    {photo.title || <span className="text-muted">Untitled</span>}
-                  </p>
-                  <p className="text-sm leading-snug text-muted">
-                    {photo.collections.length > 0
-                      ? photo.collections.map(collectionTitle).join(", ")
-                      : "Not in a gallery"}
-                  </p>
-                  {photo.installType ? (
-                    <p className="text-[0.6875rem] font-medium uppercase leading-none tracking-[0.14em] text-accent">
-                      {installTypeLabel(photo.installType)}
-                    </p>
-                  ) : null}
-                  {places.length > 0 ? (
-                    <p className="text-xs leading-relaxed text-ink">
-                      <span className="text-muted">Also on: </span>
-                      {places.map((place) => place.label).join(" · ")}
-                    </p>
-                  ) : null}
-                  <p className="text-xs text-muted">
-                    {photo.published ? "Showing on the website" : "Hidden from the website"}
-                  </p>
-
-                  <div className="mt-auto flex flex-wrap items-center gap-1 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFlash(null);
-                        setReplacing(photo);
-                      }}
-                      disabled={busy}
-                      className={actionButton}
-                    >
-                      <ArrowsClockwise size={16} weight="regular" aria-hidden="true" />
-                      Replace
-                      <span className="sr-only"> {name}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFlash(null);
-                        setEditing(photo);
-                      }}
-                      disabled={busy}
-                      className={actionButton}
-                    >
-                      <PencilSimple size={16} weight="regular" aria-hidden="true" />
-                      Edit
-                      <span className="sr-only"> {name}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void toggleShown(photo)}
-                      disabled={busy}
-                      className={actionButton}
-                    >
-                      {workingId === photo.id ? (
-                        <Spinner size={16} />
-                      ) : photo.published ? (
-                        <EyeSlash size={16} weight="regular" aria-hidden="true" />
-                      ) : (
-                        <Eye size={16} weight="regular" aria-hidden="true" />
-                      )}
-                      {photo.published ? "Hide" : "Show"}
-                      <span className="sr-only"> {name}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void move(index, -1)}
-                      disabled={index === 0 || busy}
-                      aria-label={`Move ${name} earlier`}
-                      className={moveButton}
-                    >
-                      <ArrowUp size={17} weight="regular" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void move(index, 1)}
-                      disabled={index === photos.length - 1 || busy}
-                      aria-label={`Move ${name} later`}
-                      className={moveButton}
-                    >
-                      <ArrowDown size={17} weight="regular" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFlash(null);
-                        setRemoving(photo);
-                      }}
-                      disabled={busy}
-                      className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-medium text-danger transition-colors hover:bg-danger/5 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <Trash size={16} weight="regular" aria-hidden="true" />
-                      Remove
-                      <span className="sr-only"> {name}</span>
-                    </button>
-                  </div>
+                {/*
+                  The actions run the full width of the card, three to a row,
+                  under the photograph and its words rather than squeezed in
+                  beside the picture. Beside it, a 320px phone left them about
+                  130px, and the six wrapped into a ragged stack five rows
+                  tall. The two arrows carry their words too: on a phone there
+                  is room for "Earlier" and "Later", and an arrow alone asks
+                  Nat to know which way the order runs.
+                */}
+                <div className="mt-3 grid grid-cols-3 gap-1 border-t border-line pt-2 sm:mx-5 sm:mb-3 sm:mt-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFlash(null);
+                      setReplacing(photo);
+                    }}
+                    disabled={busy}
+                    className={actionButton}
+                  >
+                    <ArrowsClockwise size={16} weight="regular" aria-hidden="true" />
+                    Replace
+                    <span className="sr-only"> {name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFlash(null);
+                      setEditing(photo);
+                    }}
+                    disabled={busy}
+                    className={actionButton}
+                  >
+                    <PencilSimple size={16} weight="regular" aria-hidden="true" />
+                    Edit
+                    <span className="sr-only"> {name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void toggleShown(photo)}
+                    disabled={busy}
+                    className={actionButton}
+                  >
+                    {workingId === photo.id ? (
+                      <Spinner size={16} />
+                    ) : photo.published ? (
+                      <EyeSlash size={16} weight="regular" aria-hidden="true" />
+                    ) : (
+                      <Eye size={16} weight="regular" aria-hidden="true" />
+                    )}
+                    {photo.published ? "Hide" : "Show"}
+                    <span className="sr-only"> {name}</span>
+                  </button>
+                  {/* The accessible name ("Move Soft Lob earlier") still
+                      contains the visible word, as WCAG 2.5.3 asks. */}
+                  <button
+                    type="button"
+                    onClick={() => void move(index, -1)}
+                    disabled={index === 0 || busy}
+                    aria-label={`Move ${name} earlier`}
+                    className={moveButton}
+                  >
+                    <ArrowUp size={16} weight="regular" aria-hidden="true" />
+                    Earlier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void move(index, 1)}
+                    disabled={index === photos.length - 1 || busy}
+                    aria-label={`Move ${name} later`}
+                    className={moveButton}
+                  >
+                    <ArrowDown size={16} weight="regular" aria-hidden="true" />
+                    Later
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFlash(null);
+                      setRemoving(photo);
+                    }}
+                    disabled={busy}
+                    className={removeButton}
+                  >
+                    <Trash size={16} weight="regular" aria-hidden="true" />
+                    Remove
+                    <span className="sr-only"> {name}</span>
+                  </button>
                 </div>
               </li>
             );

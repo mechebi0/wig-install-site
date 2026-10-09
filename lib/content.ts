@@ -497,6 +497,12 @@ export const PAGES = {
     title: "One pair of hands, start to finish.",
     lede: "One stylist, one chair, and one client in the room at a time.",
   },
+  /** app/not-found.tsx: an old link, a mistyped address, a removed page. */
+  notFound: {
+    kicker: "Page not found",
+    title: "This page is not here.",
+    lede: "The link may be old or mistyped. The gallery and the booking page are one tap away.",
+  },
 } as const;
 
 /**

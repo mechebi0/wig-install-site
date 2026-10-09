@@ -314,12 +314,18 @@ export function InstallSelector(props: InstallSelectorProps) {
           bodyId={`${uid}-finish-body`}
         />
 
+        {/*
+          `grid-cols-1` is load bearing on a phone. Without it the single
+          column is an implicit track sized `auto`, which takes its minimum
+          from the cards' min-content width: the column ran 410px wide on a
+          320px screen and the whole page scrolled sideways.
+        */}
         <fieldset
           ref={finishGroup}
           aria-labelledby={`${uid}-finish`}
           aria-describedby={`${uid}-finish-body`}
           aria-required="true"
-          className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:mt-10 lg:grid-cols-3 lg:gap-6"
+          className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:mt-10 lg:grid-cols-3 lg:gap-6"
         >
           {finishes.map((id) => {
             const option = getFinish(id);
@@ -336,12 +342,19 @@ export function InstallSelector(props: InstallSelectorProps) {
                   aria-describedby={`${uid}-${id}-description`}
                   className="peer sr-only"
                 />
-                <span className={`${CHOICE_SURFACE} flex-col`}>
-                  <span className="relative aspect-[4/3] overflow-hidden bg-surface-2 lg:aspect-[3/2]">
+                {/*
+                  Beside the words on a phone, the same shape as the install
+                  cards in step 1. Two up, a 320px screen left each sentence
+                  about 100px and wrapped it two words a line, and the third
+                  finish sat alone on a half-empty row; one column of three
+                  is shorter and reads at full width.
+                */}
+                <span className={`${CHOICE_SURFACE} flex-row sm:flex-col`}>
+                  <span className="relative aspect-[3/4] w-[38%] shrink-0 overflow-hidden bg-surface-2 sm:aspect-[4/3] sm:w-full lg:aspect-[3/2]">
                     {swatch ? (
                       <Photograph
                         photo={swatch.item.image}
-                        sizes="(min-width: 1024px) 30vw, 45vw"
+                        sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 38vw"
                         decorative
                         style={{ objectPosition: swatch.focal }}
                         className="absolute inset-0 h-full w-full object-cover"
@@ -365,7 +378,7 @@ export function InstallSelector(props: InstallSelectorProps) {
                       </span>
                     )}
                   </span>
-                  <span className="flex flex-1 flex-col p-4 sm:p-5 lg:p-6">
+                  <span className="flex min-w-0 flex-1 flex-col justify-center p-4 sm:justify-start sm:p-5 lg:p-6">
                     <span className="pr-7 font-display text-lg leading-tight tracking-tight text-ink sm:text-xl">
                       {option.label}
                     </span>

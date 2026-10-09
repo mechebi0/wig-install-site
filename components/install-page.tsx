@@ -137,7 +137,7 @@ export function InstallPage({ type }: { type: InstallType }) {
       />
 
       {/* -------------------------------------------------- the choice --- */}
-      <section id="finish" className="scroll-mt-24 border-t border-line bg-bg">
+      <section id="finish" className="border-t border-line bg-bg">
         <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
           <InstallSelector mode="page" installType={type.id} />
         </div>

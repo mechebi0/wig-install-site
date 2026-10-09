@@ -371,11 +371,19 @@ export function PhotoUpload({
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-8">
           <ul className="flex flex-col gap-4">
             {drafts.map((draft) => (
+              /*
+                Two rows on a phone: the picture beside its file name and
+                status, then the title and description at the card's full
+                width. Beside a picture, a 320px card left the fields about
+                110px and wrapped their help text a word or two a line. From
+                `sm` the picture spans both rows and the fields sit beside
+                it, as before.
+              */
               <li
                 key={draft.key}
-                className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 rounded-3xl border border-line bg-surface p-4 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-6 sm:p-5"
+                className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 rounded-3xl border border-line bg-surface p-4 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-x-6 sm:p-5"
               >
-                <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-surface-3">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-surface-3 sm:row-span-2">
                   {draft.preview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -425,35 +433,35 @@ export function PhotoUpload({
                       {draft.problem}
                     </p>
                   ) : null}
-
-                  {draft.prepared ? (
-                    <>
-                      <TextField
-                        id={`${draft.key}-title`}
-                        label="Title (optional)"
-                        value={draft.title}
-                        maxLength={MAX_TITLE}
-                        disabled={busy}
-                        onChange={(event) => patch(draft.key, { title: event.target.value })}
-                        help="Shown over the photo in the gallery. For example: Soft Body Wave."
-                      />
-                      <TextAreaField
-                        id={`${draft.key}-alt`}
-                        label="Description for screen readers"
-                        rows={2}
-                        required
-                        value={draft.alt}
-                        maxLength={MAX_ALT}
-                        disabled={busy}
-                        error={draft.altError}
-                        onChange={(event) =>
-                          patch(draft.key, { alt: event.target.value, altError: "" })
-                        }
-                        help="What the hair looks like, for visitors who cannot see the photo. For example: A long body-wave install with a side part and laid edges."
-                      />
-                    </>
-                  ) : null}
                 </div>
+
+                {draft.prepared ? (
+                  <div className="col-span-2 flex min-w-0 flex-col gap-4 sm:col-span-1 sm:col-start-2">
+                    <TextField
+                      id={`${draft.key}-title`}
+                      label="Title (optional)"
+                      value={draft.title}
+                      maxLength={MAX_TITLE}
+                      disabled={busy}
+                      onChange={(event) => patch(draft.key, { title: event.target.value })}
+                      help="Shown over the photo in the gallery. For example: Soft Body Wave."
+                    />
+                    <TextAreaField
+                      id={`${draft.key}-alt`}
+                      label="Description for screen readers"
+                      rows={2}
+                      required
+                      value={draft.alt}
+                      maxLength={MAX_ALT}
+                      disabled={busy}
+                      error={draft.altError}
+                      onChange={(event) =>
+                        patch(draft.key, { alt: event.target.value, altError: "" })
+                      }
+                      help="What the hair looks like, for visitors who cannot see the photo. For example: A long body-wave install with a side part and laid edges."
+                    />
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>

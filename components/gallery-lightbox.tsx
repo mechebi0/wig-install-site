@@ -5,6 +5,9 @@ import { ArrowLeft, ArrowRight, X } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
 import type { Photo } from "@/lib/collections";
 
+/** How far a finger has to travel sideways to step; the hero's threshold. */
+const SWIPE_PX = 48;
+
 /**
  * The gallery lightbox. Opened by StyleGallery, and only ever by StyleGallery.
  *
@@ -40,6 +43,12 @@ import type { Photo } from "@/lib/collections";
  * close button is a 44px target in the corner and is never the only way out.
  * Every control is a real <button> with a label, so none of this is
  * mouse-only.
+ *
+ * On a touch screen a sideways swipe across the picture steps as well: the
+ * same gesture and the same 48px threshold as the hero carousel, so the two
+ * places that show one photograph at a time answer a thumb the same way. A
+ * mouse drag is left alone, and vertical pans and pinches stay with the
+ * browser, so a pinch still zooms in on a hairline.
  */
 export function GalleryLightbox({
   photos,
@@ -95,6 +104,8 @@ export function GalleryLightbox({
     [onStep],
   );
 
+  const swipeFrom = useRef<number | null>(null);
+
   const photo = index === null ? null : photos[index];
 
   return (
@@ -136,7 +147,22 @@ export function GalleryLightbox({
           {/* min-h-0 lets this flex child actually shrink, which is what keeps
               a tall portrait inside the viewport instead of pushing the
               controls off the bottom of a short laptop screen. */}
-          <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-2 sm:px-6">
+          <div
+            onPointerDown={(event) => {
+              if (event.pointerType !== "mouse") swipeFrom.current = event.clientX;
+            }}
+            onPointerUp={(event) => {
+              const from = swipeFrom.current;
+              swipeFrom.current = null;
+              if (from === null) return;
+              const dx = event.clientX - from;
+              if (Math.abs(dx) >= SWIPE_PX) onStep(dx < 0 ? 1 : -1);
+            }}
+            onPointerCancel={() => {
+              swipeFrom.current = null;
+            }}
+            className="flex min-h-0 flex-1 touch-pan-y touch-pinch-zoom items-center justify-center px-4 pb-2 sm:px-6"
+          >
             <Photograph
               key={photo.src}
               photo={photo}

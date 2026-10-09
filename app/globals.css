@@ -116,7 +116,12 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    /* Anchor targets clear the sticky nav instead of hiding under it. */
+    /*
+      Anchor targets clear the sticky nav instead of hiding under it. This is
+      the only offset: a `scroll-mt-*` on a section adds to it rather than
+      replacing it, which is how "Choose your finish" used to land 184px down
+      a phone screen with a third of it empty above the section.
+    */
     scroll-padding-top: 5.5rem;
   }
 

@@ -648,14 +648,21 @@ export function HeroCarousel() {
           </div>
 
           <div className="mt-7 flex items-center justify-between gap-3 border-t border-on-accent/15 pt-4 lg:mt-9">
+            {/*
+              Below 360px the four controls leave this line about 90px, so the
+              name was printing as "Deep Wave G...". It repeats the eyebrow
+              directly above the headline and is hidden from assistive
+              technology already, so on those phones it goes rather than being
+              cut, and the controls hold the right edge on their own.
+            */}
             <p
               aria-hidden="true"
-              className="min-w-0 truncate font-display text-sm italic text-on-accent/60"
+              className="hidden min-w-0 truncate font-display text-sm italic text-on-accent/60 min-[360px]:block"
             >
               {active.label}
             </p>
 
-            <div className="-mr-2 flex shrink-0 items-center gap-1">
+            <div className="-mr-2 ml-auto flex shrink-0 items-center gap-1">
               <Control
                 onClick={() => goTo(index - 1)}
                 label="Previous install"

@@ -14,14 +14,23 @@ export function Questions() {
     <section
       id="questions"
       aria-labelledby="questions-heading"
-      className="scroll-mt-24 bg-surface-2/60 py-14 sm:py-20 lg:py-28"
+      className="bg-surface-2/60 py-14 sm:py-20 lg:py-28"
     >
       <div className="mx-auto grid max-w-[1400px] gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-4">
+        {/*
+          The whole column is sticky at desktop, not the heading inside it. A
+          sticky element only travels within its own parent, and the heading's
+          parent was the Reveal holding it and the draft notice: it slid down
+          onto the notice, stopped there, and the two scrolled away printed on
+          top of each other. As the grid item, `self-start` keeps the column
+          its own height and the section is what it travels through, so the
+          heading and the notice stay together beside every question.
+        */}
+        <div className="lg:sticky lg:top-28 lg:col-span-4 lg:self-start">
           <Reveal>
             <h2
               id="questions-heading"
-              className="font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:sticky lg:top-28 lg:text-5xl"
+              className="font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
             >
               Common questions.
             </h2>

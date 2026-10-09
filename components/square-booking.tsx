@@ -74,9 +74,21 @@ export function SquareBooking() {
   }, []);
 
   return (
+    /*
+      Edge to edge below `sm`, because Square measures this box as it loads
+      and swaps the scheduler for a plain "Book Appointment Now" link when it
+      is too narrow (measured: 278px got the link, 298px the scheduler).
+      Inside the page gutters a 320px phone is 278px, so it was getting the
+      link alone in an empty 600px card; at full width it is 320 and every
+      phone gets the scheduler, with more room for its calendar besides.
+
+      The height is capped to the screen under the nav on a short phone, so
+      the whole scheduler can be in view at once instead of being scrolled
+      inside while the page scrolls around it. 600px wherever that fits.
+    */
     <div
       aria-label="Appointment scheduler"
-      className="relative h-[600px] w-full overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-soft sm:h-[680px] lg:h-[760px]"
+      className="relative -mx-5 h-[min(600px,calc(100svh-6rem))] overflow-hidden border-y border-line-strong bg-surface shadow-soft sm:mx-0 sm:h-[680px] sm:rounded-3xl sm:border lg:h-[760px]"
     >
       {/*
         Always mounted at full size, loading or not: Square's script measures

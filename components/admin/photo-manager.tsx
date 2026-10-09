@@ -130,7 +130,9 @@ function Manager({ email }: { email: string }) {
         <div className="flex min-w-0 flex-col gap-3 sm:items-end">
           <p className="text-sm text-muted">
             Owner account:{" "}
-            <span className="break-all font-medium text-ink">{email}</span>
+            {/* Its own line on a phone. Beside the label, break-all cut the
+                address at 320px and left the final "m" alone on a line. */}
+            <span className="block break-all font-medium text-ink sm:inline">{email}</span>
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <a

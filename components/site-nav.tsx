@@ -203,6 +203,7 @@ export function SiteNav() {
   */
   const sheetRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   /** Closes the sheet AND hands focus back, for the two dismissals that stay
       on the page. Navigation does not use it: focus belongs on the new page. */
@@ -222,8 +223,11 @@ export function SiteNav() {
       ).filter((el) => el.offsetParent !== null);
 
     /* The sheet covers the viewport, so opening it and leaving focus on the
-       bar underneath would put the next Tab somewhere invisible. */
-    focusables()[0]?.focus();
+       bar underneath would put the next Tab somewhere invisible. It goes to
+       the close button, which sits exactly where the menu button was, so the
+       focus ring does not jump across the screen, and the next Tab walks the
+       menu from the top. */
+    closeButtonRef.current?.focus();
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -452,27 +456,34 @@ export function SiteNav() {
           paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between px-5 sm:px-8">
+        {/*
+          The bar's own layout, track for track: the crest on the centre line
+          at the bar's size, and the close button exactly where the menu
+          button was, with Instagram in the bar's empty left track. Opening
+          the menu changes what is under the header and not the header
+          itself; with the old left-aligned 32px crest, the mark jumped
+          sideways and shrank to half its size the moment the sheet appeared.
+        */}
+        <div className="grid h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 sm:gap-5 sm:px-8">
+          <InstagramLink className="-ml-2.5 justify-self-start" />
           {/*
             The same crest as the sticky bar, not the typographic Wordmark
             this used to fall back to: that fallback existed because the old
             neon mark could not survive the sheet's pale background, and this
             one can (see the note on STUDIO.logo in lib/content.ts).
           */}
-          <a href="/" aria-label="Home">
-            <NavMark className="h-8" />
+          <a href="/" aria-label="Home" className="justify-self-center">
+            <NavMark className="h-14 md:h-[3.75rem]" />
           </a>
-          <div className="-mr-2 flex items-center gap-1">
-            <InstagramLink />
-            <button
-              type="button"
-              onClick={dismiss}
-              aria-label="Close menu"
-              className="tap inline-flex cursor-pointer items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-2"
-            >
-              <X size={24} weight="regular" />
-            </button>
-          </div>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            onClick={dismiss}
+            aria-label="Close menu"
+            className="tap -mr-2 inline-flex cursor-pointer items-center justify-center justify-self-end rounded-full text-ink transition-colors hover:bg-surface-2"
+          >
+            <X size={24} weight="regular" />
+          </button>
         </div>
 
         <ul className="flex flex-col px-5 pt-4 sm:px-8">

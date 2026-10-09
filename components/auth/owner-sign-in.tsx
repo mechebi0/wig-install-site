@@ -352,11 +352,17 @@ export function OwnerSignIn() {
           if you are reading it on this device.
         </Notice>
 
+        {/*
+          enterKeyHint labels the phone keyboard's return key "Go". With the
+          keyboard up on a short phone, the Sign in button below can be
+          behind it, and the return key is then the button within reach.
+        */}
         <TextField
           id="owner-code"
           label="6-digit code"
           inputMode="numeric"
           autoComplete="one-time-code"
+          enterKeyHint="go"
           maxLength={10}
           value={code}
           onChange={(event) => setCode(event.target.value)}
@@ -428,6 +434,7 @@ export function OwnerSignIn() {
         type="email"
         inputMode="email"
         autoComplete="email"
+        enterKeyHint="send"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
         error={errors["owner-email"]}

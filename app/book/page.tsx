@@ -42,7 +42,7 @@ function BookingPanel() {
     <section
       id="request"
       aria-labelledby="booking-heading"
-      className="scroll-mt-24 border-t border-line bg-surface-2/40"
+      className="border-t border-line bg-surface-2/40"
     >
       <div className="mx-auto max-w-[1400px] px-5 py-14 sm:px-8 sm:py-20 lg:py-28">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
@@ -83,7 +83,10 @@ function BookingPanel() {
                     <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
                       {STUDIO.hours.map((slot) => (
                         <span key={slot.days}>
-                          {slot.days}, {slot.time}
+                          {slot.days},{" "}
+                          {/* One unit, so a 320px phone never strands "PM"
+                              on a line of its own. */}
+                          <span className="whitespace-nowrap">{slot.time}</span>
                         </span>
                       ))}
                     </dd>
