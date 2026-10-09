@@ -12,8 +12,12 @@ the collection covers, the install pages), without anyone editing code.
 | **Owner account** | `crownedbynattt@gmail.com` |
 | **Password** | None. Nat signs in with a code emailed to that address. |
 
-Neither page is linked from the public site. Bookmark them. (The same paths
-also work on the Cloudflare Pages address, `https://wig-install-site.pages.dev`.)
+**Neither page is linked from the public site, and that is on purpose.** There
+is no Admin link in the header, the mobile menu or the footer, so visitors are
+never shown that an owner area exists. Nat reaches it by this address:
+**`https://crownedbynat.com/admin/login/`**. Bookmark it on every device she uses
+(on a phone, "Add to Home Screen" gives it an icon). (The same paths also work on
+the Cloudflare Pages address, `https://wig-install-site.pages.dev`.)
 
 > **Status (2026-10-08):** the live site is connected to Supabase (its
 > JavaScript carries the project address) and the owner sign-in works. The
@@ -30,13 +34,21 @@ also work on the Cloudflare Pages address, `https://wig-install-site.pages.dev`.
 ### Signing in
 
 1. Open the sign-in page above and type `crownedbynattt@gmail.com`.
-2. Tap **Email me a code**.
+2. Tap **Email me a sign-in code**.
 3. Open the email from Crowned by Nat and type the 6-digit code on the page,
    then tap **Sign in**. (If you are reading the email on the same phone or
    computer, you can tap the **Sign in** button in the email instead.)
 
-The code works once and expires after an hour. You stay signed in on that
-device until you tap **Log out**.
+The code works once and expires after a short time. You stay signed in on that
+device until you tap **Log out**, which signs you out on every device.
+
+The page only ever says that a code was *requested*; it cannot know the email
+arrived. If it has not come after a minute or two, check the spam folder before
+asking again. Asking for another code replaces the earlier one, and Supabase
+limits how often codes can be sent, so the button counts down how long to wait
+(usually under a minute). If you see "too many sign-in codes", wait and use the
+code from your most recent email: asking again sooner does not help and can make
+the wait longer.
 
 ### What is on the page
 
@@ -235,7 +247,42 @@ accept from them.
   which are designed to be public. The **service role / secret key** is not
   used anywhere and must never be added to this project or to Cloudflare. The
   same goes for the database password, the SMTP password and any Resend key:
-  they live in the Supabase dashboard only.
+  they live in the Supabase dashboard only. `node scripts/check-bundle-secrets.mjs`
+  checks a build, or `node scripts/check-bundle-secrets.mjs https://crownedbynat.com`
+  the live site, and fails if any file a visitor downloads holds a key whose
+  role is not `anon`, a database URL with a password, or a deploy hook.
+- **Nothing on the static site is a security boundary.** There is no server
+  here: no middleware, no API routes. The redirects to `/admin/login/` and the
+  "not available on your account" screen are for clarity only; delete them and
+  nothing changes about who can do what. Every check that counts runs in
+  Postgres and Storage.
+- **Known and accepted: a hidden photo's *file* is not secret.** The bucket is
+  public so published photos load by plain URL. Hiding a photo removes it from
+  the site, the gallery and the API, and the file name is an unguessable UUID
+  that nothing public lists, but anyone who already had the exact URL can still
+  open it. Remove the photo to delete the file (it is kept only while a live
+  deployment still uses it).
+- **Optional hardening, `0009_revoke_excess_api_grants.sql`.** Supabase's
+  default table privileges give `anon` write and `TRUNCATE` rights on the older
+  tables (`profiles`, `appointments`, `locations`, `services`, `reviews`,
+  `business_settings`). Row level security makes the writes do nothing and the
+  REST API has no `TRUNCATE`, so nothing was exploitable, but `TRUNCATE` ignores
+  row level security, so the migration removes the rights instead of relying on
+  that. It only revokes; re-running it is harmless; the site does not change.
+  Run the "Verify" queries at the bottom of the file first to see whether your
+  project has them.
+
+### Testing the rules
+
+`supabase/tests/owner-only.mjs` attacks a **local** Supabase (never production;
+it refuses any other address) as a visitor, a signed-in customer, a stranger who
+used the owner sign-in page for their own address, and look-alike addresses,
+then as the owner, and compares the database and bucket before and after every
+attack. It also covers logout, expired and revoked sessions, a forged token,
+the grants and policies themselves, the real error responses the sign-in page
+turns into messages, and re-running migrations 0006 to 0009. The steps are in
+`supabase/tests/README.md`. `npm test` runs the quick unit tests of the
+sign-in error messages and needs no Supabase.
 
 ---
 
@@ -282,6 +329,14 @@ select count(*) from public.site_photo_slots;                               -- 1
 The deployed site checks for 0007 each time it is built: until it is there,
 the build log says *"Supabase does not have migration 0007 yet"* and the site
 is built from the launch photos, exactly as before.
+
+**0009 (optional)** only takes privileges away; see "Who can do what". It was
+written, and passes the whole test suite, but **has not been run on the hosted
+project**: that is a decision for the person who owns the Supabase account, so
+nothing in this repository applies it. To see whether it matters for this
+project, run the three "Verify" queries at the bottom of the file; if the first
+two return no rows there is nothing to do. To apply it, paste the file into the
+SQL Editor and run it, then run the queries again.
 
 ### 2. Environment variables
 
@@ -419,10 +474,14 @@ select status_code, created from net._http_response order by created desc limit 
 | 8 | **Remove** it | Confirmation first, saying the swatch goes plain; then gone |
 | 9 | Sign in as a customer at `/login/`, open `/admin/photos/` | *"This page is not available on your account."* |
 | 10 | Tap **Log out** | Back at the sign-in page |
+| 11 | Look for an Admin link in the header, the mobile menu and the footer | There is none |
+| 12 | Type a different email address on `/admin/login/` | "This sign-in is only for the studio owner's email address", and nothing is emailed |
 
-All of these, and the security checks above, were run against a local
-Supabase stack and a local build of the site on 2026-10-08 (110 checks), plus
-10 for migration 0008.
+Rows 1 to 10 and the security checks above were run against a local Supabase
+stack and a local build of the site on 2026-10-08 (110 checks), plus 10 for
+migration 0008. The sign-in screen, its error messages and the owner-only rules
+were re-run on 2026-10-09: 127 browser checks and 131 database and storage
+checks (see "Testing the rules").
 
 ---
 
@@ -474,7 +533,7 @@ set; the previous deployment is still live. Check the Supabase project is up
 Those use the copy written at the last deployment: it catches up at the next
 rebuild (automatic with step 7). Apps also cache previews themselves.
 
-**"Supabase is not allowed to email this address yet."** Step 4.
+**"Email sending has not been fully set up for this address yet."** Step 4.
 
 **The email has a link but no code.** Step 3, templates.
 
@@ -484,8 +543,22 @@ before Nat's first sign-in (it refuses then; run it again).
 **"Your sign-in has ended."** Nat logged out on another device, or step 6 ended
 her earlier sign-ins. Sign in again.
 
-**"Too many codes have been sent just now."** Supabase limits how often codes
-are sent. Wait a few minutes, or use the code from the last email.
+**"Wait N seconds before asking for another."** Supabase allows one code per
+address in a short window (the button counts it down). The earlier code is
+still valid until a new one is sent.
+
+**"Too many sign-in codes have been requested recently."** The project's hourly
+email allowance is used up. Wait (up to an hour) or use the code from the most
+recent email. Asking again sooner does not help. With the built-in mailer the
+allowance is tiny, which is what step 4's custom SMTP is for.
+
+**"The sign-in email could not be sent just now."** Supabase or the mail
+provider failed on their side, which is usually temporary. If it persists, check
+the SMTP settings in step 4 and the provider's dashboard.
+
+**"That code did not work."** Mistyped, expired, already used, or replaced by a
+newer one. Supabase answers all of these the same way, so the page cannot say
+which. Use the newest email, or request a new code.
 
 **A photo shows in the manager but not on the site.** It is hidden (tap
 **Show**), or it is not in the collection being viewed.

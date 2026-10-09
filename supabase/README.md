@@ -55,6 +55,10 @@ nothing pretends to work.
 5. Optional: `0008_rebuild_site_on_photo_change.sql` rebuilds the site by
    itself after Nat changes photographs. It does nothing until a Cloudflare
    deploy hook is stored in Vault; `docs/photo-manager.md` has both steps.
+6. Optional: `0009_revoke_excess_api_grants.sql` takes back table privileges
+   Supabase grants by default and nothing here uses (it only revokes; the site
+   does not change). `docs/photo-manager.md`, "Who can do what", says why and
+   how to check whether a project needs it.
 
 Each should finish with no errors. On a fresh project that is the whole job.
 
@@ -105,7 +109,7 @@ applied (2026-10-08):
   *Reinstall and refresh* back off, and resets Wig Touch Up's name, price and
   description, whatever was set from the dashboard since.
 
-0002, 0003, 0006, 0007 and 0008 are harmless to repeat. 0007 seeds the
+0002, 0003, 0006, 0007, 0008 and 0009 are harmless to repeat. 0007 seeds the
 website's photographs exactly once, ever (it records that it did), so running
 it again never brings back a photograph Nat has removed.
 

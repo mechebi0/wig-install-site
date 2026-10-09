@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AuthShell } from "@/components/auth/auth-shell";
+import { OwnerShell } from "@/components/auth/owner-shell";
 import { OwnerSignIn } from "@/components/auth/owner-sign-in";
 
 /**
@@ -11,6 +11,10 @@ import { OwnerSignIn } from "@/components/auth/owner-sign-in";
  * owner account exists anywhere. Like every admin page it is linked from
  * nowhere public and kept out of search results, and like every admin page
  * none of that is what protects it; see components/admin/photo-manager.tsx.
+ *
+ * Nat reaches it by its address, https://crownedbynat.com/admin/login/, which
+ * she bookmarks (docs/photo-manager.md). There is deliberately no link to it
+ * from the navigation or the footer.
  */
 export const metadata: Metadata = {
   title: "Owner sign-in",
@@ -19,12 +23,12 @@ export const metadata: Metadata = {
 
 export default function AdminLoginPage() {
   return (
-    <AuthShell
+    <OwnerShell
       kicker="Studio owner"
-      title="Sign in to manage photos."
-      lede="No password needed. Enter the studio's email address and a sign-in code will be emailed to it."
+      title="Owner sign-in"
+      lede="A secure one-time code is emailed to the studio owner. No password needed."
     >
       <OwnerSignIn />
-    </AuthShell>
+    </OwnerShell>
   );
 }
