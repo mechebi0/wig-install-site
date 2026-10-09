@@ -483,9 +483,8 @@ export const usesOnPageBooking = STUDIO.bookingUrl.trim() === "";
  * it in the row as well would make it the fifth-most-important thing on a bar
  * where it is the first.
  *
- * Admin is not in this list either. The footer renders NAV_LINKS too, and
- * Admin is a door for one person rather than a destination for visitors, so
- * it is ADMIN_LINK below and SiteNav places it on its own.
+ * There is no Admin entry here and there will not be one. Nat reaches her
+ * dashboard by bookmarking /admin.
  */
 export const NAV_LINKS = [
   { label: "Gallery", href: "/gallery/" },
@@ -493,18 +492,6 @@ export const NAV_LINKS = [
   { label: "Reviews", href: "/reviews/" },
   { label: "Meet Nat", href: "/meet-nat/" },
 ] as const;
-
-/**
- * Nat's shortcut into the admin side, from the nav on every page. It points
- * at the owner sign-in rather than at /admin/ itself: signed out, that is the
- * page she needs, and signed in, it forwards her straight to the photo
- * manager (components/auth/owner-sign-in.tsx).
- *
- * Linking it gives nothing away. The sign-in was only ever unlinked, never
- * secret; what protects the admin pages is `is_admin()` in Postgres (see
- * app/admin/page.tsx).
- */
-export const ADMIN_LINK = { label: "Admin", href: "/admin/login/" } as const;
 
 /**
  * Per page kicker, title and lede. One place to review every page opening,

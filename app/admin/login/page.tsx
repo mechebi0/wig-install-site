@@ -8,10 +8,9 @@ import { OwnerSignIn } from "@/components/auth/owner-sign-in";
  * Separate from /login/ because it works differently, not because it is
  * secret: customers sign in with a password there, and the owner signs in
  * here with a code emailed to the studio address, so no password for the
- * owner account exists anywhere. It is the one admin page the nav links to
- * (ADMIN_LINK in lib/content.ts). Like every admin page it is kept out of
- * search results, and like every admin page that is not what protects it;
- * see components/admin/photo-manager.tsx.
+ * owner account exists anywhere. Like every admin page it is linked from
+ * nowhere public and kept out of search results, and like every admin page
+ * none of that is what protects it; see components/admin/photo-manager.tsx.
  */
 export const metadata: Metadata = {
   title: "Owner sign-in",
