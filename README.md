@@ -62,7 +62,9 @@ photograph, name and "View collection" open it at the top, and its Book button
 opens it at the scheduler, `/gallery/<slug>/#book` (`collectionBookingTarget`
 in `lib/content.ts`). A style is not a service and Square cannot be told one,
 so the booking section names the style and says to mention it to Nat; nothing
-claims it reaches Square. Which photographs a style page shows is the
+claims it reaches Square. What Square can take is an add-on: a look can name
+one from Nat's Square menu (Signature Bob: Bob cut, set per look in the
+dashboard), and its booking steps ask the client to add it. Which photographs a style page shows is the
 collections Nat ticks for each photograph in the photo manager, published
 photographs only (`lib/gallery.ts`); `tests/collection-pages.test.mjs` checks
 the routing, the redirects and the filtering.

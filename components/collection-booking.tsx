@@ -35,6 +35,10 @@ import {
  * last one says plainly that the style is hers to mention (the words are
  * Nat's, COLLECTION_PAGE.booking). Nothing here claims the scheduler knows.
  *
+ * What Square CAN take is an add-on, a line of its own in Nat's menu. A look
+ * that has one (Signature Bob: "Bob cut") gets a step naming it, in bold,
+ * after the service is tapped, which is where Square offers more to add.
+ *
  * Laid out as /book/'s booking panel is: the words beside the scheduler from
  * `lg`, above it below that, where the scheduler runs edge to edge.
  */
@@ -93,9 +97,9 @@ export function CollectionBooking({ collection }: { collection: StyleCollection 
               </dl>
 
               <ol className="mt-5 flex flex-col gap-3 sm:mt-6">
-                {steps(name).map((step, index) => (
+                {steps(name, collection.addOn).map((step, index) => (
                   <Step key={index} number={index + 1}>
-                    <Emphasised text={step} phrase={name} />
+                    <Emphasised text={step.text} phrase={step.phrase} />
                   </Step>
                 ))}
               </ol>

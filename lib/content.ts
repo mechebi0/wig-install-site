@@ -526,14 +526,27 @@ export const COLLECTION_PAGE = {
    * The scheduler opens on Nat's whole menu and cannot be told the style, so
    * the steps say what to tap and that the style is hers to mention.
    * `{style}` in Nat's wording is the collection's name.
+   *
+   * A look with a Square add-on (Signature Bob's "Bob cut") gets one more
+   * step after the first, `{add on}` filled with the add-on's name. Each step
+   * comes with the phrase to set in bold: the add-on on its own step, so the
+   * line to tap in Square stands out, and the style's name on the others.
    */
   booking: {
     heading: SITE.gallery.ctaHeading,
     body: SITE.gallery.ctaBody,
-    steps: (style: string) =>
-      [SITE.gallery.bookingStep1, SITE.gallery.bookingStep2, SITE.gallery.bookingStep3].map(
-        (step) => fillPlaceholders(step, { style }),
-      ),
+    steps: (style: string, addOn: string): { text: string; phrase: string }[] => {
+      const step = (text: string, phrase = style) => ({
+        text: fillPlaceholders(text, { style, "add on": addOn }),
+        phrase,
+      });
+      return [
+        step(SITE.gallery.bookingStep1),
+        ...(addOn ? [step(SITE.gallery.bookingAddOnStep, addOn)] : []),
+        step(SITE.gallery.bookingStep2),
+        step(SITE.gallery.bookingStep3),
+      ];
+    },
   },
   /** The eyebrow over a collection's name, and the badge on the finish collection's card. */
   styleLabel: SITE.gallery.styleLabel,

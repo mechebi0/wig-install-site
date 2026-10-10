@@ -471,6 +471,11 @@ export const DEFAULT_CONTENT = {
         body: "How well the unit is attached: the melt, the hairline, the parting. Natural Lace collects installs of every texture that share that standard.",
       },
     ],
+    /**
+     * `addOn` is the add-on in Nat's Square menu that goes with a look, named
+     * exactly as Square names it, or "" for none. The look's booking section
+     * then asks the client to add it (`bookingAddOnStep` below).
+     */
     collections: {
       "deep-wave-glam": {
         title: "Deep Wave Glam",
@@ -480,6 +485,7 @@ export const DEFAULT_CONTENT = {
           "Deep wave is the one people bring a screenshot in for. Long lengths, a wave pattern that holds its definition from the root down, and enough weight through the ends to move when you do. Density is set before the lace goes down, so the shape is still there in week three.",
         metaDescription:
           "Long deep-wave lace installs by Crowned by Nat. Defined texture, glamorous volume, and a hairline cut to your face, in {all locations}.",
+        addOn: "",
       },
       "sleek-straight": {
         title: "Sleek Straight",
@@ -489,6 +495,7 @@ export const DEFAULT_CONTENT = {
           "Straight hides nothing. Every lift at the parting and every uneven end is visible from across a room, which is what makes this collection the honest test of an install. Middle part or deep side part, pressed to a glass finish, cut to a baseline that stays level.",
         metaDescription:
           "Sleek straight lace installs by Crowned by Nat. Clean centre and side partings, a pressed glass finish, and a level baseline, in {all locations}.",
+        addOn: "",
       },
       "signature-bob": {
         title: "Signature Bob",
@@ -498,6 +505,7 @@ export const DEFAULT_CONTENT = {
           "Short units live or die on the perimeter, and a bob cannot be rescued by length the way long hair can. These are cut on the head rather than off the stand, so the baseline sits where your jaw actually is and the shape holds when you turn your head.",
         metaDescription:
           "Bob and lob lace installs by Crowned by Nat. Blunt baselines, soft curved ends, and a perimeter cut on the head, in {all locations}.",
+        addOn: "Bob cut",
       },
       "body-wave-glam": {
         title: "Body Wave",
@@ -507,6 +515,7 @@ export const DEFAULT_CONTENT = {
           "Body wave is the softer register: a wider wave, more shine off the surface, and volume that reads as fullness rather than texture. It takes light better than any other pattern, which is why it is the one that photographs best in almost any room.",
         metaDescription:
           "Body-wave lace installs by Crowned by Nat. Soft volume, wide glossy waves, and elegant movement, in {all locations}.",
+        addOn: "",
       },
       "color-and-custom": {
         title: "Color & Custom",
@@ -516,6 +525,7 @@ export const DEFAULT_CONTENT = {
           "Colour inspiration from the chair: platinum, copper, burgundy and candy pink, all of it worked on the unit rather than on your own hair. Bring a reference to your consult and Nat will tell you straight what the unit you have can and cannot be taken to.",
         metaDescription:
           "Colour and custom wig inspiration from Crowned by Nat. Blonde, copper, burgundy, and pink lace installs, in {all locations}.",
+        addOn: "",
       },
       "natural-lace": {
         title: "Natural Lace",
@@ -525,6 +535,7 @@ export const DEFAULT_CONTENT = {
           "The quiet collection, and the one the others get judged against. Lace tinted to your skin, knots bleached down, the parting flat to the scalp, and the edges laid to follow your own hairline. Nothing here is trying to be noticed.",
         metaDescription:
           "Natural-looking lace installs by Crowned by Nat. Tinted lace, bleached knots, and a seamless hairline, in {all locations}.",
+        addOn: "",
       },
     },
     back: "All six collections",
@@ -536,6 +547,8 @@ export const DEFAULT_CONTENT = {
     ctaBody:
       "Bring this page to your consult. Nat will tell you straight whether the unit you have will get you there.",
     bookingStep1: "Tap the service you want in the scheduler's menu.",
+    /** Between steps 1 and 2, only on a look with an `addOn`. */
+    bookingAddOnStep: "Add {add on}, under Add ons, for your {style}.",
     bookingStep2: "Choose a day and time, then confirm your details.",
     bookingStep3: "The scheduler books the service, not the look, so tell Nat you want {style} at your appointment.",
     styleLabel: "Style",
@@ -853,6 +866,7 @@ export const REQUIRED_TEXT = [
   "gallery.related",
   "gallery.ctaHeading",
   "gallery.bookingStep1",
+  "gallery.bookingAddOnStep",
   "gallery.bookingStep2",
   "gallery.bookingStep3",
   "gallery.styleLabel",

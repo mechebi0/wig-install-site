@@ -639,6 +639,13 @@ export type StyleCollection = {
   /** For the page description tag. Plain, accurate, no keyword stuffing. */
   metaDescription: string;
   /**
+   * The add-on in Nat's Square menu that goes with this look, named exactly
+   * as Square names it ("Bob cut"), or "" for none. The booking section asks
+   * the client to add it (COLLECTION_PAGE.booking in lib/content.ts); the
+   * scheduler itself cannot be told to.
+   */
+  addOn: string;
+  /**
    * Which axis this collection cuts along. Five collections are STYLE (what
    * the hair is); Natural Lace is FINISH (how well it is attached), and the
    * page says so rather than letting it pass as a sixth hairstyle.
@@ -668,8 +675,9 @@ export type StyleCollection = {
  * pretending otherwise would hide the best example of one of them.
  *
  * The words for each (title, three-beat line, card sentence, page paragraph,
- * search description) are Nat's, from the dashboard (Website content,
- * Gallery); the slug, the axis and the order are structure and stay here.
+ * search description, and the Square add-on that goes with the look) are
+ * Nat's, from the dashboard (Website content, Gallery); the slug, the axis and
+ * the order are structure and stay here.
  * The search descriptions name the towns with {all locations}, so they follow
  * the dashboard's Locations rather than going stale.
  */

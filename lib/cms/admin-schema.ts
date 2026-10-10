@@ -18,7 +18,7 @@ import type { SectionKey } from "@/lib/cms/defaults";
  */
 
 /** Placeholders some texts fill in per page, beyond the location ones every text may use. */
-export type Placeholder = "service" | "finish" | "install type" | "style";
+export type Placeholder = "service" | "finish" | "install type" | "style" | "add on";
 
 type Base = {
   key: string;
@@ -649,6 +649,10 @@ export const SECTION_SPECS: SectionSpec[] = [
                 text("summary", "Card sentence", 120, { help: "On its card on the homepage. Under 90 characters reads best." }),
                 area("description", "Page introduction", 600),
                 area("metaDescription", "Search result description", 240, { help: "Tip: {all locations} names every location you are taking appointments in." }),
+                text("addOn", "Square add-on for this look", 60, {
+                  required: false,
+                  help: "An add-on from your Square menu that clients booking this look should add, spelled exactly as Square shows it (for example Bob cut). Its booking steps then ask for it. Leave empty for none.",
+                }),
               ],
             })),
           },
@@ -674,6 +678,10 @@ export const SECTION_SPECS: SectionSpec[] = [
           text("ctaHeading", "Heading", 60),
           area("ctaBody", "Sentence under the heading", 300, { required: false }),
           text("bookingStep1", "Step 1", 160, { placeholders: ["style"] }),
+          text("bookingAddOnStep", "Step for a look's Square add-on", 160, {
+            placeholders: ["style", "add on"],
+            help: "Only on a look with a Square add-on set above, after step 1. {add on} is that add-on's name, shown in bold.",
+          }),
           text("bookingStep2", "Step 2", 160, { placeholders: ["style"] }),
           text("bookingStep3", "Last step", 160, {
             placeholders: ["style"],
