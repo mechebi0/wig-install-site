@@ -639,10 +639,11 @@ export type StyleCollection = {
   /** For the page description tag. Plain, accurate, no keyword stuffing. */
   metaDescription: string;
   /**
-   * The add-on in Nat's Square menu that goes with this look, named exactly
-   * as Square names it ("Bob cut"), or "" for none. The booking section asks
-   * the client to add it (COLLECTION_PAGE.booking in lib/content.ts); the
-   * scheduler itself cannot be told to.
+   * The add-on in Nat's Square menu that goes with this look, named as
+   * Square names it ("Bob cut") or by the first word of a long name
+   * ("Styling"), or "" for none. The booking section asks the client to add
+   * it (COLLECTION_PAGE.booking in lib/content.ts); the scheduler itself
+   * cannot be told to.
    */
   addOn: string;
   /**

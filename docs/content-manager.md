@@ -105,8 +105,10 @@ The service booking pages also understand `{service}` (the service's name) and
 collection page (Website content, Gallery, "Booking on a collection page")
 understand `{style}` (the collection's name). The step for a look's Square
 add-on also understands `{add on}`: each collection has a "Square add-on for
-this look" (Signature Bob ships with Bob cut, spelled as in Square), and a
-look with one gets that extra step; leave it empty for none. Under each text
+this look" (Signature Bob ships with Bob cut, spelled as in Square, and Deep
+Wave Glam with Styling, the first word of Square's long "Styling( curls,
+crimps, ...)"), and a look with one gets that extra step; leave it empty for
+none. Under each text
 that uses one, the dashboard shows **Reads as:** with them filled in. Anything else in curly
 brackets is refused when you save, so a typo cannot reach the website.
 

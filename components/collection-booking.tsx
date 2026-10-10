@@ -36,8 +36,9 @@ import {
  * Nat's, COLLECTION_PAGE.booking). Nothing here claims the scheduler knows.
  *
  * What Square CAN take is an add-on, a line of its own in Nat's menu. A look
- * that has one (Signature Bob: "Bob cut") gets a step naming it, in bold,
- * after the service is tapped, which is where Square offers more to add.
+ * that has one (Signature Bob: "Bob cut", Deep Wave Glam: "Styling") gets a
+ * step naming it, in bold, after the service is tapped, which is where
+ * Square offers more to add.
  *
  * Laid out as /book/'s booking panel is: the words beside the scheduler from
  * `lg`, above it below that, where the scheduler runs edge to edge.

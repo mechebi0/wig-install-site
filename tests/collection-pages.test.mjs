@@ -201,22 +201,28 @@ test("the steps beside the scheduler name the style and leave no placeholder beh
   }
 });
 
-test("Signature Bob asks for Square's Bob cut add-on, after the service and in bold; no other look does", () => {
-  const bob = COLLECTIONS.find((collection) => collection.slug === "signature-bob");
-  // Square's own spelling, read off Nat's live menu on 2026-10-10 (filed under "Add ons").
-  assert.equal(bob.addOn, "Bob cut");
-  const steps = COLLECTION_PAGE.booking.steps(bob.title, bob.addOn);
-  assert.deepEqual(steps[1], {
-    text: "Add Bob cut, under Add ons, for your Signature Bob.",
-    phrase: "Bob cut",
-  });
-  assert.match(steps[0].text, /Tap the service/);
-  assert.match(steps[2].text, /day and time/);
+// Read off Nat's live menu on 2026-10-10, both filed under "Add ons". Square
+// spells the second "Styling( curls, crimps, anything other than middle or
+// side part)"; its first word is the one a client spots in the list.
+const ADD_ON_STEPS = {
+  "signature-bob": { text: "Add Bob cut, under Add ons, for your Signature Bob.", phrase: "Bob cut" },
+  "deep-wave-glam": { text: "Add Styling, under Add ons, for your Deep Wave Glam.", phrase: "Styling" },
+};
 
-  for (const collection of COLLECTIONS.filter((collection) => collection.slug !== "signature-bob")) {
+test("Signature Bob asks for Square's Bob cut and Deep Wave Glam for Styling, after the service and in bold; no other look asks", () => {
+  for (const [slug, step] of Object.entries(ADD_ON_STEPS)) {
+    const look = COLLECTIONS.find((collection) => collection.slug === slug);
+    assert.equal(look.addOn, step.phrase, slug);
+    const steps = COLLECTION_PAGE.booking.steps(look.title, look.addOn);
+    assert.deepEqual(steps[1], step, slug);
+    assert.match(steps[0].text, /Tap the service/);
+    assert.match(steps[2].text, /day and time/);
+  }
+
+  for (const collection of COLLECTIONS.filter((collection) => !(collection.slug in ADD_ON_STEPS))) {
     assert.equal(collection.addOn, "", collection.slug);
     const texts = COLLECTION_PAGE.booking.steps(collection.title, collection.addOn).map((step) => step.text);
-    assert.ok(!texts.some((text) => /Bob cut|Add ons/.test(text)), collection.slug);
+    assert.ok(!texts.some((text) => /Bob cut|Styling|Add ons/.test(text)), collection.slug);
   }
 });
 

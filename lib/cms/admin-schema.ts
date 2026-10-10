@@ -651,7 +651,7 @@ export const SECTION_SPECS: SectionSpec[] = [
                 area("metaDescription", "Search result description", 240, { help: "Tip: {all locations} names every location you are taking appointments in." }),
                 text("addOn", "Square add-on for this look", 60, {
                   required: false,
-                  help: "An add-on from your Square menu that clients booking this look should add, spelled exactly as Square shows it (for example Bob cut). Its booking steps then ask for it. Leave empty for none.",
+                  help: "An add-on from your Square menu that clients booking this look should add, spelled as Square shows it (for example Bob cut). For a long name, its first word is enough (Styling). Its booking steps then ask for it. Leave empty for none.",
                 }),
               ],
             })),

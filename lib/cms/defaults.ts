@@ -473,8 +473,11 @@ export const DEFAULT_CONTENT = {
     ],
     /**
      * `addOn` is the add-on in Nat's Square menu that goes with a look, named
-     * exactly as Square names it, or "" for none. The look's booking section
-     * then asks the client to add it (`bookingAddOnStep` below).
+     * as Square names it, or "" for none. A long name goes by its first word,
+     * the one a client spots in Square's list: Square's "Styling( curls,
+     * crimps, anything other than middle or side part)" is "Styling" here.
+     * The look's booking section then asks the client to add it
+     * (`bookingAddOnStep` below).
      */
     collections: {
       "deep-wave-glam": {
@@ -485,7 +488,7 @@ export const DEFAULT_CONTENT = {
           "Deep wave is the one people bring a screenshot in for. Long lengths, a wave pattern that holds its definition from the root down, and enough weight through the ends to move when you do. Density is set before the lace goes down, so the shape is still there in week three.",
         metaDescription:
           "Long deep-wave lace installs by Crowned by Nat. Defined texture, glamorous volume, and a hairline cut to your face, in {all locations}.",
-        addOn: "",
+        addOn: "Styling",
       },
       "sleek-straight": {
         title: "Sleek Straight",
