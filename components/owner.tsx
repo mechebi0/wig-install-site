@@ -58,8 +58,8 @@ export function Owner() {
           <Reveal index={1}>
             {OWNER.paragraphs.map((paragraph, i) => (
               <p
-                key={paragraph.slice(0, 24)}
-                className={`max-w-[58ch] text-base leading-relaxed text-muted lg:text-lg ${
+                key={i}
+                className={`max-w-[58ch] whitespace-pre-line text-base leading-relaxed text-muted lg:text-lg ${
                   i === 0 ? "" : "mt-6"
                 }`}
               >
@@ -70,8 +70,8 @@ export function Owner() {
 
           <Reveal index={2}>
             <ul className="mt-9 flex flex-col gap-3">
-              {OWNER.credentials.map((credential) => (
-                <li key={credential} className="flex items-start gap-3">
+              {OWNER.credentials.map((credential, index) => (
+                <li key={index} className="flex items-start gap-3">
                   <Check
                     size={18}
                     weight="bold"
@@ -86,7 +86,7 @@ export function Owner() {
 
           <Reveal index={3}>
             <p className="mt-9 text-base text-muted">
-              Reach Nat:{" "}
+              {OWNER.reach}{" "}
               <a
                 href={REACH.href}
                 className="text-accent underline decoration-accent/30 underline-offset-4 transition-colors hover:decoration-accent"

@@ -6,7 +6,7 @@ import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
 import { useSiteView } from "@/components/site-photos";
 import type { StyleCollection } from "@/lib/collections";
-import { CTA, bookingTarget } from "@/lib/content";
+import { COLLECTION_PAGE, CTA, bookingTarget } from "@/lib/content";
 import { findResolved } from "@/lib/gallery";
 
 /**
@@ -175,7 +175,7 @@ export function CollectionCard({
             <p className="label absolute right-5 top-5 z-[1] rounded-full bg-[rgb(var(--scrim)/0.55)] px-3 py-1.5 text-on-accent/90 backdrop-blur-sm">
               {/* "Lace finish", to stay distinct from the styling finish a
                   client picks when she books; see lib/taxonomy.ts. */}
-              Lace finish
+              {COLLECTION_PAGE.laceFinishLabel}
             </p>
           ) : null}
         </div>
@@ -205,7 +205,7 @@ export function CollectionCard({
               the left on hover, which is the same gesture the nav links use.
             */}
             <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent">
-              View collection
+              {CTA.collection}
               <span
                 aria-hidden="true"
                 className="mt-px block h-px w-0 bg-accent transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-6 motion-reduce:transition-none"

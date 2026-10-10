@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 import { HeroCarousel } from "@/components/hero-carousel";
 import {
   CollectionShowcase,
@@ -5,7 +6,14 @@ import {
 } from "@/components/home-teasers";
 import { FeaturedInstalls } from "@/components/featured-installs";
 import { COLLECTIONS_IN_ORDER } from "@/lib/collections";
-import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
+import type { HomeSectionId } from "@/lib/cms/defaults";
+import {
+  ACTIVE_SERVICES,
+  HOME_SECTIONS,
+  LOCATIONS,
+  QUESTIONS,
+  STUDIO,
+} from "@/lib/content";
 
 /**
  * The homepage is a premium introduction and a visual directory. It is not a
@@ -50,11 +58,20 @@ import { LOCATIONS, QUESTIONS, SERVICES, STUDIO } from "@/lib/content";
  *   /reviews          the client quotes
  *   /meet-nat         the introduction, the approach, the credentials
  *
+ * The three blocks under the hero come in the order Nat sets in the dashboard
+ * (Homepage), and any she switches off is left out (HOME_SECTIONS). The hero
+ * always leads.
+ *
  * The structured data stays here rather than being split across pages: it
  * describes the business, and the homepage is what a search engine treats as
  * the business. It is generated from the same constants the visible page uses,
  * so the two cannot drift apart.
  */
+const HOME_BLOCKS: Record<HomeSectionId, () => ReactNode> = {
+  installs: () => <InstallTypes />,
+  collections: () => <CollectionShowcase />,
+  featured: () => <FeaturedInstalls />,
+};
 
 const localBusiness = {
   "@context": "https://schema.org",
@@ -90,7 +107,7 @@ const localBusiness = {
         },
       }
     : {}),
-  makesOffer: SERVICES.map((service) => ({
+  makesOffer: ACTIVE_SERVICES.map((service) => ({
     "@type": "Offer",
     itemOffered: { "@type": "Service", name: service.name },
     price: (service.priceCents / 100).toFixed(2),
@@ -132,9 +149,9 @@ export default function Home() {
         homepage with the same fact twice inside 130px.
       */}
       <HeroCarousel />
-      <InstallTypes />
-      <CollectionShowcase />
-      <FeaturedInstalls />
+      {HOME_SECTIONS.map((id) => (
+        <Fragment key={id}>{HOME_BLOCKS[id]()}</Fragment>
+      ))}
     </>
   );
 }

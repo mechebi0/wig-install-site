@@ -56,14 +56,16 @@ export function FeaturedInstalls() {
             >
               {HOME.featured.heading}
             </h2>
-            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
-              {HOME.featured.body}
-            </p>
+            {HOME.featured.body ? (
+              <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
+                {HOME.featured.body}
+              </p>
+            ) : null}
           </Reveal>
 
           <Reveal index={1} className="shrink-0">
             <a
-              href="/gallery/"
+              href={HOME.featured.linkTo}
               className="group inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"
             >
               {HOME.featured.link}

@@ -3,6 +3,10 @@ import { Wordmark } from "@/components/wordmark";
 import { customerAccountsLinked, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   ADDITIONAL_LOCATION_LABELS,
+  ANNOUNCEMENT,
+  CTA,
+  FOOTER,
+  NAV_HOME,
   NAV_LINKS,
   PRIMARY_LOCATION_LABEL,
   REACH,
@@ -19,11 +23,11 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
   the booking link.
 */
 const FOOTER_PAGES = [
-  { label: "Home", href: "/" },
+  { label: NAV_HOME, href: "/" },
   NAV_LINKS[0],
   ...INSTALL_TYPES.map((type) => ({ label: type.label, href: type.href })),
   ...NAV_LINKS.slice(1),
-  { label: "Book Your Chair", href: "/book/" },
+  { label: CTA.book, href: "/book/" },
 ];
 
 /**
@@ -135,14 +139,22 @@ export function SiteFooter() {
                   <br />
                 </>
               ) : null}
-              Now booking in{" "}
-              <strong className="font-semibold text-on-accent">
-                {PRIMARY_LOCATION_LABEL}
-              </strong>
-              {ADDITIONAL_LOCATION_LABELS.length > 0
-                ? ` × ${ADDITIONAL_LOCATION_LABELS.join(" × ")}`
-                : null}
-              .
+              {/* With every location switched off, the stripe's closed
+                  message rather than a town that is not open. */}
+              {PRIMARY_LOCATION_LABEL ? (
+                <>
+                  {FOOTER.bookingLead}{" "}
+                  <strong className="font-semibold text-on-accent">
+                    {PRIMARY_LOCATION_LABEL}
+                  </strong>
+                  {ADDITIONAL_LOCATION_LABELS.length > 0
+                    ? ` × ${ADDITIONAL_LOCATION_LABELS.join(" × ")}`
+                    : null}
+                  .
+                </>
+              ) : (
+                `${ANNOUNCEMENT.closed[0]}.`
+              )}
             </p>
           </div>
 
@@ -154,7 +166,7 @@ export function SiteFooter() {
             two sub-columns, and the row ends closer to the content.
           */}
           <nav aria-label="Footer" className="lg:col-span-4">
-            <h2 className="label text-on-accent">Pages</h2>
+            <h2 className="label text-on-accent">{FOOTER.pagesHeading}</h2>
             {/*
               Two columns at every width. Eight links in one column would be
               288px of footer on a phone; in two it is 144px, and the narrowest
@@ -192,7 +204,7 @@ export function SiteFooter() {
             <h2
               className={`label text-on-accent ${accounts ? "mt-6" : ""}`}
             >
-              Contact
+              {FOOTER.contactHeading}
             </h2>
             <ul className="mt-4 flex flex-col text-sm">
               <li>
@@ -215,7 +227,7 @@ export function SiteFooter() {
         </div>
 
         <p className="mt-10 border-t border-on-accent/15 pt-6 text-sm text-on-accent/55">
-          &copy; {year} {STUDIO.name}. Every install performed by {STUDIO.owner}.
+          &copy; {year} {STUDIO.name}.{FOOTER.tagline ? ` ${FOOTER.tagline}` : null}
         </p>
       </div>
     </footer>

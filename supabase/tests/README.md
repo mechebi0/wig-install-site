@@ -74,3 +74,37 @@ Windows note: Docker Desktop reserves some port ranges, so the default `543xx`
 ports can fail with "access permissions". Remap them in `config.toml`.
 
 Everything else in `npm test` needs no Supabase.
+
+## The content manager: `content-manager.mjs`
+
+The same idea for the website's words (migration 0011,
+`docs/content-manager.md`): attacks the draft and release tables and the
+publishing functions as a visitor (client library and raw HTTP) and as a
+signed-in customer, comparing both tables with a snapshot after every battery;
+then, as the owner, saves drafts (including a save based on an old copy, which
+must change nothing), publishes, refuses to publish over a release the
+dashboard has not seen (HTTP 409) or with nothing to publish (422), checks the
+public can read the current release and no other, and that the build's own
+query (`next.config.ts`) gets it. It then stores a stand-in Cloudflare deploy
+hook in Vault, pointing at a small server the suite starts on this machine
+(`HOOK_PORT`, default 4599, reached from the database container as
+`host.docker.internal`), and checks a publish sends exactly one request naming
+the release, that the dashboard's status reports the answer (including a
+refusal), that "ask again" is held to once a minute, and that a customer's
+refused publish starts no rebuild. Last, a logged-out session's token, the
+policies and grants as the database reports them, and re-running 0011.
+
+Same variables as above (it needs no service-role key or JWT secret), plus
+`CONTENT_MIGRATION=<path to 0011_website_content.sql>` for the re-run step:
+
+```sh
+SUPABASE_URL=http://127.0.0.1:54321 \
+SUPABASE_ANON_KEY=<ANON_KEY> \
+SUPABASE_DB_CONTAINER=supabase_db_<project_id> \
+MAILPIT_URL=http://127.0.0.1:54324 \
+CONTENT_MIGRATION=$PWD/supabase/migrations/0011_website_content.sql \
+node supabase/tests/content-manager.mjs
+```
+
+It deletes every draft, release and stored deploy hook in the local database
+it is pointed at, and refuses any non-local address.

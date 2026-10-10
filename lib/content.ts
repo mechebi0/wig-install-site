@@ -2,7 +2,22 @@
  * Every visible string on the site, so copy can be reviewed in one pass and
  * swapped without touching layout.
  *
- * Copy rules enforced here:
+ * ---------------------------------------------------------------------------
+ * WHERE THE WORDS COME FROM NOW
+ * ---------------------------------------------------------------------------
+ * Nat edits them herself, in the dashboard at /admin/. What she publishes is
+ * read once when the site is built (lib/cms/published.ts) and laid over the
+ * words the site shipped with (lib/cms/defaults.ts). The exports below are the
+ * same names the pages have always read, now filled from that: a page reads
+ * `CTA.book` exactly as before, and gets whatever Nat last published.
+ *
+ * So to change wording, change it in the dashboard. Change a default in
+ * lib/cms/defaults.ts only for a field Nat has never published, or for a new
+ * field. Wording that is still fixed here is interface plumbing (screen
+ * reader phrases, the dormant account and booking-flow screens), listed in
+ * docs/content-manager.md.
+ *
+ * Copy rules, for the defaults and for anything added here:
  *  - zero em-dashes and en-dashes anywhere, quotes and attribution included
  *  - no filler verbs (elevate / seamless / unleash / next-gen)
  *  - prices are plausible service prices, not invented engineering precision
@@ -10,26 +25,20 @@
  * ---------------------------------------------------------------------------
  * WHAT IS CONFIRMED AND WHAT IS STILL MISSING
  * ---------------------------------------------------------------------------
- * Confirmed, and safe to present as fact:
+ * Confirmed, and safe to present as fact: Crowned by Nat. Installs performed
+ * by Nat. The crest in public/brand is the studio's official logo. Where she
+ * works is whatever the dashboard's Locations say.
  *
- *      Crowned by Nat. Installs performed by Nat. One chair, between
- *      Towson, MD and Laurel, MD. The crest in public/brand is the studio's
- *      official logo.
- *
- * NOT supplied yet, and therefore deliberately EMPTY rather than invented. An
- * empty string here is not an oversight: every component reads these through
+ * NOT supplied yet, and therefore deliberately EMPTY rather than invented: the
+ * studio street address and phone number. Every component reads these through
  * the helpers below and renders nothing at all when a value is missing, which
  * is the only honest option. A made-up phone number on a live site is a real
- * stranger's phone, and a made-up Instagram handle is a real stranger's
- * account.
- *
- *      studio street address, phone number, opening hours, Instagram
- *
- * Service prices, durations and credentials are stand-ins too, and are marked
- * where they are defined. Testimonials are stand-ins and carry a visible
- * on-page notice while testimonialsArePlaceholder is true.
+ * stranger's phone.
  */
 
+import { SERVICE_CATEGORY_OF, type HomeSectionId } from "@/lib/cms/defaults";
+import { fillPlaceholders, splitParagraphs, type Place } from "@/lib/cms/model";
+import { PLACES, SITE } from "@/lib/cms/published";
 import {
   getFinish,
   getInstallType,
@@ -38,96 +47,32 @@ import {
 } from "@/lib/taxonomy";
 
 /**
- * Contact details. Fill any of these in and the site starts showing it; leave
- * it empty and the site simply does not mention it.
+ * WHERE NAT WORKS: the active locations from the dashboard, the current one
+ * first. The announcement stripe, the footer, the "Where" rows on /book, the
+ * page metadata and the LocalBusiness structured data all derive from these,
+ * and copy names a town only through the {current location} placeholders
+ * (lib/cms/defaults.ts). Do not re-type a town name into copy; that is how
+ * the site ends up advertising a chair that is not open.
  *
- * The email is Nat's own business address, and is also the account the admin
- * dashboard is granted to in supabase/migrations. If she would rather the
- * public contact went somewhere else, this is the line to change.
+ * Empty when Nat has switched every location off: the stripe then says the
+ * chair is between studios, and nothing names a town.
  */
-const CONTACT = {
-  /*
-    The three empty ones are annotated `as string` rather than left to infer.
-    Without it `as const` gives them the literal type "", TypeScript proves
-    every `STUDIO.phone ? ...` branch below is dead, and narrows the truthy arm
-    to `never` so `.replace` on it fails to compile. Widening to `string` is
-    what tells the compiler these are values waiting to be filled in rather
-    than constants that are permanently empty.
-  */
+export const LOCATIONS: readonly Place[] = PLACES.active;
 
-  /** No studio number supplied. Every "or call" fallback switches to email. */
-  phone: "" as string,
-  email: "crownedbynattt@gmail.com",
-  /**
-   * The official profile. Every Instagram link on the site reads this: the
-   * nav icon, the mobile menu, the footer, and the homepage "sameAs" data.
-   */
-  instagram: "https://www.instagram.com/crownedbynattt/" as string,
-  /** Not supplied. Chairs are described by town instead; see LOCATIONS. */
-  street: "" as string,
-  /**
-   * The booking window, as the studio displays it: 10:00 AM to 9:00 PM.
-   *
-   * This is the NORMAL_WINDOW in lib/booking/availability.ts and the grid the
-   * calendar offers by default. Early Bird and After Hours book either side of
-   * it (see lib/booking/add-ons.ts); this is the span the site advertises as
-   * its hours, and it is what the "Hours" row on /book prints. Kept in step
-   * with NORMAL_WINDOW, which is the one the booking flow actually offers.
-   */
-  hours: [{ days: "Tuesday to Saturday", time: "10:00 AM – 9:00 PM" }],
-} as const;
-/**
- * WHERE NAT WORKS.
- *
- * The database in supabase/migrations owns this once a project is connected,
- * and lib/catalog.ts reads it from there. This constant is the compiled-in
- * fallback for the state the site is actually in today: no Supabase project,
- * so no rows to read, but one town that is confirmed and worth announcing.
- *
- * THIS IS THE ONLY PLACE A SERVICE LOCATION IS WRITTEN DOWN. The announcement
- * stripe, the footer, the "Where" row on /book, the page metadata and the
- * LocalBusiness structured data all derive from this array, so adding a town
- * back is one line here and nothing else. Do not re-type a town name into copy;
- * that is how the site ends up advertising a chair that is not open.
- *
- * Laurel, MD was paused on 2026-09-02 and confirmed again on 2026-09-22. As of
- * 2026-10-05 the two towns are no longer an either/or alternation: Towson is
- * Nat's fixed primary chair and Laurel is a secondary town she also serves.
- * The row was never deleted from the `locations` table, only marked inactive,
- * so a future change in either direction is still a config flip rather than
- * new work, and she can switch either town off from the admin dashboard
- * without a deploy. Everything below reads active rows first once a Supabase
- * project exists; until then this array is the whole answer.
- *
- * Keep the order deliberate. Index 0 is read as the current/primary location
- * everywhere that distinction is shown (PRIMARY_LOCATION below, the
- * announcement stripe, the footer, /book); moving a town to index 0 is how a
- * future change of primary location is made.
- */
-export const LOCATIONS = [
-  { name: "Towson", region: "MD" },
-  { name: "Laurel", region: "MD" },
-] as const;
+/** The current location, or null while every chair is closed. */
+export const PRIMARY_LOCATION: Place | null = PLACES.primary;
+export const ADDITIONAL_LOCATIONS: readonly Place[] = PLACES.others;
 
-/**
- * Towson, MD: the current/primary location. Laurel, MD: the additional one.
- * Both derived from LOCATIONS so there is exactly one place to flip which
- * town is primary.
- */
-export const PRIMARY_LOCATION = LOCATIONS[0];
-export const ADDITIONAL_LOCATIONS = LOCATIONS.slice(1);
-
-export const PRIMARY_LOCATION_LABEL = `${PRIMARY_LOCATION.name}, ${PRIMARY_LOCATION.region}`;
-export const ADDITIONAL_LOCATION_LABELS = ADDITIONAL_LOCATIONS.map(
-  (location) => `${location.name}, ${location.region}`,
-);
+/** "Towson, MD", or "" with nothing open. */
+export const PRIMARY_LOCATION_LABEL = PLACES.current;
+export const ADDITIONAL_LOCATION_LABELS = ADDITIONAL_LOCATIONS.map((location) => location.label);
 
 export const STUDIO = {
-  /** Confirmed brand name. Used verbatim everywhere it appears. */
-  name: "Crowned by Nat",
-  /** Confirmed. Nat performs every install personally. */
-  owner: "Nat",
-  ownerShort: "Nat",
+  /** The brand name. Used verbatim everywhere it appears. */
+  name: SITE.business.name,
+  /** Nat performs every install personally. */
+  owner: SITE.business.owner,
+  ownerShort: SITE.business.owner,
 
   /**
    * BRAND MARK, and it is the real, official one (supplied 2026-09-22 as
@@ -177,66 +122,59 @@ export const STUDIO = {
    * THE BOOKING DESTINATION. One switch for the whole site.
    *
    * Empty string  -> every booking CTA goes to the /book page, which carries
-   *                  the services, the studio details and the request form.
-   *                  This is the current behaviour.
-   * A URL         -> every CTA instead opens that URL in a new tab. Paste the
-   *                  real Square / Fresha / Calendly / Acuity link here and
-   *                  the on-page form section hides itself automatically.
+   *                  the services and the Square scheduler. This is the
+   *                  current behaviour.
+   * A URL         -> every CTA instead opens that URL in a new tab.
    *
    * Nothing else needs editing; see bookingTarget() below.
    *
-   * Nat has no Acuity account yet, so the fallback is the empty string and the
-   * site ships pointing at /book. The env var is read first purely so that the
-   * switch can be flipped from the Cloudflare Pages dashboard without a code
-   * change: set NEXT_PUBLIC_ACUITY_BOOKING_URL to her real scheduler link and
-   * redeploy. It is NOT required for the build.
+   * The env var is read first purely so that the switch can be flipped from
+   * the Cloudflare Pages dashboard without a code change: set
+   * NEXT_PUBLIC_ACUITY_BOOKING_URL and redeploy. It is NOT required for the
+   * build, and it is deliberately not a dashboard field: where the booking
+   * buttons go is the booking integration, and Square is its source of truth.
    *
    * This is read at BUILD time, not in the browser, so a deploy is what makes a
    * change to it take effect (Cloudflare: Deployments -> Retry deployment).
-   * Both states were checked against a real production build: unset, all six
-   * card buttons render "/book/?style=..."; set, they render the scheduler URL
-   * with the style appended. Turbopack leaves this as a lookup against its own
-   * bundled process shim rather than inlining a literal, which is why the `??`
-   * matters. Without it an unset var reaches the markup as the string
-   * "undefined".
-   *
-   * No account, no credentials and no API integration are implied by this line:
-   * it is a string, and the only thing that reads it is the href builder below.
+   * Turbopack leaves this as a lookup against its own bundled process shim
+   * rather than inlining a literal, which is why the `??` matters. Without it
+   * an unset var reaches the markup as the string "undefined".
    */
   bookingUrl: process.env.NEXT_PUBLIC_ACUITY_BOOKING_URL ?? "",
 
-  /** Towns rather than a street, because a street was never supplied. */
-  city: LOCATIONS.map((l) => l.name).join(" and "),
-  regionCode: LOCATIONS[0].region,
+  /** Towns rather than a street, unless a street has been supplied. */
+  city: LOCATIONS.map((location) => location.name).join(" and "),
+  regionCode: LOCATIONS[0]?.region ?? "",
 
-  ...CONTACT,
+  /** No studio number supplied by default. Every "or call" fallback switches to email. */
+  phone: SITE.business.phone,
+  email: SITE.business.email,
+  /**
+   * The official profile. Every Instagram link on the site reads this: the
+   * nav icon, the mobile menu, the footer, and the homepage "sameAs" data.
+   * Empty switches all of them off.
+   */
+  instagram: SITE.seo.instagram,
+  street: SITE.business.street,
+  /** The booking window the studio advertises; the "Booking hours" row on /book. */
+  hours: SITE.business.hours,
 } as const;
 
 /**
- * "Towson, MD". The service area written the way a search engine and a person
- * looking for a local install both expect to read it, and the only string the
- * page metadata uses for location.
- *
- * `STUDIO.city` on its own is the town names with no state ("Towson and
- * Laurel"), which is right inside a sentence that already established
- * Maryland and wrong in a page title, where it reads as a half-finished
- * address. This adds the state
- * once, here, rather than at four call sites in app/layout.tsx.
- *
- * Derived from LOCATIONS like everything else, so it follows a change of town
- * automatically. Two towns in the same state give "Towson and Laurel, MD",
- * which is still the correct phrasing rather than a directory listing.
+ * "Towson and Laurel, MD". The service area written the way a search engine
+ * and a person looking for a local install both expect to read it, used in
+ * the install and booking pages' descriptions. "" while nothing is open.
  */
-export const SERVICE_AREA = `${STUDIO.city}, ${STUDIO.regionCode}`;
+export const SERVICE_AREA = PLACES.all;
 
 /**
  * "call 410 555 0134" or "email crownedbynattt@gmail.com", as one fragment.
  *
  * A dozen places on this site offer a way to reach a person when a form is not
- * the right tool. Each of them used to hardcode the phone. Routing them all
- * through one derived fragment means the day a real studio number arrives,
- * every one of those sentences starts saying "call" instead of "email" from a
- * single edit, and until that day none of them prints a number nobody owns.
+ * the right tool. Routing them all through one derived fragment means the day a
+ * real studio number is added in the dashboard, every one of those sentences
+ * starts saying "call" instead of "email", and until that day none of them
+ * prints a number nobody owns.
  */
 export const REACH = {
   /** Sentence fragment: "call ..." or "email ...". Never capitalised here. */
@@ -255,58 +193,36 @@ export const REACH_SECONDARY = `Or ${REACH.phrase}`;
 export const CTA = {
   /**
    * ONE booking verb for the whole site. "Book Your Chair" is the only wording
-   * used, top to bottom, so a visitor learns the button once. Variants like
-   * "Reserve your chair" were considered and dropped: a second phrase for the
-   * same action reads as a second action.
+   * used, top to bottom, so a visitor learns the button once.
    */
-  book: "Book Your Chair",
+  book: SITE.header.cta.book,
   /**
    * The same verb, shortened, and ONLY for the button on a collection card.
-   * Six cards in a grid cannot each carry "Book Your Chair" without the row
-   * turning into a wall of repeated CTA, and at card width the full label
-   * wraps. It is still the same first word, so the action is still learned
-   * once. The collection name is appended for screen readers at the call site,
-   * which keeps the accessible name ("Book Deep Wave Glam") a superset of the
-   * visible one and satisfies WCAG 2.5.3 Label in Name.
+   * Six cards in a grid cannot each carry the full label without the row
+   * turning into a wall of repeated CTA. The collection name is appended for
+   * screen readers at the call site, which keeps the accessible name ("Book
+   * Deep Wave Glam") a superset of the visible one (WCAG 2.5.3).
    */
-  bookStyle: "Book",
+  bookStyle: SITE.header.cta.bookStyle,
   /**
-   * The booking verb on an install-type block. Same first word as every other
-   * booking button, followed by the install type's `bookLabel` at the call
-   * site ("Book Frontal Install", "Book Reinstall"), so the visible label
-   * already says which appointment it opens and needs no screen-reader
-   * suffix.
+   * The booking verb before a service's name ("Book Frontal Install", "Book
+   * Reinstall"), so the visible label already says which appointment it
+   * opens and needs no screen-reader suffix.
    */
-  bookInstall: "Book",
+  bookInstall: SITE.header.cta.bookService,
+  /** The way into an install type's own page: "View Frontal Install". */
+  viewInstall: SITE.header.cta.view,
   /**
-   * The way into an install type's own page, from its card on the homepage
-   * and in the booking flow. Followed by the install's name at the call site
-   * ("View Frontal Install", "View Reinstalls"), the same shape as the Book
-   * button beside it, so the two read as a pair: learn about it, or book it.
-   */
-  viewInstall: "View",
-  /**
-   * The booking action on a collection PAGE, keyed by the same `dimension`
-   * field that draws the eyebrow above the title.
-   *
-   * Five collections are hairstyles and Natural Lace is a standard of finish.
-   * The page has already said which of the two you are looking at, two lines
-   * above this button, so a button that then reads "Book This Style" on the
-   * finish page contradicts its own eyebrow. One lookup keeps the two agreeing
-   * across all six pages from one field, rather than six hand-written labels
-   * and a note to remember the odd one out.
-   *
-   * Longer than `bookStyle` because this button stands alone in a column
-   * rather than repeating six times in a grid, so it can afford the words. And
-   * "This" is what earns them: it says the button books the collection you are
-   * reading about, not a generic appointment.
+   * The booking action on a collection PAGE, keyed by the collection's
+   * `dimension`: five collections are hairstyles and Natural Lace is a
+   * standard of finish, so its button must not say "Book This Style".
    */
   bookCollection: {
-    style: "Book This Style",
-    finish: "Book This Finish",
+    style: SITE.header.cta.bookThisStyle,
+    finish: SITE.header.cta.bookThisFinish,
   },
-  gallery: "View the gallery",
-  collection: "View collection",
+  gallery: SITE.header.cta.gallery,
+  collection: SITE.header.cta.collection,
 } as const;
 
 /**
@@ -343,14 +259,11 @@ export type BookingIntent = {
  * guess.
  *
  * On /book the finish travels as `?finish=<id>` and lib/booking-selection.ts
- * reads it back. An external scheduler does not know that key. Acuity ignores
- * parameters it does not recognise, so sending it costs nothing, but for the
+ * reads it back. An external scheduler does not know that key: for the
  * finish to reach the appointment Nat receives it has to name one of her
- * intake-form questions. Acuity can pre-fill an intake question from a
- * `field:<id>` parameter: once the account and its intake form exist, confirm
- * the exact key in Acuity and set it as NEXT_PUBLIC_ACUITY_FINISH_FIELD (build
- * time, like the booking links). No field id is written down in this repo
- * until then.
+ * intake-form questions, set as NEXT_PUBLIC_ACUITY_FINISH_FIELD (build time,
+ * like the booking links). No field id is written down in this repo until
+ * then.
  *
  * External links carry the finish's display name ("Wand Curls") rather than
  * its id, because an intake answer is read by a person and a dropdown option
@@ -376,32 +289,17 @@ export const BOOKING_ANCHOR = "request";
  *   2. the studio-wide link          STUDIO.bookingUrl
  *   3. the on-page booking page      /book/
  *
- * so a button that names an install type can land on that appointment type
- * once Acuity exists, a generic button lands on the scheduler's own menu, and
- * with neither connected (today) every button goes to /book, exactly as before.
- *
  *   bookingTarget()                            -> /book/
  *   bookingTarget({ install: "frontal" })      -> /book/?install=frontal
  *   bookingTarget({ install: "frontal", finish: "curls" })
  *                                              -> /book/?install=frontal&finish=curls
  *   bookingTarget({ style: "deep-wave-glam" }) -> /book/?style=deep-wave-glam
  *
- * The argument is optional and the no-argument call sites are unchanged.
- *
  * A finish never picks the destination. It is an add-on to an install type,
  * not an appointment type of its own, so it only ever rides along on the
  * install's link (under EXTERNAL_FINISH_PARAM once that link is external).
- *
- * WHAT READS THE PARAMETERS
- * `install` and `finish` are consumed on /book: the booking flow and both
- * booking forms open with them selected (see lib/booking-selection.ts, which
- * reads them without useSearchParams, since that would need a Suspense
- * boundary and fails the export build; see the note in lib/auth/redirect.ts).
- * An unrecognised value is ignored. `style` is not consumed anywhere yet: a
- * style is a different axis from the service, so it can never preselect one,
- * and it rides along only so the intent survives the click for a future style
- * field or a scheduler. Nothing breaks from its presence, as under
- * `output: "export"` an unread query string is ignored by the static route.
+ * Under `output: "export"` an unread query string is ignored by the static
+ * route, so nothing breaks from the parameters' presence.
  */
 export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
   const external =
@@ -442,11 +340,6 @@ export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
  *     -> /book/closure-install/
  *   serviceBookingTarget("closure-install", { finish: "curls" })
  *     -> /book/closure-install/?finish=curls
- *
- * The finish rides along where the service has one, and lib/booking-
- * selection.ts reads it back on arrival; Wig Touch Up has none, so it is
- * dropped there. An external scheduler link, once one is configured, still
- * wins, through the same switches bookingTarget() reads.
  */
 export function serviceBookingTarget(
   id: ServiceId,
@@ -467,146 +360,75 @@ export const usesOnPageBooking = STUDIO.bookingUrl.trim() === "";
 /**
  * Four destinations, four pages, in the order a visitor needs them: see the
  * work, find out what the appointment involves, check other people's word for
- * it, then meet the person doing it.
- *
- * Gallery leads because the work is what sells a wig install.
+ * it, then meet the person doing it. The addresses are fixed; the labels are
+ * Nat's (dashboard, Website content).
  *
  * The booking CTA is deliberately NOT in this list. It is the site's single
- * primary action and it renders as a filled pill beside the links, so putting
- * it in the row as well would make it the fifth-most-important thing on a bar
- * where it is the first.
+ * primary action and it renders as a filled pill beside the links.
  *
  * There is no Admin entry here and there will not be one. Nat reaches her
- * dashboard by bookmarking /admin.
+ * dashboard by bookmarking /admin/login/.
  */
 export const NAV_LINKS = [
-  { label: "Gallery", href: "/gallery/" },
-  { label: "Before you book", href: "/before-you-book/" },
-  { label: "Reviews", href: "/reviews/" },
-  { label: "Meet Nat", href: "/meet-nat/" },
+  { label: SITE.header.nav.gallery, href: "/gallery/" },
+  { label: SITE.header.nav.beforeYouBook, href: "/before-you-book/" },
+  { label: SITE.header.nav.reviews, href: "/reviews/" },
+  { label: SITE.header.nav.meetNat, href: "/meet-nat/" },
 ] as const;
 
+/** "Home", first in the mobile menu and the footer's page list. */
+export const NAV_HOME = SITE.header.nav.home;
+
 /**
- * Per page kicker, title and lede. One place to review every page opening,
- * and the source for each page title tag.
+ * Per page kicker, title and lede. One place to review every page opening.
  */
 export const PAGES = {
-  gallery: {
-    kicker: "Gallery",
-    title: "Explore the collection.",
-    lede: "Six ways to wear a Crowned by Nat install, each one a room full of finished work. Find the one you keep coming back to and bring it to your consult.",
-  },
-  book: {
-    kicker: "Book",
-    title: "Book your chair.",
-    lede: "Choose your service, add-ons, and an available day and time using the scheduler below.",
-  },
+  gallery: { kicker: SITE.gallery.kicker, title: SITE.gallery.title, lede: SITE.gallery.lede },
+  book: { kicker: SITE.book.kicker, title: SITE.book.title, lede: SITE.book.lede },
   beforeYouBook: {
-    kicker: "Before you book",
-    title: "Everything worth knowing first.",
-    lede: "What the appointment involves, how long an install lasts, and what happens if the lace lifts early.",
+    kicker: SITE.beforeYouBook.kicker,
+    title: SITE.beforeYouBook.title,
+    lede: SITE.beforeYouBook.lede,
   },
-  reviews: {
-    kicker: "Reviews",
-    title: "What people say on week three.",
-    lede: "Not on the day, when everything looks good. Three weeks in, which is when an install has to prove itself.",
-  },
-  meetNat: {
-    kicker: "Meet Nat",
-    title: "One pair of hands, start to finish.",
-    lede: "One stylist, one chair, and one client in the room at a time.",
-  },
+  reviews: { kicker: SITE.reviews.kicker, title: SITE.reviews.title, lede: SITE.reviews.lede },
+  meetNat: { kicker: SITE.meetNat.kicker, title: SITE.meetNat.title, lede: SITE.meetNat.lede },
   /** app/not-found.tsx: an old link, a mistyped address, a removed page. */
-  notFound: {
-    kicker: "Page not found",
-    title: "This page is not here.",
-    lede: "The link may be old or mistyped. The gallery and the booking page are one tap away.",
-  },
+  notFound: SITE.notFound,
 } as const;
+
+/**
+ * Titles and descriptions for search results and link previews. The page
+ * titles are followed by "| Crowned by Nat" by the root layout's template.
+ */
+export const SEO = SITE.seo;
 
 /**
  * HOMEPAGE ONLY.
  *
- * The homepage carries a preview of two things and a closing CTA, and nothing
- * else. Anything that needs a paragraph to explain belongs on its own page.
+ * The homepage carries the slideshow, then the blocks below in the order Nat
+ * set (HOME_SECTIONS). Anything that needs a paragraph to explain belongs on
+ * its own page. `closing` is the wine band that ends the inner pages.
  */
 export const HOME = {
-  /**
-   * The primary service presentation: the three install types, and nothing
-   * else. Their names and one-line descriptions come from lib/taxonomy.ts.
-   */
-  installs: {
-    kicker: "Choose your install",
-    heading: "Frontal, closure, or a reinstall.",
-    body: "Three ways to book, and Nat performs every one herself.",
-    link: "See what is included",
-  },
-  collections: {
-    /* The STYLE axis. Deliberately not worded as a service: the hair is what
-       is being browsed here, and the install type is chosen above. */
-    kicker: "The looks",
-    heading: "Explore the Crowned by Nat collection.",
-    body: "Six looks to browse. The style is what the hair looks like; frontal or closure is how it is installed.",
-    /*
-      NOT CTA.gallery, and this is the one place on the site that departs from
-      it. This block now sits directly under the hero, whose secondary button
-      is CTA.gallery: two links reading "View the gallery" within a screen of
-      each other look like the same control printed twice rather than one
-      route offered once, and on a phone they land close enough to be read in
-      a single glance. Saying what is actually behind the link tells a visitor
-      something the hero button did not.
-    */
-    link: "See all six collections",
-  },
-  featured: {
-    kicker: "Recent work",
-    heading: "Lately, from the chair.",
-    body: "A few of the most recent installs. The full set lives in the collections.",
-    link: "View the gallery",
-  },
-  closing: {
-    heading: "Your chair is waiting.",
-    body: "One client at a time, currently in Towson, MD, also serving Laurel, MD. Send a request and Nat comes back to you with two or three slots.",
-  },
+  /** The three install types. Their names and lines come from lib/taxonomy.ts. */
+  installs: SITE.home.installs,
+  /** The STYLE axis: the hair being browsed, not a service. */
+  collections: SITE.home.collections,
+  featured: SITE.home.featured,
+  closing: SITE.header.closing,
 } as const;
 
+/** The homepage blocks under the slideshow that are switched on, in Nat's order. */
+export const HOME_SECTIONS: readonly HomeSectionId[] = SITE.home.sections
+  .filter((section) => section.visible)
+  .map((section) => section.id as HomeSectionId);
+
 /**
- * Hero. The brand name is the display element, because it is the first thing a
- * visitor sees and the name is what has to land. The line under it carries the
- * actual proposition, so the h1 is not a bare business name.
- */
-/**
- * The top of the homepage, split across two components.
- *
- * BrandMasthead gets `brand` (as the mark's accessible name) and `line`.
- * HeroCarousel gets `headline` and `subtext`.
- *
- * Nothing is said twice. The mark carries the name, so the carousel underneath
- * it does not repeat it; the announcement stripe above the nav says where, so
- * the carousel headline is free to be the proposition rather than an
- * introduction.
- *
- * `subtext` is held under twenty words on purpose. It sits over photography
- * above the fold, and a hero paragraph that runs to four lines on a phone
- * pushes the booking button off the screen.
+ * The top of the homepage. The slideshow's words are per slide (HERO_SLIDES
+ * in lib/images.ts); `brand` is the carousel's accessible name.
  */
 export const HERO = {
   brand: STUDIO.name,
-  /*
-    `line` used to live here, printed under the mark on the old wine masthead.
-    Both went when the mark moved into the nav bar. It said what the
-    announcement stripe at the top of the page already says - where Nat is
-    booking - and the nav's own logo says the rest, so it was a third statement
-    of the same fact in one eyeful.
-
-    If it ever comes back, build it from LOCATIONS rather than typing the town
-    in. The old one was a hardcoded string and it is exactly the kind of line
-    that gets left behind when the service area changes.
-  */
-  /** Over the photography. The proposition, and the page's h1. */
-  headline: "Fitted, cut and finished by hand.",
-  subtext:
-    "Nat does every install herself, from the braid down to the last cut.",
 } as const;
 
 /**
@@ -620,179 +442,94 @@ export const HERO = {
  */
 export const ANNOUNCEMENT = {
   /** Opens the loop when a chair is open. Each open town follows as a segment. */
-  lead: "Now booking",
+  lead: SITE.header.announcement.lead,
   /** What the studio does, in three words. Runs in every state. */
-  service: "Lace wig installs",
+  service: SITE.header.announcement.service,
   /**
    * Runs in place of the lead and the towns when every chair is closed, as two
    * segments. Never falls back to a town name.
    */
-  closed: ["The chair is between studios just now", "New dates announced soon"],
+  closed: [SITE.header.announcement.closedFirst, SITE.header.announcement.closedSecond],
 } as const;
 
-export const INTRO = {
-  heading: "A crown should look like it grew there.",
-  paragraphs: [
-    "Crowned by Nat is one stylist and one chair. Nat customizes the unit, lays the lace, and cuts the hairline to your face in the same appointment, so nothing is handed off half finished.",
-    "That means fewer slots in the week, and a wait for a Saturday. It also means the person who answers your message is the person doing your hair.",
-  ],
-  signature: "Nat, founder and installer",
-} as const;
+/** The footer's own words. The towns, links and contact details are read elsewhere. */
+export const FOOTER = SITE.header.footer;
 
 /**
- * The three assurances.
- *
- * The third one used to be a "ten day lace promise", guaranteeing a free
- * re-lay if the lace lifted inside ten days. Nat never agreed to that. A
- * guarantee is the one kind of placeholder a customer can act on and hold the
- * business to, so it is gone rather than flagged. What is here now describes
- * how the appointment is run, which is true and is Nat's to confirm.
+ * The three assurances on /meet-nat. The icons are fixed by position; the
+ * words are Nat's. None of them is a guarantee a customer could hold the
+ * business to: what is here describes how the appointment is run.
  */
-export const ASSURANCES = [
-  {
-    icon: "hand",
-    title: "Nat does the work",
-    body: "Every unit is fitted by Nat herself. Your install is never handed to an assistant.",
-  },
-  {
-    icon: "heart",
-    title: "One client at a time",
-    body: "Your appointment is the only one in the room, so nothing is rushed to fit another in.",
-  },
-  {
-    icon: "arrows",
-    title: "Personalized to You",
-    body: "Every install is shaped around you, from the fit and placement to the final cut and style. Nat takes the time to make sure your crown feels like your own.",
-  },
-] as const;
+const ASSURANCE_ICONS = ["hand", "heart", "arrows"] as const;
+
+export const ASSURANCES = SITE.meetNat.assurances.map((item, index) => ({
+  icon: ASSURANCE_ICONS[index] ?? "hand",
+  title: item.title,
+  body: item.body,
+}));
 
 /**
- * Wording shared by every collection page, so six pages cannot drift into six
- * slightly different voices. The per-collection words live in
- * lib/collections.ts beside the photographs they describe.
+ * The explainer that only the Natural Lace page shows. Natural Lace is the one
+ * collection that is not a hairstyle; this block says so in the client's
+ * language and describes only what is visible in the photographs above it.
  */
-/**
- * The explainer that only the Natural Lace page shows.
- *
- * Natural Lace is the one collection that is not a hairstyle, and without
- * saying so it reads as a sixth texture sitting oddly beside five real ones.
- * Every look on that page is a different style; what they have in common is
- * how the unit meets the skin. This block says that in the client's language
- * rather than in the data model's, and it describes only what is visible in
- * the photographs above it - no lace brand, no product claim.
- */
-export const FINISH_FOCUS = {
-  eyebrow: "A lace finish, not a hairstyle",
-  heading: "What natural lace actually means",
-  body: "Every look on this page is a different style. What they share is how the unit meets the skin, which is the part that decides whether an install reads as hair or as a wig.",
-  points: [
-    {
-      title: "Lace melt",
-      body: "Lace tinted to your skin and pressed flat, so the edge disappears into it rather than sitting on top of it.",
-    },
-    {
-      title: "Hairline realism",
-      body: "Edges laid to follow the hairline you already have, rather than a shape drawn on to a face it does not belong to.",
-    },
-    {
-      title: "Scalp realism",
-      body: "Knots bleached down until the parting reads as scalp at conversational distance.",
-    },
-    {
-      title: "Seamless installation",
-      body: "Secured to sit flat the whole way round, with nothing lifting at the temples or the nape by the end of the day.",
-    },
-  ],
-} as const;
+export const FINISH_FOCUS = SITE.gallery.finishFocus;
 
 /**
- * The one place the site explains its own filing system.
- *
- * Six collections sit on the gallery index and five of them are hairstyles,
- * so a visitor reasonably assumes the sixth is too. Rather than bolt filter
- * chips onto a page of six items - controls for six things are furniture, not
- * navigation - the distinction is made once, in two sentences, above the
- * grid. After that the cards can just be photographs.
+ * The one place the site explains its own filing system, above the six
+ * collection cards on /gallery.
  */
 export const GALLERY_AXES = {
-  heading: "Three ways to read this work",
-  body: "The collections below group the looks by style, plus one by lace finish. Where a photograph shows how the unit was fitted, it carries that label too.",
-  axes: [
-    {
-      label: "Install type",
-      body: "Frontal or closure: how the unit is fitted, and the choice you make when you book. A look is labelled with one only where the photograph shows it.",
-    },
-    {
-      label: "Style",
-      body: "The texture, the length, the cut and the colour - what you picture when you book. Deep wave, sleek straight, bobs, body wave, and custom colour.",
-    },
-    {
-      /*
-        "Lace finish" rather than "Finish": the booking flow now asks for a
-        finish too (Curls, Wand Curls, Crimps; lib/taxonomy.ts), and that one
-        is a styling add-on, not the quality of the melt. One word for two
-        different things is exactly the drift lib/taxonomy.ts exists to stop.
-      */
-      label: "Lace finish",
-      body: "How well the unit is attached: the melt, the hairline, the parting. Natural Lace collects installs of every texture that share that standard.",
-    },
-  ],
+  heading: SITE.gallery.axesHeading,
+  body: SITE.gallery.axesBody,
+  axes: SITE.gallery.axes,
 } as const;
 
+/** Wording shared by every collection page, so six pages cannot drift into six voices. */
 export const COLLECTION_PAGE = {
-  back: "All six collections",
-  gallery: "Explore the collection",
-  galleryHint: "Select any photograph to see it larger.",
-  related: "More from the collection",
+  back: SITE.gallery.back,
+  gallery: SITE.gallery.galleryHeading,
+  galleryHint: SITE.gallery.galleryHint,
+  related: SITE.gallery.related,
   cta: {
-    heading: "Ready for your crown?",
-    body: "Bring this page to your consult. Nat will tell you straight whether the unit you have will get you there.",
+    heading: SITE.gallery.ctaHeading,
+    body: SITE.gallery.ctaBody,
   },
+  /** The eyebrow over a collection's name, and the badge on the finish collection's card. */
+  styleLabel: SITE.gallery.styleLabel,
+  laceFinishLabel: SITE.gallery.laceFinishLabel,
 } as const;
 
 /**
  * The words around the booking selection: install, then finish, then the
- * button. Used on /book and on each install page, where the first step is a
- * switch between the two install pages rather than a question
+ * button. Used on each install page, where the first step is a switch between
+ * the three install pages rather than a question
  * (components/install-selector.tsx). The install and finish names come from
  * lib/taxonomy.ts; these are only the words that frame them.
  *
- * The steps are named for what they ask, never "Step 1 / Step 2". The number
- * is carried by a small numeral beside each heading and read to a screen
- * reader as "Step 2 of 4", which is where it is actually useful.
+ * Install and finish are both required to book, and neither says
+ * "(Required)": an unmarked step is required, and Style, the one that is not,
+ * is the only one marked "(Optional)".
  *
- * REQUIRED VS OPTIONAL, AND WHY NEITHER STEP SAYS "REQUIRED"
- * Install and finish are both required to book: the flow will not hand over
- * a Book link, and the plain request form will not send, without both. Style
- * is the one step that is not, and it is the only one of the three marked
- * "(Optional)". An unmarked step is required; that is the whole convention,
- * and it holds for install without a label today, so finish follows it rather
- * than gaining a new "(Required)" badge no other step carries.
+ * The finish's `optional`/`none`, `addOns` and `book.style` belong to the
+ * dormant request form and booking flow (components/booking.tsx,
+ * components/booking/), which no page links to, so they are not in the
+ * dashboard.
  */
+const SELECTION_COPY = SITE.installs.selection;
+
 export const SELECTION = {
   install: {
-    heading: "Choose your install",
-    body: "Frontal, closure, or a reinstall on a wig you already have. Nat performs every appointment herself.",
+    heading: SELECTION_COPY.installHeading,
+    body: SELECTION_COPY.installBody,
   },
   finish: {
-    heading: "Choose your finish",
-    body: "How would you like your install styled?",
-    /**
-     * Still read where a finish genuinely IS optional: the plain request
-     * form's own Finish menu, when the service chosen there is not an
-     * install (Wig Touch Up has no finish to style). Not used inside the
-     * required install -> finish flow any more.
-     */
+    heading: SELECTION_COPY.finishHeading,
+    body: SELECTION_COPY.finishBody,
     optional: "Optional",
     /** The empty choice in the request form's finish menu. */
     none: "No finish",
   },
-  /**
-   * The optional extras step. The four add-ons themselves (names, prices,
-   * durations, time windows) live in lib/booking/add-ons.ts; these are only
-   * the words that frame them. More than one can be added, and the two
-   * time-window ones (Early Bird, After Hours) are mutually exclusive.
-   */
   addOns: {
     heading: "Anything to add?",
     body: "Optional extras for your appointment. Pick as many as you like, or skip this step.",
@@ -801,97 +538,85 @@ export const SELECTION = {
   /**
    * The free-text step between the finish and the booking panel: a specific
    * cut, length, colour or reference look, in the visitor's own words. Always
-   * optional, and never a service of its own, unlike install and finish it
-   * has no fixed set of answers, so there is nothing here to enumerate.
+   * optional, and never a service of its own.
    */
   style: {
-    heading: "Have a specific style in mind?",
-    body: "Tell Nat about the specific style, cut, color, length, or look you're interested in.",
-    optional: "Optional",
-    placeholder: "Tell us about the style you'd like...",
+    heading: SELECTION_COPY.styleHeading,
+    body: SELECTION_COPY.styleBody,
+    optional: SELECTION_COPY.styleOptional,
+    placeholder: SELECTION_COPY.stylePlaceholder,
     /** Shown only once the textarea is close to maxStyleLength; see there. */
     charsLeft: (n: number) => `${n} character${n === 1 ? "" : "s"} left`,
   },
   book: {
-    heading: "Book your appointment",
-    install: "Install",
-    finish: "Finish",
+    heading: SELECTION_COPY.bookHeading,
+    install: SELECTION_COPY.bookInstall,
+    finish: SELECTION_COPY.bookFinish,
     /** Shared with the notes line sent to Nat and the confirm-step summary. */
     style: "Style",
-    noInstall: "Not chosen yet",
-    noFinish: "None chosen",
-    needInstall: "Choose your service first.",
-    needFinish: "Choose a finish first.",
-    needBoth: "Choose your install and a finish first.",
+    noInstall: SELECTION_COPY.noInstall,
+    noFinish: SELECTION_COPY.noFinish,
+    needInstall: SELECTION_COPY.needInstall,
+    needFinish: SELECTION_COPY.needFinish,
+    needBoth: SELECTION_COPY.needBoth,
   },
   stepOf: (step: number, total: number) => `Step ${step} of ${total}: `,
 } as const;
 
 /**
- * The style description's ceiling. There was no existing character-limit
- * convention anywhere on the site to inherit (no other field carries one), so
- * this is a fresh, considered number rather than a borrowed one: long enough
- * for a genuine "12-inch layered bob with a middle part, soft waves, no
- * bangs" description, short enough that the request stays something Nat can
- * read at a glance rather than an essay. Enforced natively via the
- * textarea's `maxLength`, and surfaced to the visitor only once she is close
- * to it (see SELECTION.style.charsLeft) rather than as a constant reminder.
+ * The style description's ceiling: long enough for a genuine "12-inch layered
+ * bob with a middle part, soft waves, no bangs" description, short enough
+ * that the request stays something Nat can read at a glance. Enforced natively
+ * via the textarea's `maxLength`, and surfaced to the visitor only once she is
+ * close to it (see SELECTION.style.charsLeft).
  */
 export const MAX_STYLE_DESCRIPTION_LENGTH = 500;
 
 /**
- * The two install pages, /installs/frontal/ and /installs/closure/. Everything
- * specific to one install lives on its entry in lib/taxonomy.ts; this is the
- * wording both pages share, so the two cannot drift into two voices.
+ * The three install pages. Everything specific to one install lives on its
+ * entry in lib/taxonomy.ts (its "how it works" and examples headings among
+ * it); this is the wording all three share, so they cannot drift into three
+ * voices.
  */
 export const INSTALL_PAGE = {
-  eyebrow: "Install type",
-  toFinish: "Choose your finish",
-  how: (shortLabel: string) => `How a ${shortLabel.toLowerCase()} works`,
-  // "looks" rather than "installs" so this also reads right for Reinstalls,
-  // which lays no lace: "Reinstall looks from the chair", not "... installs".
-  examples: (shortLabel: string) => `${shortLabel} looks from the chair`,
+  eyebrow: SITE.installs.eyebrow,
+  toFinish: SITE.installs.toFinish,
   /** Heading over the remaining install types. Reads fine whether one or two remain. */
-  other: "Other ways to book",
-  gallery: "Browse every look in the gallery",
+  other: SITE.installs.otherHeading,
+  gallery: SITE.installs.galleryLink,
 } as const;
 
 /**
  * THE SERVICE MENU, AND THE ONE PLACE A PRICE IS WRITTEN DOWN.
  *
- * Seven services, in the four categories the customer sees them in, at the
- * prices from the pricing reference Nat supplied. This array is the
- * authoritative pricing structure for the whole site: the services menu on
- * /book, the booking flow, the request form, the LocalBusiness structured data
- * and the admin dashboard's starting rows all read it, so a price she corrects
- * is corrected everywhere from one edit.
- *
- * The four categories, in order:
+ * Seven services, filed under four headings the customer sees them in. Nat
+ * sets their names, prices, descriptions, order and whether each is offered
+ * from the dashboard (Services & pricing); this is that, in the shape every
+ * page reads: the services menu on /book, each service's own booking page and
+ * the LocalBusiness structured data.
  *
  *   Wig Installs     Frontal Install, Closure Install
  *   Reinstalls       Frontal Reinstall, Closure Reinstall
  *   Color Services   Color Frontal Install, Color Closure Install
  *   Services         Wig Touch Up
  *
- * "Reinstalls" is the public category name and it stays that way. Wig Touch Up
- * is a separate $35 service and is NOT a reinstall: the two are different
- * appointments and the site must never file one under the other.
+ * "Reinstalls" is a public category name. Wig Touch Up is a separate service
+ * and is NOT a reinstall: the two are different appointments and the site must
+ * never file one under the other. Which heading a service is under, and which
+ * finishes it takes, is structure and stays in code (SERVICE_CATEGORY_OF in
+ * lib/cms/defaults.ts, SERVICE_INSTALL_TYPE below); Nat renames the headings.
+ *
+ * SQUARE TAKES THE BOOKING. Its own menu, prices and lengths are what a client
+ * actually books and pays; nothing here changes them. The dashboard says so
+ * beside every price, and lists what to change in Square when a published
+ * price or name differs.
  *
  * Money is held in CENTS and time in MINUTES, rendered by formatPrice and
- * formatDuration in lib/format.ts. Durations are preserved from the services
- * they descend from where one existed (frontal 120, closure 90, wig-touch-up
- * 45); the four services that are new have no confirmed duration yet and carry
- * null rather than an invented one, which the booking flow reads as its 60
- * minute default and the admin dashboard can fill in.
+ * formatDuration in lib/format.ts. A service with no length set carries null.
  *
  * `installType` is the finish axis (lib/taxonomy.ts) this service belongs to,
- * or null when it has no finish to choose. It is what decides whether the
- * booking flow asks for a finish: the six installs do, Wig Touch Up does not.
- * The two color services are frontals and closures with colour, so they carry
- * the frontal and closure finish. The two reinstalls carry the reinstall
- * finish. It is read by the booking flow, and by a service's own booking page
- * (serviceBookingTarget), which carries a chosen finish only where there is
- * one to carry.
+ * or null when it has no finish to choose: the six installs have one, Wig
+ * Touch Up does not.
  */
 
 /**
@@ -914,103 +639,88 @@ export type ServiceId =
 export type ServiceEntry = {
   id: ServiceId;
   name: string;
+  /** The heading it is filed under, as Nat names it. */
   category: string;
   priceCents: number;
   durationMinutes: number | null;
   body: string;
   installType: InstallTypeId | null;
+  /** False when Nat has taken it off the menu. Its booking page still exists, and says so. */
+  active: boolean;
 };
 
-export const SERVICES: readonly ServiceEntry[] = [
-  {
-    id: "frontal-install",
-    name: "Frontal Install",
-    category: "Wig Installs",
-    priceCents: 10000,
-    durationMinutes: 120,
-    body: "Lace tinted to your skin, knots bleached, hairline plucked and cut. Includes the style you leave in.",
-    installType: "frontal",
-  },
-  {
-    id: "closure-install",
-    name: "Closure Install",
-    category: "Wig Installs",
-    priceCents: 9000,
-    durationMinutes: 90,
-    body: "Less lace to manage, lower upkeep, and gentler on a tender scalp.",
-    installType: "closure",
-  },
-  {
-    id: "frontal-reinstall",
-    name: "Frontal Reinstall",
-    category: "Reinstalls",
-    priceCents: 9000,
-    durationMinutes: null,
-    body: "A fresh lay on a unit you already have, with a frontal lace. The parting, melt and edges are all redone.",
-    installType: "wig-touch-up",
-  },
-  {
-    id: "closure-reinstall",
-    name: "Closure Reinstall",
-    category: "Reinstalls",
-    priceCents: 8000,
-    durationMinutes: null,
-    body: "A fresh lay on a unit you already have, with a closure. Quicker than a frontal, with less lace to redo.",
-    installType: "wig-touch-up",
-  },
-  {
-    id: "color-frontal-install",
-    name: "Color Frontal Install",
-    category: "Color Services",
-    priceCents: 13500,
-    durationMinutes: null,
-    body: "A frontal install with custom color, cut and finish. Bring a reference or describe the look you are after.",
-    installType: "frontal",
-  },
-  {
-    id: "color-closure-install",
-    name: "Color Closure Install",
-    category: "Color Services",
-    priceCents: 12500,
-    durationMinutes: null,
-    body: "A closure install with custom color, cut and finish. Bring a reference or describe the look you are after.",
-    installType: "closure",
-  },
-  {
-    id: "wig-touch-up",
-    name: "Wig Touch Up",
-    category: "Services",
-    priceCents: 3500,
-    durationMinutes: 45,
-    body: "Curls reset, waves refreshed, or a new style on a unit you already have.",
-    installType: null,
-  },
-] as const;
+const SERVICE_INSTALL_TYPE: Record<ServiceId, InstallTypeId | null> = {
+  "frontal-install": "frontal",
+  "closure-install": "closure",
+  "frontal-reinstall": "wig-touch-up",
+  "closure-reinstall": "wig-touch-up",
+  "color-frontal-install": "frontal",
+  "color-closure-install": "closure",
+  "wig-touch-up": null,
+};
+
+const SERVICE_IDS = Object.keys(SERVICE_INSTALL_TYPE) as ServiceId[];
+
+/** Every service, offered or not, in Nat's menu order. */
+export const SERVICES: readonly ServiceEntry[] = SITE.services.items.flatMap((item) => {
+  const id = SERVICE_IDS.find((candidate) => candidate === item.id);
+  if (!id) return [];
+  return [
+    {
+      id,
+      name: item.name,
+      category: SITE.services.categories[SERVICE_CATEGORY_OF[id]],
+      priceCents: item.price,
+      durationMinutes: item.minutes > 0 ? item.minutes : null,
+      body: item.description,
+      installType: SERVICE_INSTALL_TYPE[id],
+      active: item.active,
+    },
+  ];
+});
+
+/** The services on the menu now. */
+export const ACTIVE_SERVICES: readonly ServiceEntry[] = SERVICES.filter((service) => service.active);
+
+/** The heading and sentence over the menu on /book. */
+export const SERVICES_MENU = {
+  heading: SITE.services.heading,
+  intro: SITE.services.intro,
+} as const;
 
 /**
- * The four categories, in the order the customer sees them.
- *
- * Derived from SERVICES rather than typed again, so a service added to the
- * right category lands in the right section without a second list to keep in
- * step. The order is the order the entries appear above.
+ * The categories, in the order the customer sees them: the order their first
+ * service comes in.
  */
 export const SERVICE_CATEGORIES: readonly string[] = [
   ...new Set(SERVICES.map((service) => service.category)),
 ];
 
+/** Services grouped under their headings, in menu order. */
+export function servicesByCategory(
+  services: readonly ServiceEntry[],
+): { category: string; items: ServiceEntry[] }[] {
+  return [...new Set(services.map((service) => service.category))].map((category) => ({
+    category,
+    items: services.filter((service) => service.category === category),
+  }));
+}
+
 /**
- * The service an install type books by default.
- *
- * The booking flow offers all seven services, but an install type chosen
- * elsewhere (the selection above it, an install page, a Book button's URL)
- * arrives as a type, not a service, and has to land on one. This is that one:
- * the first service carrying the type, which is the plain frontal, the plain
- * closure and the frontal reinstall. The customer can switch to the colour or
- * the closure variant from the flow's own service step.
+ * The service an install type books by default: the plain frontal, the plain
+ * closure and the frontal reinstall. Fixed rather than "the first in the
+ * menu", so reordering the menu never sends "Book Frontal Install" to the
+ * colour service. The customer can switch to the colour or the closure
+ * variant on the booking page itself.
  */
+const BASE_SERVICE: Record<InstallTypeId, ServiceId> = {
+  frontal: "frontal-install",
+  closure: "closure-install",
+  "wig-touch-up": "frontal-reinstall",
+};
+
 export function baseServiceForInstallType(installType: InstallTypeId): ServiceId {
-  // Every install type has at least one service carrying it, so this cannot miss.
-  return SERVICES.find((service) => service.installType === installType)!.id;
+  return BASE_SERVICE[installType];
 }
 
 /**
@@ -1023,7 +733,7 @@ export function parseServiceId(value: unknown): ServiceId | null {
 }
 
 export function getService(id: ServiceId): ServiceEntry {
-  // SERVICES carries every ServiceId, so this cannot miss.
+  // SERVICES carries every ServiceId (lib/cms/model.ts puts back any missing), so this cannot miss.
   return SERVICES.find((service) => service.id === id)!;
 }
 
@@ -1046,219 +756,133 @@ export function serviceForPath(pathname: string): ServiceId | null {
   return match ? parseServiceId(match[1]) : null;
 }
 
-/** Verb labels, never "Step 1 / Stage 1". */
-export const PROCESS = [
-  {
-    label: "Consult",
-    body: "Nat looks at your unit, your hairline, and what your scalp can take that week.",
-  },
-  {
-    label: "Prep",
-    body: "Cleanse, braid down, and build a flat base. The install is won or lost here.",
-  },
-  {
-    label: "Install",
-    body: "Lace tinted, knots bleached, adhesive laid in thin passes and cured between each one.",
-  },
-  {
-    label: "Style",
-    body: "Cut, shape, and a finish you can put back yourself on day nine.",
-  },
-] as const;
+/** Verb labels, never "Step 1 / Stage 1". The appointment, on /before-you-book. */
+export const PROCESS = SITE.beforeYouBook.process;
+export const PROCESS_HEADING = SITE.beforeYouBook.processHeading;
 
 /**
- * ABOUT NAT.
- *
- * ---------------------------------------------------------------------------
- * WHAT WAS REMOVED FROM THIS BLOCK, AND WHY
- * ---------------------------------------------------------------------------
- * An earlier draft had Nat licensed as a cosmetologist, trained in medical wig
- * fitting, and drawn into the work by someone close to her going through
- * treatment. All of it was invented. None of it came from Nat.
- *
- * Invented biography is bad; invented CREDENTIALS are a different category.
- * "Licensed cosmetologist" is a regulated claim about a licence a person
- * either holds or does not, and publishing it on her behalf exposes her rather
- * than us. So the credentials list now holds only things that are true because
- * of how the business is structured, and the paragraphs describe the service
- * rather than her history.
- *
- * The shape is final and the layout takes her real words with no change. Four
- * questions get the real version: how long she has been installing, where she
- * trained, who her chair is for, and what she will not compromise on.
+ * ABOUT NAT, in her own words. The credentials are only things that are true
+ * because of how the business is structured; a regulated claim (a licence, a
+ * training) belongs here only in Nat's own wording.
  */
 export const OWNER = {
-  heading: "One pair of hands, start to finish.",
-  paragraphs: [
-    "Hey babes! I’m Natalie, but you can call me Nat, the stylist behind Crowned by Nat! I specialize in wig installs and reinstalls, helping you feel beautiful and confident with every look.",
-    "My goal is to make sure you feel comfortable in my chair and leave loving your hair. Whether we’re trying a new style or refreshing your favorite look, I’m excited to bring your vision to life!",
-    "Thank you for supporting Crowned by Nat and trusting me with your hair. I can’t wait to have you in my chair!",
-  ],
-  /**
-   * True by construction, not claimed on her behalf. Add real qualifications
-   * here once Nat has confirmed exactly what they are and how she words them.
-   */
-  credentials: [
-    "Every install performed by Nat",
-    "One client in the room at a time",
-    "Consultation before every first install",
-  ],
+  paragraphs: splitParagraphs(SITE.meetNat.bio),
+  credentials: SITE.meetNat.credentials,
+  /** "Reach Nat:", before the contact link under the biography. */
+  reach: SITE.meetNat.reachLabel,
 } as const;
 
 /**
- * PLACEHOLDER TESTIMONIALS.
+ * THE REVIEWS, AND THE NOTICE BESIDE THEM.
  *
- * These are written stand-ins, not real client feedback, and the section
- * renders a visible "sample wording" notice while testimonialsArePlaceholder
- * is true. Replace the entries with real quotes and flip the flag to false to
- * drop the notice. Do not ship the flag as false while these words are still
- * here: presenting invented quotes as real reviews is deceptive, and in the US
- * it is squarely what the FTC endorsement rules prohibit.
+ * The site launched with written stand-ins, not real client feedback, and the
+ * page shows a visible "sample wording" notice while testimonialsArePlaceholder
+ * is true. Presenting invented quotes as real reviews is deceptive, and in the
+ * US it is squarely what the FTC endorsement rules prohibit, so the dashboard
+ * refuses to switch the notice off while the three stand-ins are still there.
  */
-export const testimonialsArePlaceholder = true;
-
-export const TESTIMONIALS = [
-  {
-    quote: "I swim four mornings a week and the lace has not lifted once.",
-    name: "Adaeze Nwankwo",
-    role: "Secondary school teacher",
-  },
-  {
-    quote:
-      "First install after chemo. Nat explained every step and never once rushed me.",
-    name: "Rosalind Peirce",
-    role: "Ceramicist",
-  },
-  {
-    quote:
-      "I brought in a unit I had already ruined. It came back better than I bought it.",
-    name: "Camille Ashworth",
-    role: "Event producer",
-  },
-] as const;
+export const testimonialsArePlaceholder = SITE.reviews.placeholder;
+export const TESTIMONIALS = SITE.reviews.items;
+export const REVIEWS_NOTICE = SITE.reviews.placeholderNotice;
 
 /**
- * PLACEHOLDER POLICIES.
+ * THE QUESTIONS, AND THE POLICIES IN THEIR ANSWERS.
  *
- * The answers below describe how an appointment runs, how long an install
- * lasts, and what happens when someone cancels. They are professionally
- * written stand-ins, NOT policies Nat has confirmed, and /before-you-book
- * carries a visible notice saying so while this flag is true.
- *
- * The same rule as the testimonials applies, for the same reason: a policy a
- * customer relies on and the business has never agreed to is worse than no
- * policy at all. Flip this to false only once Nat has read every answer below
- * and said yes to it.
+ * The answers describe how an appointment runs, how long an install lasts, and
+ * what happens when someone cancels. While policiesAreDraft is true,
+ * /before-you-book carries a visible notice saying they are not confirmed:
+ * a policy a customer relies on and the business has never agreed to is worse
+ * than no policy at all. Nat switches it off in the dashboard once she has
+ * read every answer and said yes to it.
  */
-export const policiesAreDraft = true;
+export const policiesAreDraft = SITE.faq.draft;
+export const FAQ = {
+  heading: SITE.faq.heading,
+  draftNotice: SITE.faq.draftNotice,
+} as const;
 
-export const QUESTIONS = [
-  {
-    q: "Where does the appointment happen?",
-    a: "Nat's current location is Towson, MD. She also takes appointments in Laurel, MD. The full address comes with your confirmation, and the strip at the top of the site always shows where she is currently booking.",
-  },
-  {
-    q: "Who actually does my install?",
-    a: "Nat does, every time. There is no second chair and no assistant finishing the work. If she is booked out, you wait for her rather than being passed along.",
-  },
-  {
-    q: "How long does an install last?",
-    a: "Three to four weeks for a frontal, and closer to five for a closure. Sweat, heat, and how often you lift the lace at home all move that number. A refresh appointment resets it.",
-  },
-  {
-    q: "Do I need to bring my own wig?",
-    a: "Yes. The chair time covers customization and install, not the unit itself. If you are buying for the first time, send a link before you order and you will get a straight answer on whether the cap and density are worth it.",
-  },
-  {
-    q: "Will this damage my natural hair?",
-    a: "Not when it is braided down properly and taken down properly. The base braids are kept loose at the perimeter, and takedown uses a solvent rather than pulling. Leaving an install in past six weeks is what causes damage.",
-  },
-  {
-    q: "Can you work with a sensitive or healing scalp?",
-    a: "Yes, and those appointments are booked with extra time built in. Bring anything your dermatologist or oncology team has told you about adhesives. There are non-adhesive options that hold well if glue is off the table.",
-  },
-  {
-    q: "What happens if the lace lifts before my refresh?",
-    a: "Come back in. If it lifts inside ten days of the install, laying it again is free and you do not need to explain yourself.",
-  },
-  {
-    q: "How do I move or cancel an appointment?",
-    a: "Get in touch as early as you can. Appointments must be canceled at least 24 hours before the scheduled appointment, and the same notice moves an appointment to a new time.",
-  },
-  {
-    q: "What is your cancellation policy?",
-    a: "Appointments must be canceled at least 24 hours before the scheduled appointment.",
-  },
-  {
-    q: "What should I bring, and how should I turn up?",
-    a: "Your unit, and a screenshot of the look you are after. Come with your own hair washed, fully dried and detangled, and with no heavy oil or grease on your scalp, because adhesive will not hold on a conditioned hairline. If you are between installs, leave the takedown to Nat rather than pulling it out the night before.",
-  },
-] as const;
+export const QUESTIONS = SITE.faq.items.map((item) => ({ q: item.question, a: item.answer }));
 
+/** The scheduler panel on /book, and the studio details beside it. */
 export const BOOKING = {
-  heading: "Choose your time.",
-  body: "Pick your service, any add-ons, and a day and time that works for you using the scheduler below.",
+  heading: SITE.book.heading,
+  body: SITE.book.body,
+  labels: {
+    currentLocation: SITE.book.currentLocationLabel,
+    alsoServing: SITE.book.alsoServingLabel,
+    hours: SITE.book.hoursLabel,
+    reach: SITE.book.reachLabel,
+  },
+} as const;
+
+/** What the Square scheduler's frame says while it loads, or if it cannot. */
+export const SCHEDULER = {
+  loading: SITE.book.schedulerLoading,
+  error: SITE.book.schedulerError,
+  errorContact: SITE.book.schedulerErrorContact,
 } as const;
 
 /**
  * A service's own booking page, /book/<service>/: the one service the visitor
  * chose, photographs of it, and the scheduler (components/service-booking.tsx).
  * The service's name, category, price and description are its entry in
- * SERVICES; these are only the words around them.
+ * SERVICES; these are only the words around them. `{service}`, `{finish}` and
+ * `{install type}` in Nat's wording are filled in per page.
  *
  * THE SCHEDULER CANNOT BE TOLD WHICH SERVICE. Square's embed opens on Nat's
  * whole menu whatever page it sits on, so the steps say which line to tap
  * rather than pretending it is already chosen. They name things the way her
- * live Square menu does (read off it on 2026-10-09): the seven services under
- * the same names as SERVICES, and the finishes under one add-on, "Styling",
- * filed under "Add ons". If she renames that add-on in Square, change
- * `step2` below to match.
+ * live Square menu does: the seven services under the same names as SERVICES,
+ * and the finishes under one add-on, "Styling", filed under "Add ons".
  */
+const SERVICE_PAGE = SITE.serviceBooking;
+
 export const SERVICE_BOOKING = {
-  back: "All services",
+  back: SERVICE_PAGE.back,
   /** Skips down the page to the scheduler. */
-  toScheduler: "Choose a time",
-  price: "Price",
+  toScheduler: SERVICE_PAGE.toScheduler,
+  price: SERVICE_PAGE.price,
   /** For screen readers: names the switch between the services in one category. */
   switchLabel: (category: string) => `Services in ${category}`,
   /** Read out after the switch changes the service without reloading the page. */
   switched: (name: string) => `Now showing ${name}.`,
   photos: {
-    heading: (name: string) => `${name} looks from the chair`,
-    hint: "Select any photograph to see it larger.",
+    heading: (name: string) => fillPlaceholders(SERVICE_PAGE.photosHeading, { service: name }),
+    hint: SERVICE_PAGE.photosHint,
     /**
      * Over the photographs a reinstall page borrows from the broader
      * Reinstalls install type, when none is tagged with the service itself.
      * Says so, so a closure reinstall is never passed off as a frontal one.
      */
     borrowed: (name: string, label: string) =>
-      `None is tagged ${name} yet, so these are from Nat's ${label.toLowerCase()} of every kind.`,
-    emptyHeading: "No photos of this one yet",
-    empty: (name: string) =>
-      `Nat has not added photos of ${name} to the site yet. Every look in the gallery is her own work.`,
-    gallery: "Browse the gallery",
+      fillPlaceholders(SERVICE_PAGE.photosBorrowed, {
+        service: name,
+        "install type": label.toLowerCase(),
+      }),
+    emptyHeading: SERVICE_PAGE.photosEmptyHeading,
+    empty: (name: string) => fillPlaceholders(SERVICE_PAGE.photosEmpty, { service: name }),
+    gallery: SERVICE_PAGE.photosGallery,
   },
   scheduler: {
-    heading: "Choose your time.",
-    booking: "You are booking",
-    finish: "Finish",
-    style: "Your style notes",
-    step1: (name: string) => `Tap ${name} in the scheduler's menu.`,
-    step2: (finish: string) => `Add Styling, under Add ons, for your ${finish} finish.`,
-    step3: "Choose a day and time, then confirm your details.",
+    heading: SERVICE_PAGE.schedulerHeading,
+    finish: SERVICE_PAGE.finishLabel,
+    style: SERVICE_PAGE.styleNotesLabel,
+    step1: (name: string) => fillPlaceholders(SERVICE_PAGE.step1, { service: name }),
+    step2: (finish: string) => fillPlaceholders(SERVICE_PAGE.step2, { finish }),
+    step3: SERVICE_PAGE.step3,
   },
-  /** When the live menu has loaded and this service is not on it. */
-  unavailable:
-    "This service is not on the menu at the moment. See every service Nat offers, or get in touch.",
+  /** When this service is off the menu. */
+  unavailable: SERVICE_PAGE.unavailable,
 } as const;
 
 /**
  * ---------------------------------------------------------------------------
  * ACCOUNTS, BOOKING AND ADMIN
  * ---------------------------------------------------------------------------
- * Added with the booking system. Same rule as everything above: if a visitor
- * can read it, it is defined here, so the whole voice of the site can be
- * reviewed in one file rather than hunted through twelve components.
+ * Added with the booking system. Customer accounts are switched off
+ * (customerAccountsLinked in lib/supabase/client.ts) and the booking flow is
+ * not linked from any page since Square took over, so these screens are
+ * dormant and their words are not in the dashboard.
  *
  * Voice notes for anything added later:
  *   - the customer is spoken to warmly and directly, never as "the user"
@@ -1321,17 +945,7 @@ export const ACCOUNT = {
 } as const;
 
 /**
- * The booking flow, step by step.
- *
- * Six steps, and each one asks for exactly one kind of thing. That is the
- * difference between a premium appointment and an enterprise scheduling form:
- * a form asks for everything at once because it is easier to build, and a
- * concierge asks one question at a time because it is easier to answer.
- *
- * The add-ons step is the optional one. The four extras (After Hours, Early
- * Bird, Same-Day Customization, Styling) live in lib/booking/add-ons.ts and
- * the step offers them as a set of toggles; the two time-window ones narrow
- * the calendar in the "when" step to the window they book.
+ * The booking flow, step by step. Dormant since Square took over (see above).
  */
 export const BOOKING_FLOW = {
   title: "Book your chair.",

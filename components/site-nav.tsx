@@ -14,6 +14,7 @@ import { useBookingSelection } from "@/lib/booking-selection";
 import { installTypeForPath } from "@/lib/taxonomy";
 import {
   CTA,
+  NAV_HOME,
   NAV_LINKS,
   REACH,
   REACH_SECONDARY,
@@ -145,9 +146,11 @@ function NavMark({ className = "" }: { className?: string }) {
  * screen would.
  *
  * The destination is `STUDIO.instagram` (lib/content.ts), the same value the
- * footer uses, so the two can never point at different profiles.
+ * footer uses, so the two can never point at different profiles. With no
+ * profile set in the dashboard there is no icon, as the footer has no row.
  */
 function InstagramLink({ className = "" }: { className?: string }) {
+  if (!STUDIO.instagram) return null;
   return (
     <a
       href={STUDIO.instagram}
@@ -472,7 +475,9 @@ export function SiteNav() {
             neon mark could not survive the sheet's pale background, and this
             one can (see the note on STUDIO.logo in lib/content.ts).
           */}
-          <a href="/" aria-label="Home" className="justify-self-center">
+          {/* Placed by column, so the crest stays centred when there is no
+              Instagram icon to fill the first track. */}
+          <a href="/" aria-label="Home" className="col-start-2 justify-self-center">
             <NavMark className="h-14 md:h-[3.75rem]" />
           </a>
           <button
@@ -480,7 +485,7 @@ export function SiteNav() {
             type="button"
             onClick={dismiss}
             aria-label="Close menu"
-            className="tap -mr-2 inline-flex cursor-pointer items-center justify-center justify-self-end rounded-full text-ink transition-colors hover:bg-surface-2"
+            className="tap col-start-3 -mr-2 inline-flex cursor-pointer items-center justify-center justify-self-end rounded-full text-ink transition-colors hover:bg-surface-2"
           >
             <X size={24} weight="regular" />
           </button>
@@ -495,7 +500,7 @@ export function SiteNav() {
                 isCurrent("/") ? "text-accent" : "text-ink"
               }`}
             >
-              Home
+              {NAV_HOME}
             </a>
           </li>
           {NAV_LINKS.map((link) => (

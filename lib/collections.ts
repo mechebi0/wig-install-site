@@ -1,3 +1,4 @@
+import { SITE } from "@/lib/cms/published";
 import type { SlotId } from "@/lib/site-photos";
 import type { InstallTypeId } from "@/lib/taxonomy";
 
@@ -665,80 +666,22 @@ export type StyleCollection = {
  * A photograph appearing in two collections is intentional and correct. A
  * copper body wave IS both a body wave and a colour transformation, and
  * pretending otherwise would hide the best example of one of them.
+ *
+ * The words for each (title, three-beat line, card sentence, page paragraph,
+ * search description) are Nat's, from the dashboard (Website content,
+ * Gallery); the slug, the axis and the order are structure and stay here.
+ * The search descriptions name the towns with {all locations}, so they follow
+ * the dashboard's Locations rather than going stale.
  */
+const COLLECTION_COPY = SITE.gallery.collections;
+
 export const COLLECTIONS: StyleCollection[] = [
-  {
-    slug: "deep-wave-glam",
-    dimension: "style",
-    title: "Deep Wave Glam",
-    tagline: "Texture. Movement. Glamour.",
-    summary: "Long, textured, effortlessly glamorous.",
-    description:
-      "Deep wave is the one people bring a screenshot in for. Long lengths, a wave pattern that holds its definition from the root down, and enough weight through the ends to move when you do. Density is set before the lace goes down, so the shape is still there in week three.",
-    metaDescription:
-      "Long deep-wave lace installs by Crowned by Nat. Defined texture, glamorous volume, and a hairline cut to your face, in Towson and Laurel, MD.",
-    order: 1,
-  },
-  {
-    slug: "sleek-straight",
-    dimension: "style",
-    title: "Sleek Straight",
-    tagline: "Smooth. Precise. Polished.",
-    summary: "Pressed flat, parted clean, finished sharp.",
-    description:
-      "Straight hides nothing. Every lift at the parting and every uneven end is visible from across a room, which is what makes this collection the honest test of an install. Middle part or deep side part, pressed to a glass finish, cut to a baseline that stays level.",
-    metaDescription:
-      "Sleek straight lace installs by Crowned by Nat. Clean centre and side partings, a pressed glass finish, and a level baseline, in Towson and Laurel, MD.",
-    order: 2,
-  },
-  {
-    slug: "signature-bob",
-    dimension: "style",
-    title: "Signature Bob",
-    tagline: "Sharp. Modern. Considered.",
-    summary: "The cut that has to be right the first time.",
-    description:
-      "Short units live or die on the perimeter, and a bob cannot be rescued by length the way long hair can. These are cut on the head rather than off the stand, so the baseline sits where your jaw actually is and the shape holds when you turn your head.",
-    metaDescription:
-      "Bob and lob lace installs by Crowned by Nat. Blunt baselines, soft curved ends, and a perimeter cut on the head, in Towson and Laurel, MD.",
-    order: 3,
-  },
-  {
-    slug: "body-wave-glam",
-    dimension: "style",
-    title: "Body Wave",
-    tagline: "Soft. Full. Luminous.",
-    summary: "Wide, glossy waves with weight behind them.",
-    description:
-      "Body wave is the softer register: a wider wave, more shine off the surface, and volume that reads as fullness rather than texture. It takes light better than any other pattern, which is why it is the one that photographs best in almost any room.",
-    metaDescription:
-      "Body-wave lace installs by Crowned by Nat. Soft volume, wide glossy waves, and elegant movement, in Towson and Laurel, MD.",
-    order: 4,
-  },
-  {
-    slug: "color-and-custom",
-    dimension: "style",
-    title: "Color & Custom",
-    tagline: "Blonde. Copper. Pink.",
-    summary: "Explore custom colour inspiration.",
-    description:
-      "Colour inspiration from the chair: platinum, copper, burgundy and candy pink, all of it worked on the unit rather than on your own hair. Bring a reference to your consult and Nat will tell you straight what the unit you have can and cannot be taken to.",
-    metaDescription:
-      "Colour and custom wig inspiration from Crowned by Nat. Blonde, copper, burgundy, and pink lace installs, in Towson and Laurel, MD.",
-    order: 5,
-  },
-  {
-    slug: "natural-lace",
-    dimension: "finish",
-    title: "Natural Lace",
-    tagline: "Seamless. Quiet. Yours.",
-    summary: "The install nobody can tell is an install.",
-    description:
-      "The quiet collection, and the one the others get judged against. Lace tinted to your skin, knots bleached down, the parting flat to the scalp, and the edges laid to follow your own hairline. Nothing here is trying to be noticed.",
-    metaDescription:
-      "Natural-looking lace installs by Crowned by Nat. Tinted lace, bleached knots, and a seamless hairline, in Towson and Laurel, MD.",
-    order: 6,
-  },
+  { slug: "deep-wave-glam", dimension: "style", ...COLLECTION_COPY["deep-wave-glam"], order: 1 },
+  { slug: "sleek-straight", dimension: "style", ...COLLECTION_COPY["sleek-straight"], order: 2 },
+  { slug: "signature-bob", dimension: "style", ...COLLECTION_COPY["signature-bob"], order: 3 },
+  { slug: "body-wave-glam", dimension: "style", ...COLLECTION_COPY["body-wave-glam"], order: 4 },
+  { slug: "color-and-custom", dimension: "style", ...COLLECTION_COPY["color-and-custom"], order: 5 },
+  { slug: "natural-lace", dimension: "finish", ...COLLECTION_COPY["natural-lace"], order: 6 },
 ];
 
 /**

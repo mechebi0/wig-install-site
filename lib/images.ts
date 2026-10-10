@@ -4,9 +4,10 @@
  * Which photograph fills each fixed place - a slide of the homepage hero, the
  * picture in the services menu on /book, the one beside the sign-in forms -
  * is Nat's choice now, made in the photo manager and stored in
- * site_photo_slots (migration 0007). What stays in code is everything written
- * AROUND a photograph: each slide's eyebrow, headline and sentence, and the
- * crops measured for the photographs the site launched with.
+ * site_photo_slots (migration 0007). The words written AROUND a photograph,
+ * each slide's eyebrow, headline and sentence, are Nat's too, from the
+ * dashboard (Homepage). What stays in code is each slide's place, collection
+ * and crop: the crops measured for the photographs the site launched with.
  *
  * A measured crop only means something for the frame it was measured on, so
  * each one is used while that launch photograph is still the one in the
@@ -23,6 +24,7 @@
  * have, it gets a real frame that honestly fits it rather than stock.
  */
 
+import { SITE } from "@/lib/cms/published";
 import type { SlotId } from "@/lib/site-photos";
 
 /* ==========================================================================
@@ -151,10 +153,10 @@ export type HeroSlide = {
    carousel renders whichever the active index names. There is one index and it
    drives the photograph and the words together, so they cannot drift apart.
 
-   The copy below is TEMPORARY MARKETING TEXT written to be replaced. It says
-   nothing Nat has not already demonstrated in the photograph beside it - no
-   prices, no timings, no claims about products - so it is safe to ship while
-   she writes her own.
+   The words are Nat's to rewrite in the dashboard (Homepage, Slideshow);
+   lib/cms/defaults.ts holds the launch copy, which says nothing she has not
+   already demonstrated in the photograph beside it - no prices, no timings,
+   no claims about products.
 
    ORDER. Slide one used to be the crimped deep wave, kept because it is the
    only frame in the deep wave set with no neon sign on the wall behind the
@@ -182,13 +184,17 @@ export type HeroSlide = {
    slide. The block reserves a minimum height anyway, but matching the copy is
    what stops the CTAs shifting a few pixels as the text changes.
 */
+/** A slide's words, as Nat last published them, by the slide's id. */
+function slideCopy(id: string): Pick<HeroSlide, "label" | "headline" | "description"> {
+  // Every slide id below is in DEFAULT_CONTENT, and lib/cms/model.ts puts back any missing.
+  const { label, headline, description } = SITE.home.slides.find((slide) => slide.id === id)!;
+  return { label, headline, description };
+}
+
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: "deep-wave-swirl",
-    label: "Deep Wave Glam",
-    headline: "A hairline that melts into skin.",
-    description:
-      "Swirled baby hairs, a clean centre part, and lace you cannot find.",
+    ...slideCopy("deep-wave-swirl"),
     slot: "home-1",
     finish: "Melted Hairline",
     collection: "deep-wave-glam",
@@ -198,10 +204,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "straight",
-    label: "Sleek Straight",
-    headline: "Silky. Sleek. Effortlessly polished.",
-    description:
-      "Clean lines, a flawless finish, and a look that speaks for itself.",
+    ...slideCopy("straight"),
     slot: "home-2",
     finish: "Natural Lace",
     collection: "sleek-straight",
@@ -211,9 +214,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "bob",
-    label: "Signature Bob",
-    headline: "A statement cut, tailored to you.",
-    description: "Sharp, polished, and shaped to complement your features.",
+    ...slideCopy("bob"),
     slot: "home-3",
     finish: "Melted Hairline",
     collection: "signature-bob",
@@ -221,10 +222,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "deep-wave",
-    label: "Deep Wave Glam",
-    headline: "Texture that moves with you.",
-    description:
-      "Defined waves, seamless lace, and a finish designed to turn heads.",
+    ...slideCopy("deep-wave"),
     slot: "home-4",
     finish: "Melted Hairline",
     collection: "deep-wave-glam",
@@ -234,10 +232,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "colour",
-    label: "Color & Custom",
-    headline: "Your vision, brought to life.",
-    description:
-      "Custom color and styling, made to leave your install unmistakably yours.",
+    ...slideCopy("colour"),
     slot: "home-5",
     finish: "Melted Hairline",
     collection: "color-and-custom",
@@ -247,10 +242,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: "natural-lace",
-    label: "Natural Lace",
-    headline: "Made to look like it grew there.",
-    description:
-      "Customized lace and a seamless hairline, for an effortlessly natural finish.",
+    ...slideCopy("natural-lace"),
     slot: "home-6",
     // The label is the FINISH. This says what the hair itself is, so the two
     // axes stay separate and the slide does not read as a sixth hairstyle.

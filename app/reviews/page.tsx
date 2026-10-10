@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { Testimonials } from "@/components/testimonials";
-import { PAGES } from "@/lib/content";
+import { PAGES, SEO } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Reviews",
+  title: SEO.reviewsTitle,
   description: PAGES.reviews.lede,
 };
 

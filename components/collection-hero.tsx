@@ -74,7 +74,9 @@ export function CollectionHero({
               a styling add-on, not the quality of the melt this page is about.
             */}
             <p className="label mt-8 text-on-accent/60">
-              {collection.dimension === "finish" ? "Lace finish" : "Style"}
+              {collection.dimension === "finish"
+                ? COLLECTION_PAGE.laceFinishLabel
+                : COLLECTION_PAGE.styleLabel}
             </p>
 
             <h1 className="mt-3 max-w-[13ch] font-display text-4xl leading-[1.02] tracking-tight text-on-accent md:text-5xl lg:text-6xl">
@@ -92,7 +94,7 @@ export function CollectionHero({
           </Reveal>
 
           <Reveal index={2}>
-            <p className="mt-7 max-w-[52ch] text-base leading-relaxed text-on-accent/80 lg:text-lg">
+            <p className="mt-7 max-w-[52ch] whitespace-pre-line text-base leading-relaxed text-on-accent/80 lg:text-lg">
               {collection.description}
             </p>
 

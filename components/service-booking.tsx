@@ -19,7 +19,6 @@ import { useSiteView } from "@/components/site-photos";
 import { SquareBooking } from "@/components/square-booking";
 import { Notice } from "@/components/ui/feedback";
 import { useBookingSelection } from "@/lib/booking-selection";
-import { useServices } from "@/lib/catalog";
 import {
   PAGES,
   REACH,
@@ -84,22 +83,21 @@ export function ServiceBooking({ service: built }: { service: ServiceId }) {
   const service = getService(id);
 
   /*
-    Name, description and price from the same live catalog the /book menu
-    reads (lib/catalog.ts), so the two pages never quote different prices.
-    The compiled-in entry is the first frame, as there.
+    Name, description and price as Nat published them, the same entry the
+    /book menu prints (SERVICES in lib/content.ts), so the two pages never
+    quote different prices. A service she has taken off the menu keeps its
+    page, which says so rather than offering it.
 
-    The catalog's TIME is left off, on purpose. Square decides how long an
+    The service's TIME is left off, on purpose. Square decides how long an
     appointment is and prints it on every line of the scheduler beside this,
-    and on 2026-10-09 every time the catalog held disagreed with it (2 hours
+    and on 2026-10-09 every time the site held disagreed with it (2 hours
     against Square's 3 hr for a frontal, for one), so the page shows only
     Square's.
   */
-  const { services } = useServices();
-  const row = services.find((candidate) => candidate.slug === id);
-  const offMenu = services.some((candidate) => candidate.live) && !row;
-  const name = row?.name ?? service.name;
-  const description = row?.description ?? service.body;
-  const price = row ? row.price_cents : service.priceCents;
+  const offMenu = !service.active;
+  const name = service.name;
+  const description = service.body;
+  const price = service.priceCents;
 
   /*
     The finish and style notes chosen on an install page, carried here by
@@ -111,7 +109,10 @@ export function ServiceBooking({ service: built }: { service: ServiceId }) {
   const notes = selection.styleDescription.trim();
 
   const { items, borrowed } = bookingPhotos(useSiteView(), id);
-  const siblings = servicesInCategory(service.category);
+  // The others on offer under the same heading, and this one even when it is not.
+  const siblings = servicesInCategory(service.category).filter(
+    (sibling) => sibling.active || sibling.id === id,
+  );
 
   const [announcement, setAnnouncement] = useState("");
 
@@ -155,7 +156,7 @@ export function ServiceBooking({ service: built }: { service: ServiceId }) {
               <h1 className="mt-5 max-w-[16ch] font-display text-4xl leading-[1.03] tracking-tight text-ink md:text-5xl lg:text-6xl">
                 {name}
               </h1>
-              <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted sm:mt-5 sm:text-lg">
+              <p className="mt-4 max-w-[52ch] whitespace-pre-line text-base leading-relaxed text-muted sm:mt-5 sm:text-lg">
                 {description}
               </p>
             </Reveal>

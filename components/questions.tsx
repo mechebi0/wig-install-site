@@ -1,6 +1,6 @@
 import { Info, Plus } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
-import { policiesAreDraft, QUESTIONS } from "@/lib/content";
+import { FAQ, policiesAreDraft, QUESTIONS } from "@/lib/content";
 
 /**
  * Nine questions, so an accordion rather than a stack of open paragraphs.
@@ -32,7 +32,7 @@ export function Questions() {
               id="questions-heading"
               className="font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
             >
-              Common questions.
+              {FAQ.heading}
             </h2>
 
             {/*
@@ -41,11 +41,11 @@ export function Questions() {
               and none of them has been confirmed by Nat yet. A visitor is
               entitled to know which parts of a page are a draft, and the
               notice sits beside the questions rather than in a footnote
-              because that is where it is read. Remove it by flipping
-              policiesAreDraft in lib/content.ts, once and only once Nat has
-              agreed to every answer.
+              because that is where it is read. Nat removes it in the
+              dashboard (FAQs & policies), once and only once she has agreed
+              to every answer.
             */}
-            {policiesAreDraft ? (
+            {policiesAreDraft && FAQ.draftNotice ? (
               <p className="mt-6 inline-flex max-w-[38ch] items-start gap-2 rounded-3xl border border-line-strong bg-surface px-4 py-2.5 text-sm leading-relaxed text-muted">
                 <Info
                   size={16}
@@ -53,10 +53,7 @@ export function Questions() {
                   aria-hidden="true"
                   className="mt-0.5 shrink-0 text-accent"
                 />
-                <span>
-                  Draft answers, shown while Nat confirms timings and studio
-                  policy. Ask her directly and she will tell you straight.
-                </span>
+                <span>{FAQ.draftNotice}</span>
               </p>
             ) : null}
           </Reveal>
@@ -65,8 +62,8 @@ export function Questions() {
         <div className="lg:col-span-7 lg:col-start-6">
           <Reveal index={1}>
             <div className="border-t border-line-strong">
-              {QUESTIONS.map((item) => (
-                <details key={item.q} className="group border-b border-line-strong">
+              {QUESTIONS.map((item, index) => (
+                <details key={index} className="group border-b border-line-strong">
                   <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-6 py-5 text-left [&::-webkit-details-marker]:hidden">
                     <h3 className="font-display text-lg tracking-tight text-ink lg:text-xl">
                       {item.q}
@@ -78,7 +75,7 @@ export function Questions() {
                       className="shrink-0 text-accent transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-open:rotate-45 motion-reduce:transition-none"
                     />
                   </summary>
-                  <p className="max-w-[62ch] pb-7 text-base leading-relaxed text-muted">
+                  <p className="max-w-[62ch] whitespace-pre-line pb-7 text-base leading-relaxed text-muted">
                     {item.a}
                   </p>
                 </details>

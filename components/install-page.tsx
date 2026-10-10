@@ -68,7 +68,7 @@ export function InstallPage({ type }: { type: InstallType }) {
             </Reveal>
 
             <Reveal index={1}>
-              <p className="mt-7 max-w-[52ch] text-base leading-relaxed text-on-accent/80 lg:text-lg">
+              <p className="mt-7 max-w-[52ch] whitespace-pre-line text-base leading-relaxed text-on-accent/80 lg:text-lg">
                 {type.description}
               </p>
 
@@ -107,7 +107,7 @@ export function InstallPage({ type }: { type: InstallType }) {
               id="how-heading"
               className="font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl"
             >
-              {INSTALL_PAGE.how(type.shortLabel)}
+              {type.howHeading}
             </h2>
           </Reveal>
 
@@ -131,7 +131,7 @@ export function InstallPage({ type }: { type: InstallType }) {
           are none. */}
       <InstallExamples
         installType={type.id}
-        heading={INSTALL_PAGE.examples(type.shortLabel)}
+        heading={type.examplesHeading}
         note={`${type.examplesNote} ${COLLECTION_PAGE.galleryHint}`.trim()}
         galleryLabel={`${type.label} gallery`}
       />

@@ -1,0 +1,11 @@
+# Cloudflare Pages response headers.
+#
+# Everything in public/ is copied verbatim into out/, so this file lands at the
+# root of the deployment where Pages reads it, the same as _redirects.
+#
+# /content-version.json says which release of the website's words the live
+# deployment was built with. The owner dashboard checks it after publishing
+# to tell "live on the website" from "still being built", so no browser or
+# edge cache may hold an older answer.
+/content-version.json
+  Cache-Control: no-store

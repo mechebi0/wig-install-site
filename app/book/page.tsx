@@ -4,16 +4,18 @@ import { Services } from "@/components/services";
 import { SquareBooking } from "@/components/square-booking";
 import { Reveal } from "@/components/reveal";
 import {
-  ADDITIONAL_LOCATION_LABELS,
+  ADDITIONAL_LOCATIONS,
   BOOKING,
   PAGES,
-  PRIMARY_LOCATION_LABEL,
+  PRIMARY_LOCATION,
   REACH,
+  SEO,
   STUDIO,
 } from "@/lib/content";
+import type { Place } from "@/lib/cms/model";
 
 export const metadata: Metadata = {
-  title: "Book your chair",
+  title: SEO.bookTitle,
   description: PAGES.book.lede,
 };
 
@@ -54,24 +56,28 @@ function BookingPanel() {
               >
                 {BOOKING.heading}
               </h2>
-              <p className="mt-5 max-w-[42ch] text-lg leading-relaxed text-muted">
-                {BOOKING.body}
-              </p>
+              {BOOKING.body ? (
+                <p className="mt-5 max-w-[42ch] text-lg leading-relaxed text-muted">
+                  {BOOKING.body}
+                </p>
+              ) : null}
 
               <dl className="mt-10 flex flex-col gap-5 border-t border-line pt-8">
-                <div>
-                  <dt className="text-sm text-muted">Current location</dt>
-                  <dd className="mt-1 text-base font-medium text-ink">
-                    {PRIMARY_LOCATION_LABEL}
-                  </dd>
-                </div>
-
-                {ADDITIONAL_LOCATION_LABELS.length > 0 ? (
+                {PRIMARY_LOCATION ? (
                   <div>
-                    <dt className="text-sm text-muted">Also serving</dt>
+                    <dt className="text-sm text-muted">{BOOKING.labels.currentLocation}</dt>
+                    <dd className="mt-1 text-base font-medium text-ink">
+                      <PlaceLine place={PRIMARY_LOCATION} />
+                    </dd>
+                  </div>
+                ) : null}
+
+                {ADDITIONAL_LOCATIONS.length > 0 ? (
+                  <div>
+                    <dt className="text-sm text-muted">{BOOKING.labels.alsoServing}</dt>
                     <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
-                      {ADDITIONAL_LOCATION_LABELS.map((label) => (
-                        <span key={label}>{label}</span>
+                      {ADDITIONAL_LOCATIONS.map((place) => (
+                        <PlaceLine key={place.id} place={place} />
                       ))}
                     </dd>
                   </div>
@@ -79,14 +85,19 @@ function BookingPanel() {
 
                 {STUDIO.hours.length > 0 ? (
                   <div>
-                    <dt className="text-sm text-muted">Booking hours</dt>
+                    <dt className="text-sm text-muted">{BOOKING.labels.hours}</dt>
                     <dd className="mt-1 flex flex-col gap-0.5 text-base text-ink">
-                      {STUDIO.hours.map((slot) => (
-                        <span key={slot.days}>
-                          {slot.days},{" "}
-                          {/* One unit, so a 320px phone never strands "PM"
-                              on a line of its own. */}
-                          <span className="whitespace-nowrap">{slot.time}</span>
+                      {STUDIO.hours.map((slot, index) => (
+                        <span key={index}>
+                          {slot.days}
+                          {slot.time ? (
+                            <>
+                              ,{" "}
+                              {/* One unit, so a 320px phone never strands "PM"
+                                  on a line of its own. */}
+                              <span className="whitespace-nowrap">{slot.time}</span>
+                            </>
+                          ) : null}
                         </span>
                       ))}
                     </dd>
@@ -94,7 +105,7 @@ function BookingPanel() {
                 ) : null}
 
                 <div>
-                  <dt className="text-sm text-muted">Reach Nat</dt>
+                  <dt className="text-sm text-muted">{BOOKING.labels.reach}</dt>
                   <dd className="text-base">
                     <a
                       href={REACH.href}
@@ -116,5 +127,29 @@ function BookingPanel() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * A location as the studio details print it: "Towson, MD", then the
+ * description and the notice Nat may have written for it in the dashboard
+ * (directions, parking, "text when you arrive"). Both are optional, and with
+ * neither this is the bare town, exactly as before.
+ */
+function PlaceLine({ place }: { place: Place }) {
+  return (
+    <span className="block">
+      {place.label}
+      {place.description ? (
+        <span className="mt-0.5 block whitespace-pre-line text-sm font-normal text-muted">
+          {place.description}
+        </span>
+      ) : null}
+      {place.notice ? (
+        <span className="mt-0.5 block whitespace-pre-line text-sm font-normal text-ink">
+          {place.notice}
+        </span>
+      ) : null}
+    </span>
   );
 }

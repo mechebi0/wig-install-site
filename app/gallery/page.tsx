@@ -3,12 +3,11 @@ import { PageHeader } from "@/components/page-header";
 import { CollectionGrid } from "@/components/collection-grid";
 import { Reveal } from "@/components/reveal";
 import { BookingCta } from "@/components/booking-cta";
-import { GALLERY_AXES, PAGES } from "@/lib/content";
+import { GALLERY_AXES, PAGES, SEO } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Styles",
-  description:
-    "Six collections of finished lace installs by Crowned by Nat: deep wave, sleek straight, bobs, body wave, custom colour, and natural lace.",
+  title: SEO.galleryTitle,
+  description: SEO.galleryDescription,
 };
 
 /**
@@ -36,14 +35,16 @@ export default function StylesPage() {
             >
               {GALLERY_AXES.heading}
             </h2>
-            <p className="mt-3 max-w-[56ch] text-base leading-relaxed text-muted">
-              {GALLERY_AXES.body}
-            </p>
+            {GALLERY_AXES.body ? (
+              <p className="mt-3 max-w-[56ch] text-base leading-relaxed text-muted">
+                {GALLERY_AXES.body}
+              </p>
+            ) : null}
           </Reveal>
 
           <dl className="mt-8 grid grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-3 lg:mt-10">
             {GALLERY_AXES.axes.map((axis, index) => (
-              <Reveal key={axis.label} index={index}>
+              <Reveal key={index} index={index}>
                 <dt className="label border-t border-line pt-5 text-accent">
                   {axis.label}
                 </dt>

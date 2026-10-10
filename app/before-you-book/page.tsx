@@ -3,10 +3,10 @@ import { PageHeader } from "@/components/page-header";
 import { Process } from "@/components/process";
 import { Questions } from "@/components/questions";
 import { BookingCta } from "@/components/booking-cta";
-import { PAGES } from "@/lib/content";
+import { PAGES, SEO } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Before you book",
+  title: SEO.beforeYouBookTitle,
   description: PAGES.beforeYouBook.lede,
 };
 

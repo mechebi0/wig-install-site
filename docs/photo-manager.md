@@ -8,6 +8,7 @@ the collection covers, the install pages), without anyone editing code.
 | | |
 | --- | --- |
 | **Sign in** | `https://crownedbynat.com/admin/login/` |
+| **Studio dashboard** | `https://crownedbynat.com/admin/`, where signing in lands: the website's words, prices and locations (`docs/content-manager.md`), and a link here |
 | **Photo manager** | `https://crownedbynat.com/admin/photos/` |
 | **Owner account** | `crownedbynattt@gmail.com` |
 | **Password** | None. Nat signs in with a code emailed to that address. |
@@ -459,7 +460,8 @@ select public.promote_studio_owner('crownedbynattt@gmail.com');
 It refuses an address that does not exist yet or has not been confirmed
 (step 5). It also replaces any password on the account with a random one, so
 the owner account can only be entered with an emailed code, and ends every
-existing sign-in. Nat then signs in again and lands in the photo manager.
+existing sign-in. Nat then signs in again and lands in the studio dashboard,
+which links to the photo manager.
 
 Check it took (exactly one row):
 
@@ -510,7 +512,7 @@ select status_code, created from net._http_response order by created desc limit 
 | # | Do this | Expect |
 | --- | --- | --- |
 | 1 | Open `/admin/photos/` in a private window | Sent to `/admin/login/` |
-| 2 | Sign in as Nat | **Website photos** with all 18 launch photos, then **Where photos appear** |
+| 2 | Sign in as Nat, then **Open the photo manager** | **Website photos** with all 18 launch photos, then **Where photos appear** |
 | 3 | **Replace** *Side Swoop* with any portrait photo | "Replaced. The website shows the new photo now" |
 | 4 | Open `/installs/frontal/` in a private window | The new photo at the top; Sleek Straight's gallery has it second |
 | 5 | **Hide** *Glass Finish* | Gone from the homepage slideshow and the sign-in page; another photo stands in |
@@ -545,12 +547,13 @@ Nothing in day-to-day photo management needs a developer. What still does:
   client asks for a launch photo to be gone entirely, delete its three files
   there and push. (Uploads and replacements live in Storage and are deleted
   by the photo manager.)
-- **The words around photos**: each homepage slide's headline and sentence
-  (`HERO_SLIDES` in `lib/images.ts`), each install page's caption under its
-  launch photo (`imageCaption` in `lib/taxonomy.ts`), and the collections
-  themselves (`COLLECTIONS` in `lib/collections.ts`). Nat chooses the photos;
-  the copy is still code. A caption written about a launch photo is hidden
-  automatically once a different photo is in that spot.
+- **The words around photos are no longer code.** Each homepage slide's
+  label, headline and sentence, each install page's caption under its launch
+  photo, and each collection's name and descriptions are edited and published
+  from the studio dashboard (`docs/content-manager.md`). What stays in code is
+  structure: which collections exist, each slide's place and crop. A caption
+  written about a launch photo is still hidden automatically once a different
+  photo is in that spot.
 - **Changing the crop of a photo.** The 18 launch photos keep their hand-
   measured crops; uploads and replacements use a crop that keeps the top of a
   portrait (the hairline). A different crop is a `focal_position` value set
@@ -564,7 +567,7 @@ Nothing in day-to-day photo management needs a developer. What still does:
 
 ## Troubleshooting
 
-**"The photo manager is not connected yet."** The two environment variables
+**"The photo manager (or the studio dashboard) is not connected yet."** The two environment variables
 are missing, or Cloudflare has not rebuilt since they were added (step 2).
 
 **The photo manager shows only uploads, not the launch photos.** Migration

@@ -1,4 +1,5 @@
 import { type AddOnId } from "@/lib/booking/add-ons";
+import { SITE } from "@/lib/cms/published";
 
 /**
  * WHAT A CLIENT BOOKS: the primary service, and the finish she adds to it.
@@ -151,8 +152,12 @@ export type InstallType = {
    * adds both from lib/content.ts, so neither is typed twice.
    */
   metaDescription: string;
+  /** The heading over `highlights`: "How a frontal works". */
+  howHeading: string;
   /** Four short facts for the "how it works" band on the page. */
   highlights: readonly { title: string; body: string }[];
+  /** The heading over the page's own photographs: "Frontal looks from the chair". */
+  examplesHeading: string;
   /*
     The photograph the page and the booking card lead with is not here: it
     is the `install-<id>` place in the photo manager (lib/gallery.ts), so Nat
@@ -206,11 +211,19 @@ export type Finish = {
   imageFocal?: string;
 };
 
+/**
+ * The words for each install type: Nat's, from the dashboard (Website
+ * content, Install pages), over the ones the site shipped with
+ * (lib/cms/defaults.ts). Everything below that is not a word is structure
+ * and stays here.
+ */
+const INSTALL_COPY = SITE.installs.types;
+
 /** The display names, for the places that hold an id and need the words. */
 export const INSTALL_TYPE_LABELS: Record<InstallTypeId, string> = {
-  frontal: "Frontal Install",
-  closure: "Closure Install",
-  "wig-touch-up": "Reinstalls",
+  frontal: INSTALL_COPY.frontal.label,
+  closure: INSTALL_COPY.closure.label,
+  "wig-touch-up": INSTALL_COPY["wig-touch-up"].label,
 };
 
 /** Every finish can be added to any of the three. */
@@ -220,112 +233,27 @@ const ALL_FINISHES: readonly FinishId[] = ["curls", "wand-curls", "crimps"];
 export const INSTALL_TYPES: readonly InstallType[] = [
   {
     id: "frontal",
-    label: INSTALL_TYPE_LABELS.frontal,
-    bookLabel: INSTALL_TYPE_LABELS.frontal,
-    shortLabel: "Frontal",
-    summary: "Professional frontal wig installation performed by Nat.",
+    ...INSTALL_COPY.frontal,
     href: "/installs/frontal/",
-    tagline: "Ear to ear. Any parting. Every edge laid.",
-    description:
-      "A frontal is a band of lace that runs across the whole front of the hairline, from one ear to the other. Nat tints it to your skin and lays every edge, so the parting can sit anywhere and the hair can be worn back off your face.",
-    metaDescription:
-      "Lace from ear to ear, tinted to your skin, with every edge laid and the parting wherever you want it.",
-    highlights: [
-      {
-        title: "Lace ear to ear",
-        body: "The lace runs the full width of the hairline, so there is no track at the front to hide.",
-      },
-      {
-        title: "Any parting",
-        body: "Middle, side or a deep side part. The parting is not fixed to one spot.",
-      },
-      {
-        title: "Worn back",
-        body: "Slick-backs, half-up styles and braided fronts, with the hairline on show.",
-      },
-      {
-        title: "More upkeep",
-        body: "More lace at the hairline to look after between appointments than a closure has.",
-      },
-    ],
     // Keeps the sign whole at the top and the swooped hairline mid-frame.
     imageFocal: "center 30%",
-    imageCaption:
-      "A deep side part with the hairline laid right across. Only ear-to-ear lace does that.",
-    examplesNote:
-      "Every look here shows lace laid past the parting, which only a frontal allows.",
     finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_FRONTAL_URL ?? "",
   },
   {
     id: "closure",
-    label: INSTALL_TYPE_LABELS.closure,
-    bookLabel: INSTALL_TYPE_LABELS.closure,
-    shortLabel: "Closure",
-    summary: "Professional closure wig installation performed by Nat.",
+    ...INSTALL_COPY.closure,
     href: "/installs/closure/",
-    tagline: "One parting. Less lace. Lower upkeep.",
-    description:
-      "A closure is a smaller piece of lace set where the hair parts, with the rest of the unit built on wefts. Nat tints it and lays it flat, so the parting reads as scalp while the hair frames your face.",
-    metaDescription:
-      "A lace closure at the parting, tinted and laid flat, with less lace to manage and lower upkeep than a frontal.",
-    highlights: [
-      {
-        title: "Lace at the parting",
-        body: "A smaller square of lace where the hair parts. The rest of the unit is built on wefts.",
-      },
-      {
-        title: "A set parting",
-        body: "Made for a middle or slight side part that sits inside the lace.",
-      },
-      {
-        title: "Less to manage",
-        body: "Less lace to lay and less adhesive at the hairline, so upkeep between visits is lower.",
-      },
-      {
-        title: "Gentle on edges",
-        body: "Less of the hairline is glued down, which is gentler on a tender scalp.",
-      },
-    ],
     // Higher than the frontal's: this sign hangs closer to the top of the
     // file, and in the square card on /book 30% grazed its glow.
     imageFocal: "center 15%",
-    imageCaption:
-      "A centre part laid flat, the hair falling over the temples: the look a closure is built around.",
-    examplesNote: "",
     finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_CLOSURE_URL ?? "",
   },
   {
     id: "wig-touch-up",
-    label: INSTALL_TYPE_LABELS["wig-touch-up"],
-    bookLabel: "Reinstall",
-    shortLabel: "Reinstall",
-    summary: "Professional wig reinstall services performed by Nat.",
+    ...INSTALL_COPY["wig-touch-up"],
     href: "/installs/wig-touch-up/",
-    tagline: "Same unit. Fresh finish. Ready again.",
-    description:
-      "A reinstall is for the style, not the lace: Nat resets the pattern you already have, whether that means fresh curls, a new part, or bringing shape back to hair that has gone flat. Tell her the look you want and she will tell you straight whether the unit can get there.",
-    metaDescription:
-      "A style reset on a wig you already have, in the finish and look you choose, checked first by Nat.",
-    highlights: [
-      {
-        title: "A style reset",
-        body: "Curls dropped, waves gone soft, or a parting that has stopped sitting right: this appointment brings the shape back.",
-      },
-      {
-        title: "Your call on the look",
-        body: "Curls, Wand Curls or Crimps, plus anything else you describe when you book.",
-      },
-      {
-        title: "Nat does it herself",
-        body: "Same one pair of hands as every other appointment. No second chair, no assistant.",
-      },
-      {
-        title: "An honest check first",
-        body: "If the unit needs more than a restyle, Nat says so before she starts rather than after.",
-      },
-    ],
     /*
       No photograph of a reinstall existed at launch, the same gap Closure
       had (see LAUNCH_SLOTS in lib/collections.ts). The launch photograph
@@ -334,40 +262,25 @@ export const INSTALL_TYPES: readonly InstallType[] = [
       not as a record of what this client booked.
     */
     imageFocal: "center 25%",
-    imageCaption:
-      "Soft layers falling into movement through the lengths: the kind of shape a reinstall brings back.",
-    examplesNote: "",
     finishes: ALL_FINISHES,
     bookingUrl: process.env.NEXT_PUBLIC_ACUITY_TOUCHUP_URL ?? "",
   },
 ];
 
 /**
- * The three finishes, in the order every surface shows them.
+ * The three finishes, in the order every surface shows them. Their names and
+ * descriptions are Nat's (dashboard, Services & pricing).
  *
  * The swatch crops are chosen per photograph. A bob's curl sits around the
  * face, so that crop keeps the head in; the crimp runs down the lengths, so
  * that crop drops to them.
  */
+const FINISH_COPY = SITE.services.finishes;
+
 export const FINISHES: readonly Finish[] = [
-  {
-    id: "curls",
-    label: "Curls",
-    description: "Soft, full curls set through the lengths for movement and volume.",
-    imageFocal: "center 55%",
-  },
-  {
-    id: "wand-curls",
-    label: "Wand Curls",
-    description:
-      "Defined spiral curls wrapped around a wand, from the mid-lengths to the ends.",
-  },
-  {
-    id: "crimps",
-    label: "Crimps",
-    description: "A tight, crimped texture pressed through the lengths.",
-    imageFocal: "center 90%",
-  },
+  { id: "curls", ...FINISH_COPY.curls, imageFocal: "center 55%" },
+  { id: "wand-curls", ...FINISH_COPY["wand-curls"] },
+  { id: "crimps", ...FINISH_COPY.crimps, imageFocal: "center 90%" },
 ];
 
 /**

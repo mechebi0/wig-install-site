@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { ANNOUNCEMENT, CTA, STUDIO } from "@/lib/content";
-import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
+import { ANNOUNCEMENT, CTA, LOCATIONS, STUDIO } from "@/lib/content";
+import { formatLocationList } from "@/lib/catalog";
 
 /**
  * The announcement stripe: a thin rose band at the very top of every page,
@@ -94,20 +94,16 @@ import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
  * than carried only by the bold weight on the moving track.
  *
  * ---------------------------------------------------------------------------
- * THE STATES, INHERITED FROM THE BAND THIS REPLACED
+ * THE TWO STATES
  * ---------------------------------------------------------------------------
- *   unconfigured  useAnnouncedLocations hands back the confirmed towns from
- *                 lib/content.ts, resolved at build time, so the prerendered
- *                 HTML and the first client render agree and nothing shifts.
- *                 This is the ONLY component that gets that fallback; see the
- *                 note in lib/catalog.ts for why booking and admin do not.
- *   loading       the band is drawn at its full height with nothing in it, so
- *                 the nav does not jump down the page when the query lands.
- *   ready         open (the lead, then each town as its own segment), or
- *                 closed (the two closed fragments in their place).
- *   error         the service and the studio, and no town. A database timeout
- *                 is not the visitor's problem, and a wrong location is worse
- *                 than no location.
+ *   open    the lead, then each town as its own segment
+ *   closed  the two closed fragments in place of the lead and the towns
+ *
+ * The towns are the active locations from the dashboard, published into this
+ * deployment (lib/cms/published.ts), the same list the footer, /book and the
+ * page metadata print. They are in the prerendered HTML, so the band is full
+ * from the first paint: it used to ask the database after load and sit empty
+ * until it answered, and it could disagree with the footer while it did.
  *
  * It never falls back to a town name when the chair is closed. Sending
  * someone to a town that is not actually open is the exact failure this
@@ -116,30 +112,28 @@ import { formatLocationList, useAnnouncedLocations } from "@/lib/catalog";
  * ---------------------------------------------------------------------------
  * CURRENT LOCATION, AND WHY ONLY ONE TOWN GETS IT
  * ---------------------------------------------------------------------------
- * Towson is the fixed primary chair (confirmed 2026-10-05); Laurel is the
- * additional town. `locations` is read in the order useAnnouncedLocations
- * hands back (LOCATIONS/the admin's display_order), so index 0 is always the
- * current location and gets the stronger weight below. The distinction is
- * also spelled out in words in `sentence` ("Also serving ..."), not carried by
- * weight alone, for the screen reader and reduced-motion audience.
+ * LOCATIONS lists the current location first (the one Nat marks as current in
+ * the dashboard), so index 0 gets the stronger weight below. The distinction
+ * is also spelled out in words in `sentence` ("Also serving ..."), not carried
+ * by weight alone, for the screen reader and reduced-motion audience.
  */
 const COPIES = 6;
 
 const SEGMENT_TYPE =
   "font-display text-[0.6875rem] uppercase tracking-[0.2em] sm:text-xs lg:text-[0.8125rem] lg:tracking-[0.22em]";
 
+/** In the shape formatLocationList reads. */
+const TOWNS = LOCATIONS.map((location) => ({ name: location.name, state: location.region }));
+
 export function AnnouncementMarquee() {
-  const { locations, status } = useAnnouncedLocations();
   const [paused, setPaused] = useState(false);
 
-  const settled = status === "ready" || status === "error";
-  const open = status === "ready" && locations.length > 0;
-  const closed = status === "ready" && locations.length === 0;
+  const open = TOWNS.length > 0;
 
   const segments: { text: string; current?: boolean }[] = open
     ? [
         { text: ANNOUNCEMENT.lead },
-        ...locations.map((location, index) => ({
+        ...TOWNS.map((location, index) => ({
           text: `${location.name}, ${location.state}`,
           current: index === 0,
         })),
@@ -147,23 +141,19 @@ export function AnnouncementMarquee() {
         { text: STUDIO.name },
         { text: CTA.book },
       ]
-    : closed
-      ? [
-          ...ANNOUNCEMENT.closed.map((text) => ({ text })),
-          { text: ANNOUNCEMENT.service },
-          { text: STUDIO.name },
-        ]
-      : [{ text: ANNOUNCEMENT.service }, { text: STUDIO.name }, { text: CTA.book }];
+    : [
+        ...ANNOUNCEMENT.closed.map((text) => ({ text })),
+        { text: ANNOUNCEMENT.service },
+        { text: STUDIO.name },
+      ];
 
-  const [primaryLocation, ...otherLocations] = locations;
+  const [primaryLocation, ...otherLocations] = TOWNS;
   const sentence = `${
     open
       ? otherLocations.length > 0
         ? `${ANNOUNCEMENT.lead} in ${primaryLocation.name}, ${primaryLocation.state}. Also serving ${formatLocationList(otherLocations)}. `
-        : `${ANNOUNCEMENT.lead} in ${formatLocationList(locations)}. `
-      : closed
-        ? `${ANNOUNCEMENT.closed.join(". ")}. `
-        : ""
+        : `${ANNOUNCEMENT.lead} in ${formatLocationList(TOWNS)}. `
+      : `${ANNOUNCEMENT.closed.join(". ")}. `
   }${ANNOUNCEMENT.service} at ${STUDIO.name}.`;
 
   return (
@@ -172,50 +162,43 @@ export function AnnouncementMarquee() {
         paused ? " is-paused" : ""
       }`}
     >
-      {settled ? (
-        <>
-          <div
-            aria-hidden="true"
-            className="marquee-track flex min-h-8 w-max items-center sm:min-h-9"
-            style={{ "--marquee-copies": COPIES } as CSSProperties}
-          >
-            {Array.from({ length: COPIES }, (_, copy) => (
-              <span key={copy} className="flex shrink-0 items-center">
-                {segments.map((segment, index) => (
-                  <span key={index} className="flex items-center">
-                    <span
-                      className={`${SEGMENT_TYPE} whitespace-nowrap leading-none ${
-                        segment.current ? "font-semibold" : "font-medium"
-                      }`}
-                    >
-                      {segment.text}
-                    </span>
-                    <Ornament />
-                  </span>
-                ))}
+      <div
+        aria-hidden="true"
+        className="marquee-track flex min-h-8 w-max items-center sm:min-h-9"
+        style={{ "--marquee-copies": COPIES } as CSSProperties}
+      >
+        {Array.from({ length: COPIES }, (_, copy) => (
+          <span key={copy} className="flex shrink-0 items-center">
+            {segments.map((segment, index) => (
+              <span key={index} className="flex items-center">
+                <span
+                  className={`${SEGMENT_TYPE} whitespace-nowrap leading-none ${
+                    segment.current ? "font-semibold" : "font-medium"
+                  }`}
+                >
+                  {segment.text}
+                </span>
+                <Ornament />
               </span>
             ))}
-          </div>
+          </span>
+        ))}
+      </div>
 
-          <p className={`marquee-static ${SEGMENT_TYPE} font-medium leading-snug`}>{sentence}</p>
+      <p className={`marquee-static ${SEGMENT_TYPE} font-medium leading-snug`}>{sentence}</p>
 
-          <button
-            type="button"
-            onClick={() => setPaused((value) => !value)}
-            aria-label={paused ? "Play the announcements" : "Pause the announcements"}
-            className={`absolute right-2 top-1/2 inline-flex h-6 -translate-y-1/2 cursor-pointer items-center rounded-full bg-on-accent px-2.5 text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-accent transition-opacity duration-200 motion-reduce:hidden sm:right-3 ${
-              paused
-                ? "opacity-100"
-                : "pointer-events-none opacity-0 focus:pointer-events-auto focus:opacity-100"
-            }`}
-          >
-            {paused ? "Play" : "Pause"}
-          </button>
-        </>
-      ) : (
-        /* Reserves the band's height while the query is in flight. */
-        <div aria-hidden="true" className="min-h-8 sm:min-h-9" />
-      )}
+      <button
+        type="button"
+        onClick={() => setPaused((value) => !value)}
+        aria-label={paused ? "Play the announcements" : "Pause the announcements"}
+        className={`absolute right-2 top-1/2 inline-flex h-6 -translate-y-1/2 cursor-pointer items-center rounded-full bg-on-accent px-2.5 text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-accent transition-opacity duration-200 motion-reduce:hidden sm:right-3 ${
+          paused
+            ? "opacity-100"
+            : "pointer-events-none opacity-0 focus:pointer-events-auto focus:opacity-100"
+        }`}
+      >
+        {paused ? "Play" : "Pause"}
+      </button>
     </div>
   );
 }

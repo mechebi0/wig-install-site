@@ -64,6 +64,14 @@ nothing pretends to work.
    "Booking pages" in the photo manager. Safe to run at any time after 0007:
    the site places photographs by the same rule until it has run, so nothing
    a visitor sees changes. See `docs/photo-manager.md`.
+8. `0011_website_content.sql` is the content manager: the website's words,
+   business details, locations, services and prices, which Nat edits and
+   publishes from the studio dashboard at `/admin/`. Needs 0006 only. Safe to
+   run at any time: nothing a visitor sees changes until Nat publishes, and
+   until it has run the site is built from the words in
+   `lib/cms/defaults.ts` (the build log says so). Check it with
+   `select to_regclass('public.site_content_releases') is not null;`. See
+   `docs/content-manager.md`.
 
 Each should finish with no errors. On a fresh project that is the whole job.
 
@@ -117,10 +125,11 @@ applied (2026-10-08):
   *Reinstall and refresh* back off, and resets Wig Touch Up's name, price and
   description, whatever was set from the dashboard since.
 
-0002, 0003, 0006, 0007, 0008, 0009 and 0010 are harmless to repeat. 0007 seeds
-the website's photographs exactly once, ever (it records that it did), so
+0002, 0003, 0006, 0007, 0008, 0009, 0010 and 0011 are harmless to repeat. 0007
+seeds the website's photographs exactly once, ever (it records that it did), so
 running it again never brings back a photograph Nat has removed; 0010 places
-photographs on booking pages once, ever, for the same reason.
+photographs on booking pages once, ever, for the same reason; 0011 keeps every
+draft and published release (checked by `supabase/tests/content-manager.mjs`).
 
 **What it creates**
 
@@ -135,7 +144,15 @@ photographs on booking pages once, ever, for the same reason.
 | `booked_slots()` | Returns which times are taken, and nothing else. |
 | `create_guest_appointment()` | The only write an anonymous visitor can make. |
 | `admin_stats()` | Dashboard counters. Refuses non-admins itself. |
-| Triggers | Derive prices/durations/names server-side, protect the `role` column, freeze customer-editable fields, and enforce the no-double-booking rule. |
+| Triggers | Derive prices/durations/names server-side, protect the `role` column, freeze customer-editable fields, and enforce the no-double-booking rule.
+| `site_content_drafts` (0011) | Nat's saved, unpublished changes to the website's words, one row per dashboard section. Owner only, in both directions. |
+| `site_content_releases` (0011) | Every publish, kept. The public may read the one `is_current` row and nothing else; nobody writes here except `publish_site_content()`. |
+| `publish_site_content()`, `site_content_status()`, `retry_site_content_rebuild()` (0011) | Publishing, and what the dashboard says about it. Each refuses non-admins itself. |
+
+Since the content manager, the public site no longer reads the `locations`
+and `services` tables: where Nat works and what she charges come from the
+published website words (0011), and Square takes the bookings. The two tables
+are kept for the booking flow that is no longer linked from any page. |
 
 **Verify it worked.** In the SQL editor:
 

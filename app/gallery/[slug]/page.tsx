@@ -135,14 +135,16 @@ export default async function CollectionPage({
               >
                 {FINISH_FOCUS.heading}
               </h2>
-              <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-muted lg:text-lg">
-                {FINISH_FOCUS.body}
-              </p>
+              {FINISH_FOCUS.body ? (
+                <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-muted lg:text-lg">
+                  {FINISH_FOCUS.body}
+                </p>
+              ) : null}
             </Reveal>
 
             <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
               {FINISH_FOCUS.points.map((point, index) => (
-                <Reveal as="li" key={point.title} index={index % 3}>
+                <Reveal as="li" key={index} index={index % 3}>
                   <h3 className="border-t border-line pt-5 font-display text-lg leading-tight text-ink">
                     {point.title}
                   </h3>

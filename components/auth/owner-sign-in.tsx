@@ -13,7 +13,7 @@ import {
   describeVerifyError,
 } from "@/lib/auth/owner-errors";
 import { signOut } from "@/lib/auth/session";
-import { ADMIN_PHOTOS_PATH, leaveTo, readNextParam } from "@/lib/auth/redirect";
+import { ADMIN_PATH, leaveTo, readNextParam } from "@/lib/auth/redirect";
 import { authRedirectTo, getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
@@ -38,8 +38,8 @@ import { authRedirectTo, getSupabase, isSupabaseConfigured } from "@/lib/supabas
  * WHAT THIS PAGE DOES NOT DECIDE
  * ---------------------------------------------------------------------------
  * Whether the person signing in is the owner. After sign-in it asks the
- * database (the is_admin() function every photo policy uses) and only then
- * opens the photo manager. The address check before the code is sent is a
+ * database (the is_admin() function every owner policy uses) and only then
+ * opens the studio dashboard. The address check before the code is sent is a
  * courtesy that stops this page being used to email codes to strangers; see
  * lib/auth/owner.ts. Anyone can skip it by calling Supabase directly, and
  * gets nothing for doing so: a code only signs them in to an account that has
@@ -122,8 +122,9 @@ export function OwnerSignIn() {
       return;
     }
     if (isAdmin === true) {
+      // Where she was going, or the studio dashboard, which links to the photo manager.
       const next = readNextParam();
-      leaveTo(next && next.startsWith("/admin/") ? next : ADMIN_PHOTOS_PATH, true);
+      leaveTo(next && next.startsWith("/admin/") ? next : ADMIN_PATH, true);
       return;
     }
     /*
@@ -192,7 +193,7 @@ export function OwnerSignIn() {
 
   if (!isSupabaseConfigured) {
     return (
-      <Notice tone="info" title="The photo manager is not connected yet.">
+      <Notice tone="info" title="The studio dashboard is not connected yet.">
         It needs the site&rsquo;s Supabase project, which has not been set up on
         this deployment. The steps are in docs/photo-manager.md.
       </Notice>
@@ -202,7 +203,7 @@ export function OwnerSignIn() {
   if (phase === "checking" || phase === "finishing") {
     return (
       <LoadingPanel
-        label={phase === "checking" ? "One moment" : "Signed in. Opening the photo manager"}
+        label={phase === "checking" ? "One moment" : "Signed in. Opening your dashboard"}
       />
     );
   }
@@ -316,9 +317,9 @@ export function OwnerSignIn() {
             in again here.
           </Notice>
         ) : (
-          <Notice tone="error" title="This account cannot manage photos.">
+          <Notice tone="error" title="This account cannot manage the website.">
             You are signed in as {signedInAs || "another account"}. Only the
-            studio owner&rsquo;s account can use the photo manager.
+            studio owner&rsquo;s account can use the studio dashboard.
           </Notice>
         )}
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -425,7 +426,7 @@ export function OwnerSignIn() {
   return (
     <form onSubmit={onEmailSubmit} noValidate className="flex flex-col gap-5">
       {continuing ? (
-        <Notice tone="info">Sign in to continue to the photo manager.</Notice>
+        <Notice tone="info">Sign in to continue to your dashboard.</Notice>
       ) : null}
 
       <TextField

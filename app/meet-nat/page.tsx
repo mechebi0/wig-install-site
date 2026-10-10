@@ -3,10 +3,10 @@ import { PageHeader } from "@/components/page-header";
 import { Owner } from "@/components/owner";
 import { Assurances } from "@/components/assurances";
 import { BookingCta } from "@/components/booking-cta";
-import { PAGES } from "@/lib/content";
+import { PAGES, SEO } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Meet Nat",
+  title: SEO.meetNatTitle,
   description: PAGES.meetNat.lede,
 };
 

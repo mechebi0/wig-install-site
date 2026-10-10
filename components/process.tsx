@@ -1,5 +1,5 @@
 import { Reveal } from "@/components/reveal";
-import { PROCESS } from "@/lib/content";
+import { PROCESS, PROCESS_HEADING } from "@/lib/content";
 
 /**
  * The appointment, four columns under a single rule.
@@ -22,13 +22,13 @@ export function Process() {
             id="process-heading"
             className="max-w-[20ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
           >
-            What two hours in the chair looks like.
+            {PROCESS_HEADING}
           </h2>
         </Reveal>
 
         <div className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {PROCESS.map((stage, i) => (
-            <Reveal key={stage.label} index={i}>
+            <Reveal key={i} index={i}>
               <div className="border-t border-line-strong pt-6">
                 <h3 className="font-display text-2xl tracking-tight text-ink">
                   {stage.label}

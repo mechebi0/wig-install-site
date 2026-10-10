@@ -1,6 +1,6 @@
 import { Info } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
-import { TESTIMONIALS, testimonialsArePlaceholder } from "@/lib/content";
+import { REVIEWS_NOTICE, TESTIMONIALS, testimonialsArePlaceholder } from "@/lib/content";
 
 /**
  * Three quotes on an offset baseline. The middle column drops and the third
@@ -31,10 +31,10 @@ export function Testimonials() {
           {/*
             Visible while the quotes below are written stand-ins. Presenting
             invented quotes as real reviews would be deceptive, so the notice
-            ships with them and is removed by flipping the flag in content.ts
-            once real testimonials replace these.
+            ships with them, and the dashboard will not switch it off while
+            the stand-ins are still there (lib/content.ts).
           */}
-          {testimonialsArePlaceholder ? (
+          {testimonialsArePlaceholder && REVIEWS_NOTICE ? (
             <p className="inline-flex items-start gap-2 rounded-3xl border border-line-strong bg-surface px-4 py-2.5 text-sm leading-relaxed text-muted">
               <Info
                 size={16}
@@ -42,9 +42,7 @@ export function Testimonials() {
                 aria-hidden="true"
                 className="mt-0.5 shrink-0 text-accent"
               />
-              <span>
-                Sample wording, shown while real client reviews are collected.
-              </span>
+              <span>{REVIEWS_NOTICE}</span>
             </p>
           ) : null}
         </Reveal>
@@ -52,17 +50,17 @@ export function Testimonials() {
         <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {TESTIMONIALS.map((item, i) => (
             <Reveal
-              key={item.name}
+              key={i}
               as="figure"
               index={i}
-              className={OFFSETS[i] ?? "lg:mt-0"}
+              className={OFFSETS[i % OFFSETS.length]}
             >
-              <blockquote className="font-display text-xl leading-snug tracking-tight text-ink lg:text-2xl">
+              <blockquote className="whitespace-pre-line font-display text-xl leading-snug tracking-tight text-ink lg:text-2xl">
                 &ldquo;{item.quote}&rdquo;
               </blockquote>
               <figcaption className="mt-5 border-t border-line pt-5 text-sm">
                 <span className="block font-medium text-ink">{item.name}</span>
-                <span className="block text-muted">{item.role}</span>
+                {item.role ? <span className="block text-muted">{item.role}</span> : null}
               </figcaption>
             </Reveal>
           ))}

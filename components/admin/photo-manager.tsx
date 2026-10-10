@@ -45,7 +45,7 @@ import { byWebsiteOrder, storageKeys, type PhotoSet } from "@/lib/site-photos";
  * session ended does the same (see explain() in lib/photo-admin.ts).
  *
  * Same blush paper, wine ink and single rose accent as the rest of the site,
- * the same as the booking dashboard at /admin/.
+ * the same as the studio dashboard at /admin/, which links here.
  */
 export function PhotoManager() {
   return (
@@ -83,7 +83,7 @@ function Manager({ email }: { email: string }) {
   /*
     `.then()` rather than awaits, so every setState lands in a promise
     callback and none in the body of the effect that starts it (the same
-    pattern as components/admin/admin-locations.tsx).
+    pattern as components/admin/cms/studio-dashboard.tsx).
   */
   const load = useCallback(
     () =>
@@ -139,7 +139,7 @@ function Manager({ email }: { email: string }) {
               href="/admin/"
               className="inline-flex min-h-11 items-center rounded-full px-4 text-sm text-muted transition-colors hover:text-accent"
             >
-              Dashboard
+              Studio dashboard
             </a>
             <a
               href="/gallery/"

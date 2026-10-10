@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CircleNotch, WarningCircle } from "@phosphor-icons/react/dist/ssr";
-import { REACH } from "@/lib/content";
+import { REACH, SCHEDULER } from "@/lib/content";
 
 /**
  * Natalie's official Square Appointments buyer-widget embed. Do not modify
@@ -112,7 +112,7 @@ export function SquareBooking() {
                 aria-hidden="true"
                 className="animate-spin text-accent motion-reduce:animate-none"
               />
-              <p className="text-sm text-muted">Loading the scheduler…</p>
+              <p className="text-sm text-muted">{SCHEDULER.loading}</p>
             </>
           ) : (
             <>
@@ -122,11 +122,9 @@ export function SquareBooking() {
                 aria-hidden="true"
                 className="text-danger"
               />
-              <p className="max-w-[32ch] text-base text-ink">
-                Booking is temporarily unavailable. Please try again shortly.
-              </p>
+              <p className="max-w-[32ch] text-base text-ink">{SCHEDULER.error}</p>
               <p className="text-sm text-muted">
-                Or reach the studio directly:{" "}
+                {SCHEDULER.errorContact}{" "}
                 <a
                   href={REACH.href}
                   className="text-accent underline underline-offset-4"

@@ -35,7 +35,7 @@ export function Assurances() {
           const Icon = ICONS[item.icon];
           return (
             <Reveal
-              key={item.title}
+              key={i}
               index={i}
               className="bg-bg px-5 py-8 sm:px-8 sm:py-10"
             >

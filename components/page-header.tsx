@@ -33,11 +33,14 @@ export function PageHeader({
           </h1>
         </Reveal>
 
-        <Reveal index={2}>
-          <p className="mt-6 max-w-[58ch] text-lg leading-relaxed text-muted">
-            {lede}
-          </p>
-        </Reveal>
+        {/* The introduction is optional in the dashboard. */}
+        {lede ? (
+          <Reveal index={2}>
+            <p className="mt-6 max-w-[58ch] whitespace-pre-line text-lg leading-relaxed text-muted">
+              {lede}
+            </p>
+          </Reveal>
+        ) : null}
       </div>
     </header>
   );

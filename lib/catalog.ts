@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Location, Service } from "@/lib/supabase/types";
 import {
-  LOCATIONS,
   SERVICES as STATIC_SERVICES,
   SERVICE_CATEGORIES,
   type ServiceEntry,
@@ -247,52 +246,10 @@ export function formatLocationList(
     .join(" & ");
 }
 
-/* ==========================================================================
-   THE ANNOUNCEMENT STRIPE, AND WHY IT GETS ITS OWN HOOK
-   ==========================================================================
-
-   useActiveLocations above deliberately has NO fallback. A stale location is
-   the one piece of wrong information that costs a real person a real drive,
-   and every caller of it books against the row it returns, so a compiled-in
-   stand-in there would be a row with no primary key behind it that the booking
-   flow would happily offer and the database would then reject.
-
-   The announcement stripe above the nav bar is not one of those callers. It
-   books nothing. Its whole job is to say where Nat is currently taking
-   appointments, and today the honest answer to that is known (Towson as the
-   primary chair, Laurel as the additional one) while the database that will
-   eventually own the answer is not connected yet.
-
-   So the two are split rather than compromised:
-
-     useActiveLocations      live rows only. Booking and admin. Unchanged.
-     useAnnouncedLocations   live rows when there are any, and the confirmed
-                             constant from lib/content.ts when there is no
-                             Supabase project to ask. Announcement only.
-
-   `live` says which of the two you are looking at, exactly as it does on
-   services. The moment a Supabase project is configured, the database becomes
-   the authority for the stripe too and the constant stops being read.
+/*
+  The announcement stripe used to read the `locations` table here too. It now
+  prints the locations published from the dashboard, built into the page
+  (components/announcement-marquee.tsx), the same list as the footer and /book,
+  so the public site no longer reads this table at all. useActiveLocations
+  stays for the dormant booking flow.
 */
-
-export type AnnouncedLocation = Pick<Location, "name" | "state">;
-
-/** The confirmed towns, in the shape the stripe renders. Announcement only. */
-export const ANNOUNCED_LOCATIONS: AnnouncedLocation[] = LOCATIONS.map(
-  (location) => ({ name: location.name, state: location.region }),
-);
-
-export function useAnnouncedLocations(): {
-  locations: AnnouncedLocation[];
-  status: LocationsStatus;
-  /** False while these are the compiled-in constant rather than table rows. */
-  live: boolean;
-} {
-  const { locations, status } = useActiveLocations();
-
-  if (status === "unconfigured") {
-    return { locations: ANNOUNCED_LOCATIONS, status: "ready", live: false };
-  }
-
-  return { locations, status, live: true };
-}

@@ -42,7 +42,8 @@ own page.
 | `/reviews`                 | Client quotes                                                      |
 | `/meet-nat`                | Introduction, credentials, three assurances                        |
 | `/login` `/signup` `/account` | Customer accounts and appointments                              |
-| `/admin`                   | Nat's dashboard. Deliberately absent from all public navigation    |
+| `/admin`                   | Nat's studio dashboard: the website's words, business details, locations, services and prices, published by her. See `docs/content-manager.md`. Deliberately absent from all public navigation |
+| `/content-version.json`    | Which published release of the words this deployment was built with (the dashboard checks it) |
 | `/admin/login`             | Nat's sign-in: a code emailed to the studio address, no password   |
 | `/admin/photos`            | Nat's photo manager: add, edit, reorder, hide and remove gallery photos. See `docs/photo-manager.md` |
 
@@ -94,6 +95,15 @@ override and switch the nav, the footer and `ButtonLink` back to `next/link`.
 
 ## Where to change things
 
+**Words, prices, locations and business details are Nat's to change**, from
+the studio dashboard at `/admin/` (`docs/content-manager.md`), not in code.
+She saves, reviews and publishes; each build reads the published release
+(`next.config.ts`, `lib/cms/published.ts`) and lays it over the original
+wording in `lib/cms/defaults.ts`. The files below still define the structure
+(which collections, services, install types and pages exist, in what order,
+with which photographs and crops), and their exported names are what the
+pages read; the wording behind them comes from the content manager.
+
 ### `lib/collections.ts` — the six style collections
 
 The single source of truth for the whole `/gallery` branch: every card, every
@@ -108,44 +118,42 @@ a look: crop it to 3:4, export three widths into `public/images/work/`
 (`name-1600.jpg`, `name.jpg`, `name-600.jpg`), add a `photo()` line with real
 alt text, then list it in whichever collections it belongs to.
 
-### `lib/content.ts` — all copy and business details
+### `lib/content.ts` — the names every page reads
 
-- `STUDIO` and the `CONTACT` block above it — brand name, owner, email, and the
-  values still missing (phone, street). **Anything empty is
-  empty on purpose**: every component reads these through helpers and renders
-  nothing at all where there is no real value, so the site can never advertise a
-  phone number nobody owns. Fill one in and it appears everywhere at once.
-  Instagram is set: `STUDIO.instagram` is the one URL the nav icon, the mobile
-  menu, the footer and the homepage `sameAs` data all read.
-- `LOCATIONS` — Towson, MD and Laurel, MD, in that order. The single source of
-  truth for the service area: the announcement stripe, the footer, the "Where"
-  row on `/book`, the page metadata and the LocalBusiness structured data all
-  derive from it, so adding or removing a town is one line. It is the
-  compiled-in fallback used while there is no Supabase project; see
-  `lib/catalog.ts`. `PRIMARY_LOCATION`/`ADDITIONAL_LOCATIONS` (also in
-  `lib/content.ts`) read index 0 as the current location and the rest as
-  additional; confirmed 2026-10-05, Towson is Nat's fixed primary chair and
-  Laurel is the additional town, which is why it carries the stronger visual
-  weight in the announcement stripe, the footer and `/book`. Laurel, MD was
-  paused on 2026-09-02 and confirmed again on 2026-09-22; the row was never
-  deleted from the `locations` table, only marked inactive, so Nat can switch
-  either town off from the admin dashboard without a deploy, and moving a town
-  to index 0 here is how a future change of primary location is made.
+- `STUDIO` — brand name, owner, email, phone, street, hours and Instagram, from
+  the dashboard's Business information and SEO & social links. **Anything
+  empty is empty on purpose**: every component reads these through helpers
+  and renders nothing at all where there is no real value, so the site can
+  never advertise a phone number nobody owns. `STUDIO.instagram` is the one URL
+  the nav icon, the mobile menu, the footer and the homepage `sameAs` data all
+  read; empty, there is no Instagram link anywhere.
+- `LOCATIONS` — the active locations from the dashboard's Locations, the one
+  Nat marks as current first (Towson, MD then Laurel, MD as shipped). The
+  single source of truth for the service area: the announcement stripe, the
+  footer, the "Where" rows on `/book`, the page metadata and the
+  LocalBusiness structured data all derive from it, and copy names a town only
+  through `{current location}`-style placeholders. `PRIMARY_LOCATION` /
+  `ADDITIONAL_LOCATIONS` split it into the current location and the rest.
+  Changing the current location is a choice in the dashboard, never an edit
+  here. (The `locations` table from 0001 no longer drives the public site.)
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a
   hand-off panel automatically. `bookingTarget({ install, finish, style })`
   builds the link; an install-type link (below) wins over this one when it is
   set.
-- `SERVICES` — the seven services, their categories, prices and durations, from
-  the pricing reference. The one authoritative price list: the menu on `/book`,
-  the booking flow, the request form and the structured data all read it.
-  `frontal`, `closure` and `wig-touch-up` are also the install types in
-  `lib/taxonomy.ts`; each service carries the install type it belongs to.
+- `SERVICES` — the seven services with the names, prices, descriptions, order
+  and on/off Nat publishes (Services & pricing); `ACTIVE_SERVICES` is the ones
+  on the menu. The one price list the site prints: the menu on `/book`, each
+  service's own booking page and the structured data all read it. Square
+  Appointments keeps its own menu and prices and takes the booking; the
+  dashboard flags every change that must be made in Square too. Which heading
+  a service is filed under and which install type it belongs to stay in code.
 - `ANNOUNCEMENT` — the words in the stripe at the top of every page; see
   "The announcement stripe" below.
-- `PAGES`, `HOME`, `HERO`, `COLLECTION_PAGE` — page and section copy.
-- `OWNER`, `QUESTIONS`, `TESTIMONIALS`, `PROCESS`, `ASSURANCES`.
+- `PAGES`, `HOME`, `HOME_SECTIONS`, `COLLECTION_PAGE`, `OWNER`, `QUESTIONS`,
+  `TESTIMONIALS`, `PROCESS`, `ASSURANCES`, `SEO` — page and section copy, all
+  from the dashboard.
 
 ### `lib/taxonomy.ts` — what a client books: install type and finish
 
@@ -245,11 +253,12 @@ none with migration 0007) the build uses the launch set in
 
 ### `lib/images.ts` — the words around the fixed photographs
 
-Each hero slide's eyebrow, headline and sentence, in order, and the crops
-measured for the photographs the site launched with in the hero, the services
-menu on `/book` and the sign-in screens. Which photograph each of those shows
-is Nat's choice in the photo manager; everything on the site is her own work,
-and there is no stock photography.
+Each hero slide's place, collection and crop, and the crops measured for the
+photographs the site launched with in the hero, the services menu on `/book`
+and the sign-in screens. Each slide's eyebrow, headline and sentence are Nat's
+(dashboard, Homepage), and which photograph each place shows is her choice in
+the photo manager; everything on the site is her own work, and there is no
+stock photography.
 
 ```
 public/images/work/    the launch photographs, three widths each; replacements
@@ -280,10 +289,12 @@ BOOK YOUR CHAIR as tracked capitals on a slow, seamless loop. It lives in
 `components/announcement-marquee.tsx` and is rendered from `app/layout.tsx`.
 
 - The words come from `ANNOUNCEMENT`, `STUDIO.name` and `CTA.book` in
-  `lib/content.ts`. The towns come from `useAnnouncedLocations` in
-  `lib/catalog.ts`, so once Supabase is connected the stripe follows the
-  location switches in the admin dashboard and says the chair is between
-  studios when none is open. It never falls back to a town name.
+  `lib/content.ts`, and the towns from `LOCATIONS`: the locations Nat has
+  switched on in the dashboard, the current one first, published into the
+  build. They are in the prerendered HTML, so the band is full from the first
+  paint and always agrees with the footer and `/book`. With every location
+  switched off it says the chair is between studios; it never falls back to a
+  town name.
 - The loop is CSS only. The line is rendered six times inside one track and the
   track slides by exactly one copy before restarting, so the restart frame is
   identical to the frame before it. Nothing is measured in JavaScript, and the
@@ -333,19 +344,27 @@ and do not care what the subtree did.
 
 ## Admin and customer accounts: what exists, what is pending
 
-**Built and working today.** Customer signup, login, password reset, the
-account dashboard, and the admin dashboard with locations, appointments,
-customers and services. All of it is real code against a real schema, and all
-of it degrades honestly when there is no Supabase project: the nav hides the
-account control, and `/login` and `/admin` say plainly that the booking system
-is not connected. **The production build does not need any Supabase
-environment variable.**
+**Built and working today.** Customer signup, login, password reset and the
+account dashboard. All of it is real code against a real schema, and all of it
+degrades honestly when there is no Supabase project: the nav hides the account
+control, and `/login` says plainly that the booking system is not connected.
+**The production build does not need any Supabase environment variable.**
+
+**The studio dashboard (`/admin/`).** Since 2026-10-09 it is the content
+manager: Nat edits the website's words, business details, locations, services
+and prices, saves them as drafts and publishes them, and it links to the photo
+manager. It replaced the earlier dashboard of appointments, customers and
+location and service switches: bookings live in Square, so those screens showed
+an empty diary, and the switches drove tables the public site no longer reads.
+They are in git history (before this change) if the booking flow below is ever
+revived. Setup, the security model and what is still in code:
+`docs/content-manager.md`.
 
 **No longer linked from any page.** `components/booking.tsx` (the email/POST
 request form) and `components/booking/booking-flow.tsx` (the five-step guest
 or account booking flow, with `choice.tsx`, `confirmation.tsx` and `steps.tsx`
 beneath it) are not imported anywhere since Square became `/book`'s scheduler.
-They still compile and the Supabase schema and admin/account dashboards are
+They still compile and the Supabase schema and account dashboard are
 unaffected, but nothing on the site can create a new Supabase `appointments`
 row any more; the account dashboard's "Upcoming appointments" will only ever
 show rows added some other way. They were left in place rather than deleted,
@@ -368,7 +387,8 @@ functions. Everything needed to switch it on, and how Nat uses it, is in
 
 **Schema ready, not yet wired.** `reviews` and `business_settings` (also from
 0002) have row level security and an admin-only write policy each, and nothing
-reads them yet.
+reads them yet. (The reviews on `/reviews` are part of the published website
+words, edited in the dashboard, not this table.)
 
 **Authorization is in the database, not the frontend.** Admin rights come from
 `profiles.role` checked by `is_admin()` inside Postgres (and, since 0006, only
@@ -379,26 +399,30 @@ the browser is decoration. Granting Nat admin is one function call,
 
 ## Things still needed from Nat
 
+Most of the wording items below are now Nat's to do herself, in the studio
+dashboard, once migration 0011 has been run (`docs/content-manager.md`).
+
 - **Written consent from the clients in the photographs.** Every face on this
   site is a real customer. This is the one outstanding item that is not
   cosmetic.
-- A phone number and a street address. Until then the
-  site simply does not mention them. Opening hours are now set (10:00 AM to
+- A phone number and a street address (dashboard: Business information). Until
+  then the site simply does not mention them. Opening hours are now set (10:00 AM to
   9:00 PM) and the booking window is 10:00 AM to 9:00 PM in the studio's own
   timezone, America/New_York.
 - Confirmation that `crownedbynattt@gmail.com` is the right **public** contact.
   It is currently both the public address and the admin account.
 - Confirmed durations for the four services the reference does not time
   (the two reinstalls and the two colour services). The prices are confirmed.
-- Confirmed appointment policy. `policiesAreDraft` in `lib/content.ts` is `true`,
-  which puts a visible "draft answers" notice on `/before-you-book`.
+- Confirmed appointment policy. The "draft answers" notice on
+  `/before-you-book` stays until Nat switches it off (dashboard: FAQs &
+  policies).
 - Her own biography, and a photograph of herself. The photograph has arrived and
   now fills the portrait slot on `/meet-nat`
-  (`public/images/crowned-by-nat-ceo-nat.jpg`); the paragraphs in `OWNER` still
-  describe the service rather than her history.
-- Real client reviews. Until then `testimonialsArePlaceholder` stays `true`,
-  which keeps the visible "sample wording" notice on `/reviews`. **Do not flip
-  that flag while the words are still invented.**
+  (`public/images/crowned-by-nat-ceo-nat.jpg`); the biography is hers to edit
+  in the dashboard (Website content, Meet Nat).
+- Real client reviews (dashboard: Reviews). Until then the visible "sample
+  wording" notice stays on `/reviews`; the dashboard refuses to switch it off
+  while any of the three invented samples is still listed.
 - More Signature Bob and Body Wave photographs. Those two collections have
   three and two; the others have five or six.
 - **Which photographs are closures.** No photograph can prove a closure, so

@@ -38,9 +38,11 @@ export function BookingCta({
           >
             {heading}
           </h2>
-          <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-on-accent/75 lg:text-lg">
-            {body}
-          </p>
+          {body ? (
+            <p className="mt-5 max-w-[46ch] whitespace-pre-line text-base leading-relaxed text-on-accent/75 lg:text-lg">
+              {body}
+            </p>
+          ) : null}
         </Reveal>
 
         <Reveal index={1} className="w-full shrink-0 sm:w-auto">

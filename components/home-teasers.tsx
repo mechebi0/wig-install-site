@@ -91,13 +91,15 @@ export function InstallTypes() {
             >
               {HOME.installs.heading}
             </h2>
-            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
-              {HOME.installs.body}
-            </p>
+            {HOME.installs.body ? (
+              <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
+                {HOME.installs.body}
+              </p>
+            ) : null}
           </Reveal>
 
           <Reveal index={1} className="shrink-0">
-            <TextLink href="/book/">{HOME.installs.link}</TextLink>
+            <TextLink href={HOME.installs.linkTo}>{HOME.installs.link}</TextLink>
           </Reveal>
         </div>
 
@@ -176,13 +178,15 @@ export function CollectionShowcase() {
             >
               {HOME.collections.heading}
             </h2>
-            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
-              {HOME.collections.body}
-            </p>
+            {HOME.collections.body ? (
+              <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted lg:text-lg">
+                {HOME.collections.body}
+              </p>
+            ) : null}
           </Reveal>
 
           <Reveal index={1} className="shrink-0">
-            <TextLink href="/gallery/">{HOME.collections.link}</TextLink>
+            <TextLink href={HOME.collections.linkTo}>{HOME.collections.link}</TextLink>
           </Reveal>
         </div>
 

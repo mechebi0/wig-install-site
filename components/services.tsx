@@ -4,22 +4,36 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { useSiteView } from "@/components/site-photos";
-import { groupByCategory, useServices, type CatalogService } from "@/lib/catalog";
-import { CTA, parseServiceId, serviceBookingTarget } from "@/lib/content";
+import {
+  ACTIVE_SERVICES,
+  CTA,
+  SERVICES_MENU,
+  serviceBookingTarget,
+  servicesByCategory,
+  type ServiceEntry,
+} from "@/lib/content";
 import { formatDuration, formatPrice } from "@/lib/format";
 
 /**
  * The service menu, grouped by the four categories the customer books within.
  *
  * ---------------------------------------------------------------------------
- * WHY IT IS GROUPED BY CATEGORY NOW
+ * WHERE THE MENU COMES FROM
+ * ---------------------------------------------------------------------------
+ * The services Nat has on offer, with the names, prices, descriptions and
+ * order she published from the dashboard (Services & pricing), built into
+ * the page (ACTIVE_SERVICES in lib/content.ts). It used to read the
+ * `services` table after the page loaded; it no longer does, so the menu and
+ * each service's own booking page can never quote two different prices, and
+ * nothing on the page changes after it appears.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY IT IS GROUPED BY CATEGORY
  * ---------------------------------------------------------------------------
  * The seven services are filed under four headings (Wig Installs, Reinstalls,
  * Color Services, Services), and the grouping is the point: a visitor deciding
  * between a frontal and a frontal reinstall is choosing between two categories,
- * not scanning one flat list of seven. The categories come from SERVICES in
- * lib/content.ts, so a service added to the right category lands in the right
- * section here without a second list to keep in step.
+ * not scanning one flat list of seven.
  *
  * ---------------------------------------------------------------------------
  * WHY THE FIRST SERVICE STILL CARRIES THE PHOTOGRAPH
@@ -31,14 +45,13 @@ import { formatDuration, formatPrice } from "@/lib/format";
  * (lib/gallery.ts); with no photographs at all the cell is words alone.
  *
  * ---------------------------------------------------------------------------
- * THE LAYOUT NO LONGER ASSUMES A COUNT
+ * THE LAYOUT DOES NOT ASSUME A COUNT
  * ---------------------------------------------------------------------------
- * It used to destructure exactly four services. It is now derived from
- * whatever the catalog holds, grouped by category, so a service added from the
- * dashboard appears under its own heading without this file being touched.
+ * It is derived from whatever is on offer, grouped by category, so a service
+ * Nat takes off the menu simply leaves its heading's grid.
  */
 export function Services() {
-  const { services } = useServices();
+  const services = ACTIVE_SERVICES;
 
   if (services.length === 0) return null;
 
@@ -53,16 +66,17 @@ export function Services() {
           id="services-heading"
           className="max-w-[16ch] font-display text-3xl leading-[1.08] tracking-tight text-ink md:text-4xl lg:text-5xl"
         >
-          {headingFor(services.length)}
+          {SERVICES_MENU.heading}
         </h2>
-        <p className="mt-4 max-w-[52ch] text-base leading-relaxed text-muted lg:text-lg">
-          Prices are for the service. You bring the unit, or send a link before
-          you buy one and you will get an honest read on it.
-        </p>
+        {SERVICES_MENU.intro ? (
+          <p className="mt-4 max-w-[52ch] whitespace-pre-line text-base leading-relaxed text-muted lg:text-lg">
+            {SERVICES_MENU.intro}
+          </p>
+        ) : null}
       </Reveal>
 
       <div className="mt-12 flex flex-col gap-12">
-        {groupByCategory(services).map(({ category, items: group }, categoryIndex) => {
+        {servicesByCategory(services).map(({ category, items: group }, categoryIndex) => {
           return (
             <Reveal key={category || "other"} index={categoryIndex + 1}>
               <div>
@@ -89,23 +103,11 @@ export function Services() {
   );
 }
 
-/**
- * The heading counts the services rather than hardcoding "Four ways", so
- * adding an eighth from the dashboard does not leave the page contradicting
- * itself. Past six it stops counting, because "Seven ways to sit in the chair"
- * is a menu, not a line of copy.
- */
-function headingFor(count: number): string {
-  const words = ["", "One way", "Two ways", "Three ways", "Four ways", "Five ways", "Six ways"];
-  const opener = words[count] ?? "Every way";
-  return `${opener} to sit in the chair.`;
-}
-
 function ServiceCard({
   service,
   featured = false,
 }: {
-  service: CatalogService;
+  service: ServiceEntry;
   featured?: boolean;
 }) {
   const photo = useSiteView().book;
@@ -135,10 +137,10 @@ function ServiceCard({
           <div className="flex flex-col justify-center p-7 lg:p-9">
             <ServiceHead service={service} large />
             <p className="mt-1 text-sm text-muted">
-              {formatDuration(service.duration_minutes)}
+              {formatDuration(service.durationMinutes)}
             </p>
-            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-muted">
-              {service.description}
+            <p className="mt-5 max-w-[46ch] whitespace-pre-line text-base leading-relaxed text-muted">
+              {service.body}
             </p>
             <ServiceLink service={service} className="mt-4" />
           </div>
@@ -151,10 +153,10 @@ function ServiceCard({
     <article className="flex flex-col rounded-3xl border border-line bg-surface p-7 shadow-soft">
       <ServiceHead service={service} />
       <p className="mt-1 text-sm text-muted">
-        {formatDuration(service.duration_minutes)}
+        {formatDuration(service.durationMinutes)}
       </p>
-      <p className="mt-4 max-w-[46ch] text-base leading-relaxed text-muted">
-        {service.description}
+      <p className="mt-4 max-w-[46ch] whitespace-pre-line text-base leading-relaxed text-muted">
+        {service.body}
       </p>
       {/* At the foot of the card, so the links line up across a row. */}
       <ServiceLink service={service} className="mt-auto pt-4" />
@@ -166,22 +168,19 @@ function ServiceCard({
  * "Book Closure Install", out to that service's own page: its photographs
  * and the same scheduler, with nothing else in the way. The scheduler is
  * still further down this page too; the link is for someone who wants to see
- * the work first. A service added from the dashboard has no page of its own,
- * so it gets no link and is booked from the scheduler below like before.
+ * the work first.
  */
 function ServiceLink({
   service,
   className = "",
 }: {
-  service: CatalogService;
+  service: ServiceEntry;
   className?: string;
 }) {
-  const id = parseServiceId(service.slug);
-  if (!id) return null;
   return (
     <div className={className}>
       <a
-        {...serviceBookingTarget(id)}
+        {...serviceBookingTarget(service.id)}
         className="group inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"
       >
         {CTA.bookInstall} {service.name}
@@ -200,7 +199,7 @@ function ServiceHead({
   service,
   large = false,
 }: {
-  service: CatalogService;
+  service: ServiceEntry;
   large?: boolean;
 }) {
   return (
@@ -217,7 +216,7 @@ function ServiceHead({
           large ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl"
         }`}
       >
-        {formatPrice(service.price_cents)}
+        {formatPrice(service.priceCents)}
       </span>
     </div>
   );

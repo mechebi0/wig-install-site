@@ -9,6 +9,7 @@ import { SitePhotosProvider } from "@/components/site-photos";
 import {
   ADDITIONAL_LOCATION_LABELS,
   PRIMARY_LOCATION_LABEL,
+  SEO,
   STUDIO,
 } from "@/lib/content";
 import { resolveSite } from "@/lib/gallery";
@@ -58,20 +59,19 @@ const metadata: Metadata = {
     page and never has to be typed twice.
   */
   /*
-    PRIMARY_LOCATION_LABEL ("Towson, MD") carries the title and the og:title,
-    since Towson is Nat's fixed primary chair (confirmed 2026-10-05) and a
-    search title is read as the one place to be, not a directory. SERVICE_AREA
-    (both towns, "Towson and Laurel, MD") still appears in the body
-    description, where there is room to say Laurel is also served without it
-    reading as two addresses crammed into one line. Both derive from LOCATIONS
-    in lib/content.ts, so a change of town, in either direction, is still a
-    one-line change there.
+    The homepage title is the studio's name, then the line Nat sets in the
+    dashboard (SEO & social), which names the current location with
+    {current location}: "Crowned by Nat | Lace wig installs in Towson, MD".
+    The current location carries the title because a search title is read as
+    the one place to be, not a directory; the description has room to name
+    the others. Both follow the dashboard's Locations, so a change of town is
+    a change there and nowhere else.
   */
   title: {
-    default: `${STUDIO.name} | Lace wig installs in ${PRIMARY_LOCATION_LABEL}`,
+    default: `${STUDIO.name} | ${SEO.titleTagline}`,
     template: `%s | ${STUDIO.name}`,
   },
-  description: `Lace frontal and closure wig installs in ${PRIMARY_LOCATION_LABEL}, also serving ${ADDITIONAL_LOCATION_LABELS.join(", ")}, performed personally by ${STUDIO.owner}. Six style collections, custom-tinted lace, bleached knots, and a hairline cut to your face.`,
+  description: SEO.description,
   applicationName: STUDIO.name,
   keywords: [
     "wig install",
@@ -84,12 +84,12 @@ const metadata: Metadata = {
     "wig customization",
     "medical wig fitting",
     STUDIO.name,
-    PRIMARY_LOCATION_LABEL,
+    ...(PRIMARY_LOCATION_LABEL ? [PRIMARY_LOCATION_LABEL] : []),
     ...ADDITIONAL_LOCATION_LABELS,
   ],
   openGraph: {
-    title: `${STUDIO.name} | Lace wig installs in ${PRIMARY_LOCATION_LABEL}`,
-    description: `Every install performed personally by ${STUDIO.owner}. One chair, one client, two hours.`,
+    title: `${STUDIO.name} | ${SEO.titleTagline}`,
+    description: SEO.shareDescription,
     type: "website",
     locale: "en_US",
     siteName: STUDIO.name,

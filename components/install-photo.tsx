@@ -37,7 +37,7 @@ export function InstallLeadFigure({ installType }: { installType: InstallTypeId 
         closure is built around, stated as a look. Written about the launch
         photograph, so it is left off once Nat puts another one here.
       */}
-      {placed.original ? (
+      {placed.original && type.imageCaption ? (
         <figcaption className="mt-4 max-w-[52ch] text-sm leading-relaxed text-on-accent/65">
           {type.imageCaption}
         </figcaption>
