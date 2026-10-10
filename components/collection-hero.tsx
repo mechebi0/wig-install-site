@@ -6,7 +6,7 @@ import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { useSiteView } from "@/components/site-photos";
-import { COLLECTION_PAGE, CTA, bookingTarget } from "@/lib/content";
+import { COLLECTION_PAGE, CTA, collectionBookingTarget } from "@/lib/content";
 import type { StyleCollection } from "@/lib/collections";
 import { findResolved } from "@/lib/gallery";
 
@@ -101,15 +101,16 @@ export function CollectionHero({
             {/*
               The ask, placed at the end of the pitch and before the gallery.
 
-              WHY HERE. The page already closed on a booking band, and it still
-              does; this is not a replacement for it. But the band is below the
-              gallery, which means the moment a visitor is most likely to
-              decide - having just read what this collection is - was the one
-              moment the page had nothing to offer her but scrolling. The
-              description is the argument, so the button goes directly under
-              it, and the look count that follows is the invitation to keep
-              looking if she is not ready yet. Above the fold on desktop, above
-              the photograph on mobile, and no image is covered on either.
+              WHY HERE. The scheduler is on this page, directly under the
+              gallery (components/collection-booking.tsx), and this jumps down
+              to it without leaving the page or losing the style. The moment a
+              visitor is most likely to decide - having just read what this
+              collection is - should not be the moment she has to scroll past
+              every photograph to find out how. The description is the
+              argument, so the button goes directly under it, and the look
+              count that follows is the invitation to keep looking if she is
+              not ready yet. Above the fold on desktop, above the photograph on
+              mobile, and no image is covered on either.
 
               WHY THE HERO PILL. `onPhoto` is the same near-white pill the
               homepage hero uses and the same one the band at the foot of this
@@ -139,7 +140,7 @@ export function CollectionHero({
             */}
             <div className="mt-9">
               <ButtonLink
-                {...bookingTarget({ style: collection.slug })}
+                {...collectionBookingTarget(collection.slug, { onPage: true })}
                 variant="onPhoto"
                 className="w-full sm:w-auto"
               >

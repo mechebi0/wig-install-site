@@ -6,7 +6,8 @@ import { CTA, HOME, REACH, REACH_SECONDARY, bookingTarget } from "@/lib/content"
  * The closing CTA. Used at the foot of the inner pages that are not themselves
  * the booking page. The homepage no longer carries it: its hero button and the
  * nav button already make the ask, and a third one on the way out was the page
- * repeating itself.
+ * repeating itself. Nor do the collection pages, which carry the scheduler
+ * itself under their photographs (components/collection-booking.tsx).
  *
  * This is the one deep field on an otherwise light site, and that is the whole
  * job: after a page of blush paper the wine band reads as a full stop, and the
@@ -17,14 +18,8 @@ import { CTA, HOME, REACH, REACH_SECONDARY, bookingTarget } from "@/lib/content"
  * It reuses the hero button variants rather than inventing a third pair, so
  * the primary action looks identical at the top and the bottom of the page.
  */
-export function BookingCta({
-  heading = HOME.closing.heading,
-  body = HOME.closing.body,
-}: {
-  /** Overridden on the collection pages, which close on "Ready for your crown?" */
-  heading?: string;
-  body?: string;
-} = {}) {
+export function BookingCta() {
+  const { heading, body } = HOME.closing;
   return (
     <section
       aria-labelledby="closing-heading"

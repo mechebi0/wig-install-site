@@ -25,9 +25,24 @@ const SQUARE_EMBED_SRC =
 /** How long to wait before treating a silent, non-erroring load as failed. */
 const LOAD_TIMEOUT_MS = 12_000;
 
+/** How far below the screen a `lazy` scheduler starts loading: one screen ahead. */
+const LAZY_MARGIN = "0px 0px 100% 0px";
+
 type Status = "loading" | "ready" | "error";
 
-export function SquareBooking() {
+export function SquareBooking({
+  lazy = false,
+}: {
+  /**
+   * Load Square once the scheduler is about a screen away rather than at
+   * once. For a collection page, where it sits under the photographs a
+   * visitor came to see and Square's app would otherwise compete with them
+   * for the connection. A visitor sent straight to it (a card's Book button
+   * lands on it) is already there, so it starts immediately. /book/ and the
+   * service pages lead with the scheduler and load it at once.
+   */
+  lazy?: boolean;
+} = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<Status>("loading");
 
@@ -40,38 +55,60 @@ export function SquareBooking() {
     if (container.querySelector(`script[src="${SQUARE_EMBED_SRC}"]`)) return;
 
     let settled = false;
-    const timeout = window.setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      setStatus("error");
-    }, LOAD_TIMEOUT_MS);
+    let timeout = 0;
 
-    const script = document.createElement("script");
-    script.src = SQUARE_EMBED_SRC;
-    script.async = true;
-    script.addEventListener("load", () => {
-      if (settled) return;
-      settled = true;
+    const load = () => {
+      timeout = window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        setStatus("error");
+      }, LOAD_TIMEOUT_MS);
+
+      const script = document.createElement("script");
+      script.src = SQUARE_EMBED_SRC;
+      script.async = true;
+      script.addEventListener("load", () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        // Square's script never sets a title on the iframe it inserts. Adding
+        // one is an accessibility fix, not a change to Square's own UI.
+        const iframe = container.querySelector("iframe");
+        if (iframe && !iframe.title) {
+          iframe.title = "Square Appointments booking";
+        }
+        setStatus("ready");
+      });
+      script.addEventListener("error", () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        setStatus("error");
+      });
+
+      container.appendChild(script);
+    };
+
+    if (!lazy || typeof IntersectionObserver === "undefined") {
+      load();
+      return () => window.clearTimeout(timeout);
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        load();
+      },
+      { rootMargin: LAZY_MARGIN },
+    );
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
       window.clearTimeout(timeout);
-      // Square's script never sets a title on the iframe it inserts. Adding
-      // one is an accessibility fix, not a change to Square's own UI.
-      const iframe = container.querySelector("iframe");
-      if (iframe && !iframe.title) {
-        iframe.title = "Square Appointments booking";
-      }
-      setStatus("ready");
-    });
-    script.addEventListener("error", () => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeout);
-      setStatus("error");
-    });
-
-    container.appendChild(script);
-
-    return () => window.clearTimeout(timeout);
-  }, []);
+    };
+  }, [lazy]);
 
   return (
     /*
@@ -85,8 +122,13 @@ export function SquareBooking() {
       The height is capped to the screen under the nav on a short phone, so
       the whole scheduler can be in view at once instead of being scrolled
       inside while the page scrolls around it. 600px wherever that fits.
+
+      `data-scheduler` is how the mobile booking bar knows to get out of the
+      way while this is on screen, wherever it is embedded
+      (components/mobile-book-bar.tsx).
     */
     <div
+      data-scheduler=""
       aria-label="Appointment scheduler"
       className="relative -mx-5 h-[min(600px,calc(100svh-6rem))] overflow-hidden border-y border-line-strong bg-surface shadow-soft sm:mx-0 sm:h-[680px] sm:rounded-3xl sm:border lg:h-[760px]"
     >

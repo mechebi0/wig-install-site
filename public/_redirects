@@ -14,12 +14,17 @@
 # old URL should stop being served from search results.
 #
 # `trailingSlash: true` in next.config.ts means the canonical form of every
-# route ends in a slash, hence both spellings of each.
+# route ends in a slash, hence both spellings of each, and each lands on the
+# slashed page in one hop. A placeholder matches one whole segment and the
+# slash after it is not optional, so /styles/deep-wave-glam/ needs its own
+# line: without it that address, the slashed form a style page always had,
+# was a 404 while /styles/deep-wave-glam redirected.
 /work           /gallery/          301
 /work/          /gallery/          301
 /styles         /gallery/          301
 /styles/        /gallery/          301
-/styles/:slug   /gallery/:slug     301
+/styles/:slug   /gallery/:slug/    301
+/styles/:slug/  /gallery/:slug/    301
 
 # /installs on its own is not a page. The two install pages live under it
 # (/installs/frontal/ and /installs/closure/), and /book is where the two sit

@@ -717,6 +717,16 @@ export function collectionTitle(slug: string): string {
 }
 
 /**
+ * A collection's own page, /gallery/<slug>/. Every link to one is built here,
+ * so a card, a rail and the structured data cannot disagree about where a
+ * style lives. The old /styles/<slug>/ addresses redirect to it
+ * (public/_redirects).
+ */
+export function collectionPath(slug: string): string {
+  return `/gallery/${slug}/`;
+}
+
+/**
  * The rail at the foot of a collection page. Takes the next collections in
  * reading order and wraps around, so every collection suggests a different
  * set and no page is ever a dead end.

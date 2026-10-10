@@ -5,7 +5,7 @@ import {
   InstallTypes,
 } from "@/components/home-teasers";
 import { FeaturedInstalls } from "@/components/featured-installs";
-import { COLLECTIONS_IN_ORDER } from "@/lib/collections";
+import { COLLECTIONS_IN_ORDER, collectionPath } from "@/lib/collections";
 import type { HomeSectionId } from "@/lib/cms/defaults";
 import {
   ACTIVE_SERVICES,
@@ -121,7 +121,7 @@ const localBusiness = {
     itemListElement: COLLECTIONS_IN_ORDER.map((collection) => ({
       "@type": "OfferCatalog",
       name: collection.title,
-      url: `/gallery/${collection.slug}/`,
+      url: collectionPath(collection.slug),
     })),
   },
   mainEntityOfPage: {

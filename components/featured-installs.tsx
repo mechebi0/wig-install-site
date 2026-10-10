@@ -4,6 +4,7 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { Photograph } from "@/components/photo";
 import { Reveal } from "@/components/reveal";
 import { useSiteView } from "@/components/site-photos";
+import { collectionPath } from "@/lib/collections";
 import { primaryLabel } from "@/lib/gallery";
 import { HOME } from "@/lib/content";
 import { INSTALL_TYPE_LABELS } from "@/lib/taxonomy";
@@ -88,7 +89,7 @@ export function FeaturedInstalls() {
           {items.map((item, index) => (
             <Reveal as="li" key={item.image.src} index={index % 3}>
               <a
-                href={item.primaryCollection ? `/gallery/${item.primaryCollection}/` : "/gallery/"}
+                href={item.primaryCollection ? collectionPath(item.primaryCollection) : "/gallery/"}
                 className="group block"
               >
                 <div className="relative overflow-hidden rounded-3xl bg-surface-3 aspect-[3/4]">

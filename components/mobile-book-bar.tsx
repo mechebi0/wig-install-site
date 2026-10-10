@@ -29,6 +29,8 @@ import { installTypeForPath } from "@/lib/taxonomy";
  * It hides itself entirely on the booking page, the admin dashboard and the
  * account screens. Floating a "book" button over the booking form is the
  * classic version of this component covering the thing it is pointing at.
+ * For the same reason it steps aside on a collection page while that page's
+ * own booking section is on screen.
  */
 const REVEAL_AT = 320;
 
@@ -57,6 +59,31 @@ export function MobileBookBar() {
   }, []);
 
   /*
+    A collection page carries its own booking section, the scheduler
+    included, under its photographs (components/collection-booking.tsx).
+    While any of that section, or any scheduler, is on screen the bar steps
+    aside: floating over Square's own buttons it would cover the thing it
+    points at and could hide a control focused inside it, and beside the
+    page's own steps it would be a second, different way to book. Above and
+    below the section it is back, still the general way in to /book/.
+  */
+  const [overBooking, setOverBooking] = useState(false);
+  useEffect(() => {
+    const areas = document.querySelectorAll("[data-booking], [data-scheduler]");
+    if (areas.length === 0 || typeof IntersectionObserver === "undefined") return;
+    const inView = new Set<Element>();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) inView.add(entry.target);
+        else inView.delete(entry.target);
+      }
+      setOverBooking(inView.size > 0);
+    });
+    areas.forEach((area) => observer.observe(area));
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  /*
     A client side navigation lands at the top of the new page, so the bar has
     to start hidden again. This is React's documented "adjust state when a
     prop changes" pattern rather than an effect: setting state during render
@@ -67,6 +94,7 @@ export function MobileBookBar() {
   if (prevPath !== pathname) {
     setPrevPath(pathname);
     setPast(false);
+    setOverBooking(false);
   }
 
   /*
@@ -94,7 +122,7 @@ export function MobileBookBar() {
     HIDDEN_ON.includes(current) ||
     current.startsWith("/admin/") ||
     current.startsWith("/book/");
-  const shown = past && !hidden;
+  const shown = past && !hidden && !overBooking;
 
   if (hidden) return null;
 

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { CollectionHero } from "@/components/collection-hero";
+import { CollectionBooking } from "@/components/collection-booking";
 import { CollectionCard } from "@/components/collection-card";
 import { CollectionGallery } from "@/components/style-gallery";
-import { BookingCta } from "@/components/booking-cta";
 import { Reveal } from "@/components/reveal";
 import { COLLECTIONS } from "@/lib/collections";
 import {
@@ -39,10 +40,19 @@ import { COLLECTION_PAGE, FINISH_FOCUS, STUDIO } from "@/lib/content";
  *
  * The shape, top to bottom:
  *
- *   1. back to /gallery, the name, the three-beat line, one large photograph
- *   2. the gallery, with a lightbox
- *   3. the booking CTA
- *   4. three other collections, so the page is never a dead end
+ *   1. back to /gallery, the name, the three-beat line, one large photograph,
+ *      and a Book button that jumps down to 3
+ *   2. the gallery, with a lightbox: only this collection's published
+ *      photographs (lib/gallery.ts)
+ *   3. the booking section: the style named, what to tap, and the Square
+ *      scheduler itself (components/collection-booking.tsx). This is where
+ *      the Book button on the collection's card lands
+ *   4. three other collections and the way back to all six, so the page is
+ *      never a dead end
+ *
+ * Booking on the page replaced the wine band that closed it, which sent the
+ * visitor to /book/ for a scheduler that could not be told the style anyway.
+ * "Book Your Chair" in the nav still goes to /book/, the general way in.
  */
 
 export const dynamicParams = false;
@@ -158,24 +168,40 @@ export default async function CollectionPage({
         </section>
       ) : null}
 
-      <BookingCta
-        heading={COLLECTION_PAGE.cta.heading}
-        body={COLLECTION_PAGE.cta.body}
-      />
+      <CollectionBooking collection={collection} />
 
       <section
         aria-labelledby="related-heading"
-        className="border-t border-line bg-surface-2/50"
+        className="border-t border-line bg-bg"
       >
         <div className="mx-auto max-w-[1400px] px-5 py-16 sm:px-8 lg:py-24">
-          <Reveal>
-            <h2
-              id="related-heading"
-              className="font-display text-2xl leading-tight tracking-tight text-ink md:text-3xl"
-            >
-              {COLLECTION_PAGE.related}
-            </h2>
-          </Reveal>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <Reveal className="min-w-0">
+              <h2
+                id="related-heading"
+                className="font-display text-2xl leading-tight tracking-tight text-ink md:text-3xl"
+              >
+                {COLLECTION_PAGE.related}
+              </h2>
+            </Reveal>
+
+            {/* The same way back to all six that opens the page, for whoever
+                reaches the foot of it without finding her look. */}
+            <Reveal index={1} className="shrink-0">
+              <a
+                href="/gallery/"
+                className="group inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"
+              >
+                {COLLECTION_PAGE.back}
+                <ArrowRight
+                  size={16}
+                  weight="regular"
+                  aria-hidden="true"
+                  className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 motion-reduce:transition-none"
+                />
+              </a>
+            </Reveal>
+          </div>
 
           <ul className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:mt-14">
             {related.map((other, index) => (

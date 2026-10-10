@@ -10,6 +10,7 @@ import {
 import { ButtonLink } from "@/components/button";
 import { Photograph } from "@/components/photo";
 import { useSiteView } from "@/components/site-photos";
+import { collectionPath } from "@/lib/collections";
 import { bookingTarget, CTA, HERO } from "@/lib/content";
 import { HERO_SLIDES } from "@/lib/images";
 
@@ -639,7 +640,7 @@ export function HeroCarousel() {
               out six times with six different destinations behind it.
             */}
             <ButtonLink
-              href={`/gallery/${active.collection}/`}
+              href={collectionPath(active.collection)}
               variant="quiet"
               aria-label={`${CTA.gallery}: ${active.label}`}
             >

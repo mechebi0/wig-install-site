@@ -18,7 +18,7 @@ import type { SectionKey } from "@/lib/cms/defaults";
  */
 
 /** Placeholders some texts fill in per page, beyond the location ones every text may use. */
-export type Placeholder = "service" | "finish" | "install type";
+export type Placeholder = "service" | "finish" | "install type" | "style";
 
 type Base = {
   key: string;
@@ -607,7 +607,7 @@ export const SECTION_SPECS: SectionSpec[] = [
   {
     key: "gallery",
     title: "Gallery & collections",
-    intro: "The gallery page and the six collection pages. The photos are chosen in the photo manager.",
+    intro: "The gallery page and the six collection pages, including the booking section under each collection's photos. The photos are chosen in the photo manager.",
     groups: [
       { title: "Gallery page opening", fields: pageOpening("the gallery") },
       {
@@ -661,10 +661,24 @@ export const SECTION_SPECS: SectionSpec[] = [
           text("galleryHeading", "Heading over the photos", 60),
           text("galleryHint", "Hint under that heading", 120),
           text("related", "Heading over other collections", 60),
-          text("ctaHeading", "Closing band heading", 60),
-          area("ctaBody", "Closing band sentence", 300, { required: false }),
-          text("styleLabel", "Label over a style collection's name", 24),
+          text("styleLabel", "Label over a style collection's name", 24, {
+            help: "Also beside the collection's name in its booking section.",
+          }),
           text("laceFinishLabel", "Label over Natural Lace's name, and its card badge", 24),
+        ],
+      },
+      {
+        title: "Booking on a collection page",
+        help: "The scheduler under each collection's photos. Square's scheduler opens on your whole menu and cannot be told which look the client picked, so these steps tell her what to tap. Use {style} for the collection's name.",
+        fields: [
+          text("ctaHeading", "Heading", 60),
+          area("ctaBody", "Sentence under the heading", 300, { required: false }),
+          text("bookingStep1", "Step 1", 160, { placeholders: ["style"] }),
+          text("bookingStep2", "Step 2", 160, { placeholders: ["style"] }),
+          text("bookingStep3", "Last step", 160, {
+            placeholders: ["style"],
+            help: "Tell the client the style is not sent with the booking.",
+          }),
         ],
       },
       {

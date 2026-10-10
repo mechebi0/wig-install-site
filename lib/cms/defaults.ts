@@ -531,9 +531,13 @@ export const DEFAULT_CONTENT = {
     galleryHeading: "Explore the collection",
     galleryHint: "Select any photograph to see it larger.",
     related: "More from the collection",
+    /** The booking section under a collection's photographs, beside the scheduler. */
     ctaHeading: "Ready for your crown?",
     ctaBody:
       "Bring this page to your consult. Nat will tell you straight whether the unit you have will get you there.",
+    bookingStep1: "Tap the service you want in the scheduler's menu.",
+    bookingStep2: "Choose a day and time, then confirm your details.",
+    bookingStep3: "The scheduler books the service, not the look, so tell Nat you want {style} at your appointment.",
     styleLabel: "Style",
     laceFinishLabel: "Lace finish",
     /** The explainer only the Natural Lace page shows. */
@@ -848,6 +852,9 @@ export const REQUIRED_TEXT = [
   "gallery.galleryHint",
   "gallery.related",
   "gallery.ctaHeading",
+  "gallery.bookingStep1",
+  "gallery.bookingStep2",
+  "gallery.bookingStep3",
   "gallery.styleLabel",
   "gallery.laceFinishLabel",
   "gallery.finishFocus.eyebrow",

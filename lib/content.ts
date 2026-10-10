@@ -39,6 +39,7 @@
 import { SERVICE_CATEGORY_OF, type HomeSectionId } from "@/lib/cms/defaults";
 import { fillPlaceholders, splitParagraphs, type Place } from "@/lib/cms/model";
 import { PLACES, SITE } from "@/lib/cms/published";
+import { collectionPath } from "@/lib/collections";
 import {
   getFinish,
   getInstallType,
@@ -241,17 +242,19 @@ function withParams(href: string, params: Record<string, string | undefined>) {
 }
 
 /**
- * What the visitor chose, or was looking at, when she decided to book. All
- * optional. The two selection fields also take null, so a BookingSelection
- * from lib/taxonomy.ts can be passed straight through.
+ * What the visitor chose when she decided to book. Both optional, and both
+ * also take null, so a BookingSelection from lib/taxonomy.ts can be passed
+ * straight through.
+ *
+ * The style is not in here. A style is not something the scheduler can be
+ * told, so a style's Book button opens that style's own page instead, where
+ * the scheduler sits under its photographs (collectionBookingTarget below).
  */
 export type BookingIntent = {
   /** The service axis. Frontal or closure; see lib/taxonomy.ts. */
   install?: InstallTypeId | null;
   /** The add-on axis. Curls, Wand Curls or Crimps; see lib/taxonomy.ts. */
   finish?: FinishId | null;
-  /** The style axis. A collection slug, e.g. "deep-wave-glam". */
-  style?: string;
 };
 
 /**
@@ -293,7 +296,6 @@ export const BOOKING_ANCHOR = "request";
  *   bookingTarget({ install: "frontal" })      -> /book/?install=frontal
  *   bookingTarget({ install: "frontal", finish: "curls" })
  *                                              -> /book/?install=frontal&finish=curls
- *   bookingTarget({ style: "deep-wave-glam" }) -> /book/?style=deep-wave-glam
  *
  * A finish never picks the destination. It is an add-on to an install type,
  * not an appointment type of its own, so it only ever rides along on the
@@ -301,7 +303,7 @@ export const BOOKING_ANCHOR = "request";
  * Under `output: "export"` an unread query string is ignored by the static
  * route, so nothing breaks from the parameters' presence.
  */
-export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
+export function bookingTarget({ install, finish }: BookingIntent = {}) {
   const external =
     (install ? getInstallType(install).bookingUrl.trim() : "") ||
     STUDIO.bookingUrl.trim();
@@ -311,7 +313,6 @@ export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
       href: withParams(external, {
         install: install ?? undefined,
         [EXTERNAL_FINISH_PARAM]: finish ? getFinish(finish).label : undefined,
-        style,
       }),
       target: "_blank" as const,
       rel: "noopener noreferrer",
@@ -322,7 +323,6 @@ export function bookingTarget({ install, finish, style }: BookingIntent = {}) {
     href: withParams("/book/", {
       install: install ?? undefined,
       finish: finish ?? undefined,
-      style,
     }),
   };
 }
@@ -352,6 +352,36 @@ export function serviceBookingTarget(
   return {
     href: withParams(serviceBookingPath(id), { finish: intent.finish ?? undefined }),
   };
+}
+
+/** The id of the booking section on a collection page (components/collection-booking.tsx). */
+export const COLLECTION_BOOKING_ANCHOR = "book";
+
+/**
+ * Where a style's Book button points: that style's own page, opened at its
+ * booking section, where the scheduler sits under the style's photographs
+ * with the style named beside it. Every collection card's Book spreads this,
+ * and so does the Book button at the top of the collection page itself
+ * (`onPage`, a jump down the same page).
+ *
+ * Not /book/. A style is not a service and Square's scheduler cannot be told
+ * one, so a style's button that opened the whole menu dropped the choice on
+ * the way. "Book Your Chair" still goes to /book/ (bookingTarget above), and
+ * an external booking link, when one is set, still wins here as it does for
+ * every booking button.
+ *
+ *   collectionBookingTarget("deep-wave-glam")
+ *     -> /gallery/deep-wave-glam/#book
+ *   collectionBookingTarget("deep-wave-glam", { onPage: true })
+ *     -> #book
+ */
+export function collectionBookingTarget(
+  slug: string,
+  { onPage = false }: { onPage?: boolean } = {},
+) {
+  const target = bookingTarget();
+  if ("target" in target) return target;
+  return { href: `${onPage ? "" : collectionPath(slug)}#${COLLECTION_BOOKING_ANCHOR}` };
 }
 
 /** True while booking runs through the form on /book rather than an external tool. */
@@ -491,9 +521,19 @@ export const COLLECTION_PAGE = {
   gallery: SITE.gallery.galleryHeading,
   galleryHint: SITE.gallery.galleryHint,
   related: SITE.gallery.related,
-  cta: {
+  /**
+   * The booking section under the photographs (components/collection-booking.tsx).
+   * The scheduler opens on Nat's whole menu and cannot be told the style, so
+   * the steps say what to tap and that the style is hers to mention.
+   * `{style}` in Nat's wording is the collection's name.
+   */
+  booking: {
     heading: SITE.gallery.ctaHeading,
     body: SITE.gallery.ctaBody,
+    steps: (style: string) =>
+      [SITE.gallery.bookingStep1, SITE.gallery.bookingStep2, SITE.gallery.bookingStep3].map(
+        (step) => fillPlaceholders(step, { style }),
+      ),
   },
   /** The eyebrow over a collection's name, and the badge on the finish collection's card. */
   styleLabel: SITE.gallery.styleLabel,

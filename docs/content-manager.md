@@ -101,8 +101,10 @@ out of date when you change location:
 | `{all locations}` | Towson and Laurel, MD |
 
 The service booking pages also understand `{service}` (the service's name) and
-`{finish}` (the finish the client chose). Under each text that uses one, the
-dashboard shows **Reads as:** with them filled in. Anything else in curly
+`{finish}` (the finish the client chose), and the booking steps on a
+collection page (Website content, Gallery, "Booking on a collection page")
+understand `{style}` (the collection's name). Under each text that uses one,
+the dashboard shows **Reads as:** with them filled in. Anything else in curly
 brackets is refused when you save, so a typo cannot reach the website.
 
 ### Prices and Square

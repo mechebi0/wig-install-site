@@ -47,8 +47,8 @@ export function CollectionGrid({
    * moment to let them book it rather than making them find the CTA at the
    * foot of the page and then say which style they wanted from memory.
    *
-   * The slug rides along on the link, so the choice survives the click. See
-   * bookingTarget() in lib/content.ts.
+   * Each one opens that style's own page at its scheduler, so the choice
+   * survives the click. See collectionBookingTarget() in lib/content.ts.
    */
   booking?: boolean;
 }) {

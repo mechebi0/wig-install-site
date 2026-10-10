@@ -21,12 +21,13 @@ import { INSTALL_TYPES } from "@/lib/taxonomy";
  *   InstallTypes         the three services, frontal, closure and
  *                        reinstalls, out to each one's booking page and to
  *                        each install's own page
- *   CollectionShowcase   six style cards, out to /gallery
+ *   CollectionShowcase   six style cards, out to each style's own page
+ *                        under /gallery, and its scheduler
  *
  * They answer two different questions and are kept visibly apart. InstallTypes
  * is what you book. CollectionShowcase is the hair you browse. Nothing in the
- * second block is a service, which is why its Book buttons carry a style and
- * this block's carry an install type.
+ * second block is a service, which is why its Book buttons open the style's
+ * own page at its scheduler and this block's open a service's booking page.
  */
 
 /** A quiet text link with a rule that wipes in. The site's tertiary action. */

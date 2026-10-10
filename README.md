@@ -28,7 +28,7 @@ own page.
 | -------------------------- | ----------------------------------------------------------------- |
 | `/`                        | Hero carousel, the two install types, six style collections, recent work |
 | `/gallery`                  | The six collections as large editorial cards                       |
-| `/gallery/deep-wave-glam`   | Collection hero, gallery with lightbox, CTA, related collections   |
+| `/gallery/deep-wave-glam`   | Collection hero, gallery with lightbox, then booking: the style named, the steps and the Square scheduler (`#book`), related collections |
 | `/gallery/sleek-straight`   | as above                                                          |
 | `/gallery/signature-bob`    | as above                                                          |
 | `/gallery/body-wave-glam`   | as above                                                          |
@@ -57,9 +57,20 @@ one service ("Book Closure Install") goes to that service's page. Square's
 embed cannot be opened on one service, so those pages name the service and
 say which line of the scheduler to tap.
 
+Every way into a style opens that style's own page: a collection card's
+photograph, name and "View collection" open it at the top, and its Book button
+opens it at the scheduler, `/gallery/<slug>/#book` (`collectionBookingTarget`
+in `lib/content.ts`). A style is not a service and Square cannot be told one,
+so the booking section names the style and says to mention it to Nat; nothing
+claims it reaches Square. Which photographs a style page shows is the
+collections Nat ticks for each photograph in the photo manager, published
+photographs only (`lib/gallery.ts`); `tests/collection-pages.test.mjs` checks
+the routing, the redirects and the filtering.
+
 Two earlier URLs are still linked from elsewhere: `/work` (the single page that
 carried the whole portfolio) and `/styles` (the collections, before the rename).
-`public/_redirects` 301s both to `/gallery/`. It also sends a bare `/installs/`,
+`public/_redirects` 301s both to `/gallery/`, and `/styles/<slug>` and
+`/styles/<slug>/` to that style's page. It also sends a bare `/installs/`,
 which is not a page, to `/book/` (302), where the two installs sit side by side.
 
 ## Deployment
@@ -139,7 +150,7 @@ alt text, then list it in whichever collections it belongs to.
 - `STUDIO.bookingUrl` — **the one switch that controls booking.** Leave it empty
   and every CTA goes to `/book`. Paste a Square / Fresha / Calendly / Acuity
   link and every CTA opens that instead, and `/book` swaps the form for a
-  hand-off panel automatically. `bookingTarget({ install, finish, style })`
+  hand-off panel automatically. `bookingTarget({ install, finish })`
   builds the link; an install-type link (below) wins over this one when it is
   set.
 - `SERVICES` — the seven services with the names, prices, descriptions, order

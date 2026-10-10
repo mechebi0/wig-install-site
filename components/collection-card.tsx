@@ -6,7 +6,8 @@ import { LookCount } from "@/components/look-count";
 import { Photograph } from "@/components/photo";
 import { useSiteView } from "@/components/site-photos";
 import type { StyleCollection } from "@/lib/collections";
-import { COLLECTION_PAGE, CTA, bookingTarget } from "@/lib/content";
+import { collectionPath } from "@/lib/collections";
+import { COLLECTION_PAGE, CTA, collectionBookingTarget } from "@/lib/content";
 import { findResolved } from "@/lib/gallery";
 
 /**
@@ -59,8 +60,9 @@ import { findResolved } from "@/lib/gallery";
  * ---------------------------------------------------------------------------
  * AND WHY THE BOOK BUTTON SITS OUTSIDE IT
  * ---------------------------------------------------------------------------
- * `booking` adds a second action to the card, going to a different place, so
- * it cannot live inside the anchor: an <a> inside an <a> is invalid HTML and
+ * `booking` adds a second action to the card, landing somewhere else (the
+ * same collection page, but at its scheduler rather than its top), so it
+ * cannot live inside the anchor: an <a> inside an <a> is invalid HTML and
  * browsers recover from it by splitting the markup, which loses the button.
  *
  * The alternative was the stretched-link pattern (container goes inert, the
@@ -106,8 +108,8 @@ export function CollectionCard({
    * Off by default, and on for the grid (see components/collection-grid.tsx),
    * which is what the homepage and /gallery render. The one place that builds
    * cards without the grid is the related rail at the foot of a collection
-   * page, and that page already closes on a full booking band; a third ask
-   * three inches above it would be the page repeating itself.
+   * page, directly under that page's own scheduler; a Book on each of those
+   * cards would be three more asks pointing away from the one just above.
    */
   booking?: boolean;
 }) {
@@ -119,7 +121,7 @@ export function CollectionCard({
   return (
     <div>
       <a
-        href={`/gallery/${collection.slug}/`}
+        href={collectionPath(collection.slug)}
         className="group block focus-visible:outline-none"
       >
         <div
@@ -225,6 +227,9 @@ export function CollectionCard({
       {/*
         The booking action. Second in the tab order, after the collection link,
         which is the order the eye reads them in: see the style, then book it.
+        It opens the same collection page as the card, at its scheduler
+        (collectionBookingTarget in lib/content.ts), so the style she chose is
+        named beside the booking and its photographs are one scroll above.
 
         The visible label is one word because six cards each shouting "Book
         Your Chair" is a wall rather than a grid, but the accessible name is
@@ -242,7 +247,7 @@ export function CollectionCard({
         <div className="mt-5">
           <ButtonLink
             variant="card"
-            {...bookingTarget({ style: collection.slug })}
+            {...collectionBookingTarget(collection.slug)}
           >
             <CalendarCheck size={15} weight="regular" aria-hidden="true" />
             {CTA.bookStyle}

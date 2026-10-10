@@ -430,8 +430,12 @@ function ServicePhotos({
   );
 }
 
-/** One of the steps above the scheduler, numbered the way the install pages number theirs. */
-function Step({ number, children }: { number: number; children: ReactNode }) {
+/**
+ * One of the steps above the scheduler, numbered the way the install pages
+ * number theirs. A collection page's booking section numbers its steps with
+ * it too (components/collection-booking.tsx).
+ */
+export function Step({ number, children }: { number: number; children: ReactNode }) {
   return (
     <li className="flex items-start gap-4">
       <span
@@ -446,7 +450,7 @@ function Step({ number, children }: { number: number; children: ReactNode }) {
 }
 
 /** A sentence with one phrase in it set in ink, so the line to tap stands out. */
-function Emphasised({ text, phrase }: { text: string; phrase: string }) {
+export function Emphasised({ text, phrase }: { text: string; phrase: string }) {
   const at = text.indexOf(phrase);
   if (at < 0) return <>{text}</>;
   return (

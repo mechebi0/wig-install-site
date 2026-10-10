@@ -51,6 +51,7 @@ const SAMPLES: Record<string, string> = {
   service: "Frontal Install",
   finish: "Curls",
   "install type": "reinstalls",
+  style: "Deep Wave Glam",
 };
 
 /** A text as the website would show it: the locations filled in, and samples for the rest. */
